@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="7层模型为什么干不过TCP&#x2F;IP体系4层模型？ 制定时OSI专家缺乏实际经验，并且完成标准时缺乏商业驱动力； 层次划分不太合理，有些功能在多个层次重复出现  TCP&#x2F;IP四层模型： ​			应用层，传输层，网络层，网络接口层（数据链路层+物理层） 五层理论模型（便于教学）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="新科哈">
+<meta property="og:url" content="http://example.com/2023/04/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="Wei&#39;s Blog">
+<meta property="og:description" content="7层模型为什么干不过TCP&#x2F;IP体系4层模型？ 制定时OSI专家缺乏实际经验，并且完成标准时缺乏商业驱动力； 层次划分不太合理，有些功能在多个层次重复出现  TCP&#x2F;IP四层模型： ​			应用层，传输层，网络层，网络接口层（数据链路层+物理层） 五层理论模型（便于教学）">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/TCP1.png?raw=true">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/TCP4.png?raw=true">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/DNS.png?raw=true">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/HTTP%E8%AF%B7%E6%B1%82%E6%8A%A5%E6%96%87.png?raw=true">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/HTTP%E5%93%8D%E5%BA%94%E6%8A%A5%E6%96%87.png?raw=true">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/base64.png?raw=true">
+<meta property="article:published_time" content="2023-04-02T11:42:37.000Z">
+<meta property="article:modified_time" content="2023-06-02T11:46:29.504Z">
+<meta property="article:author" content="Wei">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/TCP1.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/04/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>新科哈 | Wei's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Wei's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/04/02/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/naruto.jpg">
+      <meta itemprop="name" content="Wei">
+      <meta itemprop="description" content="吾日三省吾身">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          新科哈
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-04-02 19:42:37" itemprop="dateCreated datePublished" datetime="2023-04-02T19:42:37+08:00">2023-04-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-06-02 19:46:29" itemprop="dateModified" datetime="2023-06-02T19:46:29+08:00">2023-06-02</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="7层模型为什么干不过TCP-x2F-IP体系4层模型？"><a href="#7层模型为什么干不过TCP-x2F-IP体系4层模型？" class="headerlink" title="7层模型为什么干不过TCP&#x2F;IP体系4层模型？"></a>7层模型为什么干不过TCP&#x2F;IP体系4层模型？</h1><ul>
+<li>制定时OSI专家缺乏实际经验，并且完成标准时缺乏商业驱动力；</li>
+<li>层次划分不太合理，有些功能在多个层次重复出现</li>
+</ul>
+<p>TCP&#x2F;IP四层模型：</p>
+<p>​			应用层，传输层，网络层，网络接口层（数据链路层+物理层）</p>
+<p>五层理论模型（便于教学）</p>
+<span id="more"></span>
+
+<ul>
+<li>应用层：定义了两个终端设备上应用程序之间信息交换的格式，从而实现某种特定的网络应用。</li>
+<li>传输层：负责向两台终端设备进程之间的通信提供数据传输服务，为应用进程传送应用层报文。</li>
+<li>网络层：负责分组网络上不同主机的通讯服务</li>
+<li>数据链路层：将网络层下发的IP数据包封装成帧，在相邻节点链路上传输帧 物理层：实现相邻计算机节点之间将数据帧以比特流的方式透明传输，尽可能屏蔽传输介质和物理设备的干扰。</li>
+<li>物理层：实现相邻计算机节点之间将数据帧以比特流的方式透明传输，尽可能屏蔽传输介质和物理设备的干扰。</li>
+</ul>
+<h1 id="网络模型分层的原因？"><a href="#网络模型分层的原因？" class="headerlink" title="网络模型分层的原因？"></a>网络模型分层的原因？</h1><p>对于复杂系统，往往都需要分层， 分层之后每一层只需要专注做一类事情，网络分层也是一样，我认为这样做的好处有以下3点：</p>
+<ol>
+<li>各层之间相互独立，不需要关注下层如何实现，就像我们平时使用框架开发一个后台程序来说，会分成数据库持久层，业务层service还有前后端数据交互的controller层。上层知道下层提供的接口，进行调用就好。</li>
+<li>提高了整体灵活性。每一层都可以使用最适合的技术来实现，你只需要保证你提供的功能以及暴露的接口的规则没有改变就行了。<strong>这个和我们平时开发系统的时候要求的高内聚、低耦合的原则也是可以对应上的。</strong></li>
+<li>大问题化小 ：分层可以将复杂的网络问题分解为许多较小的问题分而治之，使计算机系统易于设计和标准化。我们进行开发时，也会将系统功能分解成许多更容易解决的小问题，这些小的问题具有更好的边界定义。</li>
+</ol>
+<blockquote>
+<p> “计算机科学领域的任何问题都可以通过增加一个间接的中间层来解决.”</p>
+</blockquote>
+<h1 id="常见的应用层协议？"><a href="#常见的应用层协议？" class="headerlink" title="常见的应用层协议？"></a>常见的应用层协议？</h1><ul>
+<li>HTTP：超文本传输协议</li>
+</ul>
+<blockquote>
+<p>主要是为了Web浏览器和Web服务器之间通信而设计的；</p>
+</blockquote>
+<blockquote>
+<p>基于TCP协议，建立连接需要3次握手；目前使用的HTTP大部分是1.1版本，在HTTP1.1中，默认开启Keep-Alive, 表示建立的连接可以在多次请求中复用；</p>
+</blockquote>
+<blockquote>
+<p>HTTP协议是“无状态的”，指对于事务处理没有记忆能力，无法记录客户端用户的状态，意味着如何后续处理需要前面的信息，则必须要重传；一般哦我们通过Session来记录客户端用户的状态。</p>
+</blockquote>
+<ul>
+<li><p>SMTP 邮件传输协议</p>
+</li>
+<li><p>FTP 文件传输协议</p>
+</li>
+<li><p>DHCP 动态主机配置协议</p>
+</li>
+<li><p>DNS 域名解析协议</p>
+</li>
+<li><p>Telnet 远程登陆协议，通过一个终端登陆到其他服务器，建立在可靠的传输协议 TCP 之上。Telnet 协议的最大缺点之一是所有数据（包括用户名和密码）均以明文形式发送。</p>
+</li>
+<li><p>SSH 安全的网络传输协议，<strong>Telnet</strong> <strong>和</strong> <strong>SSH</strong> <strong>之间的主要区别在于</strong> <strong>SSH</strong> <strong>协议会对传输的数据进行加密保证数据安全性。</strong></p>
+</li>
+</ul>
+<h1 id="TCP-与-UDP-的区别（重要）"><a href="#TCP-与-UDP-的区别（重要）" class="headerlink" title="TCP 与 UDP 的区别（重要）"></a>TCP 与 UDP 的区别（重要）</h1><ol>
+<li><strong>是否面向连接</strong> ：UDP 在传送数据之前不需要先建立连接。而 TCP 提供面向连接的服务，在传送数据之前必须先建立连接，数据传送结束后要释放连接。</li>
+<li><strong>是否是可靠传输</strong>：远地主机在收到 UDP 报文后，不需要给出任何确认，并且不保证数据不丢失，不保证是否顺序到达。TCP 提供可靠的传输服务，TCP 在传递数据之前，会有三次握手来建立连接，而且在数据传递时，有确认、窗口、重传、拥塞控制机制。通过 TCP 连接传输的数据，无差错、不丢失、不重复、并且按序到达。</li>
+<li><strong>是否有状态</strong> ：这个和上面的“是否可靠传输”相对应。TCP 传输是有状态的，这个有状态说的是 TCP 会去记录自己发送消息的状态比如消息是否发送了、是否被接收了等等。为此 ，TCP 需要维持复杂的连接状态表。而 UDP 是无状态服务，简单来说就是不管发出去之后的事情了（<strong>这很渣男！</strong>）。</li>
+<li><strong>传输效率</strong> ：由于使用 TCP 进行传输的时候多了连接、确认、重传等机制，所以 TCP 的传输效率要比 UDP 低很多。</li>
+<li><strong>传输形式</strong> ： TCP 是面向字节流的，UDP 是面向报文的。</li>
+<li><strong>首部开销</strong> ：TCP 首部开销（20 ～ 60 字节）比 UDP 首部开销（8 字节）要大。</li>
+<li><strong>是否提供广播或多播服务</strong> ：TCP 只支持点对点通信，UDP 支持一对一、一对多、多对一、多对多；</li>
+</ol>
+<h1 id="什么时候选择-TCP-什么时候选-UDP"><a href="#什么时候选择-TCP-什么时候选-UDP" class="headerlink" title="什么时候选择 TCP,什么时候选 UDP?"></a>什么时候选择 TCP,什么时候选 UDP?</h1><ol>
+<li><p><strong>UDP</strong> <strong>一般用于即时通信</strong>，比如： 语音、 视频 、直播等等。这些场景对传输数据的准确性要求不是特别高，比如你看视频即使少个一两帧，实际给人的感觉区别也不大;广播通讯;以及总包量较少的通讯：DHCP DNS</p>
+</li>
+<li><p><strong>TCP</strong> <strong>用于对传输准确性要求特别高的场景</strong>，比如文件传输、发送和接收邮件、远程登录等等。</p>
+</li>
+</ol>
+<h1 id="使用-TCP-的协议有哪些-使用-UDP-的协议有哪些"><a href="#使用-TCP-的协议有哪些-使用-UDP-的协议有哪些" class="headerlink" title="使用 TCP 的协议有哪些?使用 UDP 的协议有哪些?"></a>使用 TCP 的协议有哪些?使用 UDP 的协议有哪些?</h1><p>使用TCP协议的应用层协议：</p>
+<ol>
+<li><strong>HTTP</strong> <strong>协议</strong> ：超文本传输协议（HTTP，HyperText Transfer Protocol)主要是为 Web 浏览器与 Web 服务器之间的通信而设计的。</li>
+<li><strong>HTTPS</strong> <strong>协议</strong> ：更安全的超文本传输协议(HTTPS,Hypertext Transfer Protocol Secure)，身披 SSL 外衣的 HTTP 协议</li>
+<li><strong>FTP</strong> <strong>协议</strong>：文件传输协议 FTP</li>
+<li><strong>SMTP</strong> <strong>协议</strong>：简单邮件传输协议</li>
+<li><strong>POP3&#x2F;IMAP</strong> <strong>协议</strong>： POP3 和 IMAP 两者都是负责邮件接收的协议。</li>
+<li><strong>Telnet</strong> <strong>协议</strong></li>
+<li><em>SSH</em>* <strong>协议</strong></li>
+</ol>
+<p>使用UDP协议的应用层协议：</p>
+<ol>
+<li>DHCP</li>
+<li>DNS</li>
+</ol>
+<h1 id="TCP-三次握手和四次挥手（非常重要）"><a href="#TCP-三次握手和四次挥手（非常重要）" class="headerlink" title="TCP 三次握手和四次挥手（非常重要）"></a>TCP 三次握手和四次挥手（非常重要）</h1><p><img src="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/TCP1.png?raw=true" alt="TCP1.png"></p>
+<p>一次握手：客户端发送带有同步标志位SYN的报文（并带有这条报文的序号seq&#x3D;x），然后客户端进入<strong>SYN_SEND</strong> 状态，等待服务器的确认；</p>
+<p>二次握手：服务端发送带有同步标志位SYN的确认报文（ACK是确认标志位），并且报文中还包含对一次握手报文的确认序号（x + 1）以及该报文的序号y; 然后服务端进入 <strong>SYN_RECV</strong> 状态</p>
+<p>三次握手：客户端发送确认报文ACK，然后客户端和服务器端都进入<strong>ESTABLISHED</strong> 状态，完成TCP三次握手。</p>
+<p>【TCP报文为每个字节数据进行了编号seg】</p>
+<p>三次握手的目的是建立可靠的通信信道，三次握手的目的是建立可靠的通信信道，必须保证双向</p>
+<p>其实三次握手可以拆解成像四次挥手那样，</p>
+<p>Client发送同步报文SYN，server返回确认报文ACK client可以确保client à server发送通信正常；</p>
+<p>Server发送同步报文SYN, client返回确认报文ACK  server可以确保serveràclient发送通信正常；</p>
+<p>显然第二步和第三步可以合并；要保证双向传输的可靠。</p>
+<blockquote>
+<p>问题的本质是，信道不可靠，为满足“在不可靠信道上可靠地传输信息”，通信双方所需要达成的协议。（三次握手）精辟啊~！</p>
+</blockquote>
+<h1 id="TCP为什么不是两次握手？"><a href="#TCP为什么不是两次握手？" class="headerlink" title="TCP为什么不是两次握手？"></a>TCP为什么不是两次握手？</h1><p>接下来以3个方面分析三次握手的原因：</p>
+<ul>
+<li><p><strong>避免历史连接（主要原因）</strong>：如果采用两次握手，server端只要接收到syn报文就要进入连接建立状态，如果由于网络阻塞，client重传了多次同步报文，那么延迟的历史请求报文到达server端后，server也会进入连接建立状态，而client对server发来的确认报文并不理会，造成server端资源浪费；</p>
+<p>而三次握手，当server端发来对于历史请求的ack报文后，client会返回带有RST标志位的报文，以此终止历史连接。</p>
+</li>
+<li><p><strong>三次握手才可以同步双方的初始序列号：</strong></p>
+<p>序列号能够保证数据包不重复、不丢弃和按序传输。如果两次握手，只能保证客户端的初始序列号ISN被同步，而不能保证服务端的初始序列号被同步。</p>
+</li>
+</ul>
+<h1 id="四次挥手"><a href="#四次挥手" class="headerlink" title="四次挥手"></a>四次挥手</h1><p>第一次挥手：client发送一个带有终止标志位FIN的报文，用来关闭客户端到服务端的数据传送;</p>
+<p>第二次挥手：server收到客户端的FIN后，发送确认报文ACK，通知应用进程该方向数据传输停止；</p>
+<p>第三次挥手：server发送带有终止标志位的FIN报文，用来关闭服务端到客户端的数据传送；</p>
+<p>第四次挥手：client收到服务端发送的FIN报文，之后发送确认报文ACK，之后进入TIME-WAIT时间等待状态，如果客户端经过2MSL（报文段最长寿命，一个片段在网络中的最大存活时间）一九没有收到server发来的报文，则证明服务端已经关闭连接，随之客户端关闭连接。</p>
+<h1 id="为什么要四次挥手？"><a href="#为什么要四次挥手？" class="headerlink" title="为什么要四次挥手？"></a>为什么要四次挥手？</h1><p>TCP是全双工通信，可以双向传输数据。任何一方都可以在数据传送结束后发出连接释放的通知，待对方确认后进入半关闭状态。当另一方也没有数据再发送的时候，则发出连接释放通知，对方确认后就完全关闭了 TCP 连接。</p>
+<h1 id="为什么不能把服务器发送的-ACK-和-FIN-合并起来，变成三次挥手？"><a href="#为什么不能把服务器发送的-ACK-和-FIN-合并起来，变成三次挥手？" class="headerlink" title="为什么不能把服务器发送的 ACK 和 FIN 合并起来，变成三次挥手？"></a>为什么不能把服务器发送的 ACK 和 FIN 合并起来，变成三次挥手？</h1><p>因为服务器收到客户端断开连接的请求时，可能还有一些数据没有发完，这时先回复ACK，表示接收到了断开连接的请求。等到数据发完之后再发 FIN，断开服务器到客户端的数据传送。</p>
+<h1 id="为什么第四次挥手客户端需要等待-2-MSL（报文段最长寿命）时间后才进入-CLOSED-状态？"><a href="#为什么第四次挥手客户端需要等待-2-MSL（报文段最长寿命）时间后才进入-CLOSED-状态？" class="headerlink" title="为什么第四次挥手客户端需要等待 2*MSL（报文段最长寿命）时间后才进入 CLOSED 状态？"></a>为什么第四次挥手客户端需要等待 2*MSL（报文段最长寿命）时间后才进入 CLOSED 状态？</h1><p>因为第四次挥手client发送给server的确认报文ACK可能丢失，server端会超时重传，如果client在发送完ACK之后就直接关闭连接，那么server超时重传的FIN就不会被client接收到。所以2*MSL是为了保证这个FIN的超时重传能被接收。</p>
+<h1 id="TCP-如何保证传输的可靠性？"><a href="#TCP-如何保证传输的可靠性？" class="headerlink" title="TCP 如何保证传输的可靠性？"></a>TCP 如何保证传输的可靠性？</h1><p>​    差错检测 超时重传 流量控制  拥塞处理</p>
+<h1 id="TCP-如何实现流量控制？"><a href="#TCP-如何实现流量控制？" class="headerlink" title="TCP 如何实现流量控制？"></a>TCP 如何实现流量控制？</h1><p><strong>流量控制是为了控制发送方发送速率，保证接收方来得及接收。</strong>如果接收方处理不过来的话，就只能把处理不过来的数据存在 接收缓冲区(Receiving Buffers) 里（失序的数据包也会被存放在缓存区里）。如果缓存区满了发送方还在狂发数据的话，接收方只能把收到的数据包丢掉。</p>
+<p><strong>TCP</strong> <strong>利用滑动窗口实现流量控制。发送方有一个发送窗口，接收方有一个接收窗口，</strong> </p>
+<p>接收方的确认报文中有已确认接收的字节序号以及接收窗口大小，发送方根据确认报文，进行发送窗口移动和发送窗口大小的调整。</p>
+<p>接收方必须有累计确认【累计收到多少个字节就要发送确认报文，确认推迟的时间不应超过0.5秒】和稍带确认机制【接收方在自己有数据要发送时，把确认信息顺便稍带上，稍带确认并不常发生，因为很少同时在两个方向发送数据】</p>
+<h1 id="TCP-的拥塞控制是怎么实现的？"><a href="#TCP-的拥塞控制是怎么实现的？" class="headerlink" title="TCP 的拥塞控制是怎么实现的？"></a>TCP 的拥塞控制是怎么实现的？</h1><p>在某段时间，若对网络中某一资源的需求超过了该资源所能提供的可用部分，网络的性能就要变坏。这种情况就叫<strong>拥塞</strong>。</p>
+<p><strong>拥塞控制</strong>就是为了防止过多的数据注入到网络中，这样就可以使网络中的路由器或链路不致过载。拥塞控制所要做的都有一个前提，就是网络能够承受现有的网络负荷。</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/TCP4.png?raw=true" alt="TCP4.png"></p>
+<h2 id="拥塞控制与流量控制的区别？"><a href="#拥塞控制与流量控制的区别？" class="headerlink" title="拥塞控制与流量控制的区别？"></a>拥塞控制与流量控制的区别？</h2><p>拥塞控制是一个全局性的过程，涉及到所有的主机，所有的路由器，以及与降低网络传输性能有关的所有因素。</p>
+<p>而流量控制是是个端到端的问题，流量控制所要做到的就是抑制发送端发送数据的速率，以便使接收端来得及接收。</p>
+<h2 id="TCP如何实现拥塞控制的？"><a href="#TCP如何实现拥塞控制的？" class="headerlink" title="TCP如何实现拥塞控制的？"></a>TCP如何实现拥塞控制的？</h2><p>发送方要维持一个拥塞窗口（cwnd），来衡量网络的拥塞程度，这取决于网络中发生超时重传的次数。发送方让自己的发送窗口取拥塞窗口和接收方的接受窗口中较小的一个。</p>
+<p>TCP 的拥塞控制采用了四种算法，即<strong>慢开始</strong>、<strong>拥塞避免</strong>、<strong>快重传</strong>和<strong>快恢复</strong>。</p>
+<h1 id="ARQ-协议了解吗"><a href="#ARQ-协议了解吗" class="headerlink" title="ARQ 协议了解吗?"></a>ARQ 协议了解吗?</h1><p><strong>自动重传请求</strong>（Automatic Repeat-reQuest，ARQ）它通过使用确认和超时这两个机制，在不可靠服务的基础上实现可靠的信息传输。如果发送方在发送后一段时间之内没有收到确认信息（Acknowledgements，就是我们常说的 ACK），它通常会重新发送，直到收到确认或者重试超过一定的次数。</p>
+<p>ARQ 包括停止等待 ARQ 协议和连续 ARQ 协议。</p>
+<p><strong>停止等待<strong><strong>ARQ</strong></strong>协议</strong>：发送方发送完一个分组，就停止发送，等待接收的确认ACK</p>
+<p><strong>连续<strong><strong>ARQ</strong></strong>协议</strong>：发送方维护一个发送窗口，位于发送窗口内的分组可以连续发送出去，不需要等待确认，接收方采用累计确认的方式。（如果有一个丢失，需要回退N帧的策略，讲窗口起点移动到最后一个确认接收的分组处）</p>
+<h1 id="从输入URL-到页面展示到底发生了什么？（非常重要）"><a href="#从输入URL-到页面展示到底发生了什么？（非常重要）" class="headerlink" title="从输入URL 到页面展示到底发生了什么？（非常重要）"></a>从输入URL 到页面展示到底发生了什么？（非常重要）</h1><ol>
+<li><p>解析URL </p>
+<p>检查URL是否完整合法，确定访问地址</p>
+</li>
+<li><p>DNS域名解析</p>
+<p>先查询本机缓存，没有缓存再查询本地DNS服务器（可能是大学，或者ISP），没有缓存再去查找DNS根服务器（存储着顶级域名），然后查询顶级域名服务器，然后再查低一级的域名服务器…… 迭代查询</p>
+<img src="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/DNS.png?raw=true" alt="DNS.png" style="zoom:50%;" />
+</li>
+<li><p>如果使用 HTTPS，会在 TCP 与 HTTP 之间多添加一层协议做加密及认证的服务。HTTPS 使用 SSL（Secure Socket Layer） 和 TLS（Transport Layer Security） 协议，保障了信息的安全。</p>
+</li>
+<li><p>TCP协议三次握手建立连接</p>
+</li>
+<li><p>在TCP包头前添加IP信息，生成IP数据报</p>
+</li>
+<li><p>ARP协议获取对方MAC地址，并讲自己的MAC地址信息封装在帧头帧尾，形成数据帧。</p>
+</li>
+<li><p>网卡将数字信号转化成电信号传递出去</p>
+</li>
+<li><p>经过网络中的交换机、路由器，多次转发到达目的主机</p>
+</li>
+<li><p>目的主机将获取到的数据逐层解析，挨个核对，应用程序接收到HTTP请求报文，处理请求并返回HTTP响应报文，传输结束就通过TCP四次挥手断开连接。</p>
+</li>
+<li><p>浏览器收到的响应正文，通常包含有HTML,CSS,JS还有图片等文件，再经过浏览器解析渲染，就得到了我们看到的画面。</p>
+</li>
+</ol>
+<h1 id="HTTP报文格式"><a href="#HTTP报文格式" class="headerlink" title="HTTP报文格式"></a>HTTP报文格式</h1><p>请求报文：请求行 请求头 请求体 </p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/HTTP%E8%AF%B7%E6%B1%82%E6%8A%A5%E6%96%87.png?raw=true" alt="HTTP请求报文.png"></p>
+<p>响应报文：状态行 响应头 响应体</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/HTTP%E5%93%8D%E5%BA%94%E6%8A%A5%E6%96%87.png?raw=true" alt="HTTP响应报文.png"></p>
+<h1 id="HTTP响应状态码"><a href="#HTTP响应状态码" class="headerlink" title="HTTP响应状态码"></a>HTTP响应状态码</h1><h2 id="1xx-Informational（信息性状态码）"><a href="#1xx-Informational（信息性状态码）" class="headerlink" title="1xx Informational（信息性状态码）"></a>1xx Informational（信息性状态码）</h2><p>相比于其他类别状态码来说，1xx 你平时你大概率不会碰到，所以这里直接跳过。</p>
+<h2 id="2xx-Success（成功状态码）"><a href="#2xx-Success（成功状态码）" class="headerlink" title="2xx Success（成功状态码）"></a>2xx Success（成功状态码）</h2><p>200 OK ：请求被成功处理。比如我们发送一个查询用户数据的HTTP 请求到服务端，服务端正确返回了用户数据。这个是我们平时最常见的一个 HTTP 状态码。</p>
+<p>201 Created ：请求被成功处理并且在服务端创建了一个新的资源。比如我们通过 POST 请求创建一个新的用户。</p>
+<p>202 Accepted ：服务端已经接收到了请求，但是还未处理。</p>
+<p>204 No Content ： 服务端已经成功处理了请求，但是没有返回任何内容。</p>
+<h2 id="3xx-Redirection（重定向状态码）"><a href="#3xx-Redirection（重定向状态码）" class="headerlink" title="3xx Redirection（重定向状态码）"></a>3xx Redirection（重定向状态码）</h2><p><strong>301 Moved Permanently</strong> ： 资源被永久重定向了。比如你的网站的网址更换了。</p>
+<p><strong>302 Found</strong> ：资源被临时重定向了。比如你的网站的某些资源被暂时转移到另外一个网址。</p>
+<p><strong>304 Not Modified</strong> : 如果代理服务器中的文档过期，则代理服务器向原始服务器发起请求，原始服务器给代理服务器的响应为304时，表示代理服务器缓存有效，更新过期时间即可。</p>
+<h2 id="4xx-Client-Error（客户端错误状态码）"><a href="#4xx-Client-Error（客户端错误状态码）" class="headerlink" title="4xx Client Error（客户端错误状态码）"></a>4xx Client Error（客户端错误状态码）</h2><p><strong>400 Bad Request</strong> ： 发送的HTTP请求存在问题。比如请求参数不合法、请求方法错误。</p>
+<p><strong>401 Unauthorized</strong> ： 未认证却请求需要认证之后才能访问的资源。</p>
+<p><strong>403 Forbidden</strong> ：直接拒绝HTTP请求，不处理。一般用来针对非法请求。</p>
+<p><strong>404 Not Found</strong> ： 你请求的资源未在服务端找到。比如你请求某个用户的信息，服务端并没有找到指定的用户。</p>
+<p><strong>409 Conflict</strong> ： 表示请求的资源与服务端当前的状态存在冲突，请求无法被处理。</p>
+<h2 id="5xx-Server-Error（服务端错误状态码）"><a href="#5xx-Server-Error（服务端错误状态码）" class="headerlink" title="5xx Server Error（服务端错误状态码）"></a>5xx Server Error（服务端错误状态码）</h2><p><strong>500 Internal Server Error</strong> <strong>：</strong> <strong>服务端出问题了（通常是服务端出<strong><strong>Bug</strong></strong>了）。比如你服务端处理请求的时候突然抛出异常，但是异常并未在服务端被正确处理。</strong></p>
+<p><strong>502 Bad Gateway</strong> <strong>：我们的网关将请求转发到服务端，但是服务端返回的却是一个错误的响应。</strong></p>
+<h1 id="HTTP-和-HTTPS-有什么区别？（重要）"><a href="#HTTP-和-HTTPS-有什么区别？（重要）" class="headerlink" title="HTTP 和 HTTPS 有什么区别？（重要）"></a>HTTP 和 HTTPS 有什么区别？（重要）</h1><ul>
+<li><p><strong>端口号</strong> ：HTTP 默认是 80，HTTPS 默认是 443。</p>
+</li>
+<li><p><strong>URL 前缀</strong> ：HTTP 的 URL 前缀是 http:&#x2F;&#x2F;，HTTPS 的 URL 前缀是 https:&#x2F;&#x2F;。</p>
+</li>
+<li><p><strong>安全性和资源消耗</strong> ： HTTP 协议运行在 TCP 之上，所有传输的内容都是明文，客户端和服务器端都无法验证对方的身份。</p>
+</li>
+<li><p>HTTPS 是运行在 SSL&#x2F;TLS 之上的 HTTP 协议，SSL&#x2F;TLS 运行在 TCP 之上。所有传输的内容都经过加密，加密采用对称加密，但对称加密的密钥用<strong>服务器方的证书</strong>进行了<strong>非对称加密</strong>。【保证对称密钥在网络传输的安全性】所以说，HTTP 安全性没有 HTTPS 高，但是 HTTPS 比 HTTP 耗费更多服务器资源。、</p>
+</li>
+<li><p><strong>数字证书</strong>：HTTPS 协议需要向 CA（证书权威机构）申请数字证书，来保证服务器的身份是可信的。</p>
+</li>
+</ul>
+<p>HTTPS 采用的是对称加密和非对称加密结合的「混合加密」方式： </p>
+<ul>
+<li><p>在通信建立前采用非对称加密的方式交换「会话秘钥」，后续就不再使用非对称加密。 在通信过程中全部使用对称加密的「会话秘钥」的方式加密明文数据。</p>
+</li>
+<li><p>将服务器公钥放入到<strong>数字证书</strong>中，解决了冒充的风险。</p>
+</li>
+<li><p>采用「混合加密」的方式的原因： 对称加密只使用一个密钥，运算速度快，密钥必须保密，无法做到安全的密钥交换。 非对称加密使用两个密钥：公钥和私钥，公钥可以任意分发而私钥保密，解决了密钥交换问题但 速度慢。</p>
+</li>
+</ul>
+<h1 id="HTTP-1-0-和-HTTP-1-1-有什么区别？"><a href="#HTTP-1-0-和-HTTP-1-1-有什么区别？" class="headerlink" title="HTTP 1.0 和 HTTP 1.1 有什么区别？"></a>HTTP 1.0 和 HTTP 1.1 有什么区别？</h1><ul>
+<li><p><strong>连接方式</strong> <strong>:</strong> HTTP 1.0 为TCP短连接，HTTP 1.1 支持TCP长连接。</p>
+</li>
+<li><p><strong>状态响应码</strong> : HTTP&#x2F;1.1中新加入了大量的状态码</p>
+</li>
+<li><p><strong>Host****字段</strong> <strong>:</strong> HTTP&#x2F;1.1在请求头中加入了Host字段。</p>
+</li>
+<li><p><strong>支持管道（<strong><strong>pipeline</strong></strong>）网络传输</strong>：HTTP1.1只要第一个请求发出去了，不必等其回来，就可以发第二个请求 出去，可以减少整体的响应时间。</p>
+</li>
+</ul>
+<h1 id="HTTP-是不保存状态的协议-如何保存用户状态"><a href="#HTTP-是不保存状态的协议-如何保存用户状态" class="headerlink" title="HTTP 是不保存状态的协议, 如何保存用户状态?"></a>HTTP 是不保存状态的协议, 如何保存用户状态?</h1><p>http是无状态协议，也就是说客户端对于每个http请求，是不知道哪个客户端发起的。</p>
+<p>这就意味着每次用户请求都要进行用户认证。</p>
+<p>解决方法有：</p>
+<p><strong>Cookie:</strong> </p>
+<p>cookie是一种客户端会话技术，每次发起http请求，请求头携带cookie数据，服务端也可以通过在响应头给客户端设置Set-Cookie；通过cookie方式，可以将用户状态（登录信息、及会话期间的其他信息）保存在客户端，客户端请求携带状态信息，以此传递用户状态。</p>
+<p>如果用cookie传递信息，容易信息泄露，并且cookie有大小限制。</p>
+<p><strong>Session：</strong></p>
+<p>​    Session是将用户的会话信息保存在服务端，用一个sessionId来跟踪这个会话信息，sessionId通过cookie方式来和客户端之间进行传递。</p>
+<p>​    如果服务端是分布式部署的话，会出现session不共享的问题。</p>
+<p><strong>Token：</strong></p>
+<p>​    Token与session的流程差不多，区别是token是用保存在redis中的，token一般是一个随机字符串（UUID）作为key，value是用户ID（用于识别用户的登录信息），并且有一个过期时间，token字符串还要传递给客户端一份，每次请求带着token，如果redis中存在相应的token，就表示认证成功；如果请求没带着token或者redis中没有相应token，则会生成一个新的token字符串，保存在redis一份，传给客户端一份。</p>
+<p>​    缺点是每次请求都要查询一次redis，给redis带来压力，还要占用redis的空间。</p>
+<p><strong>JWT：</strong></p>
+<p>​    Json Web Token，他不像session和token是基于存储和验证的，他是基于解析+验证的；JWT登录流程需要额外的一个认证服务器，客户端发起登录请求时（浏览器没有JWT），会到认证服务器去申请到JWT，然后向web应用服务器发起请求，带着JWT，应用服务器验证JWT，检查登录信息。</p>
+<p>​    JWT字符串<strong>组成</strong>：[header].[payload].[signature]</p>
+<p>​    header部分和payload部分都是json格式，通过base64编码成字符，</p>
+<p>​    signature部分是【base64编码处理后的header和payload字符串和secret拼接起来，然后进行一个单向加密算法加密，生成signature部分】secret是保存在服务器的。</p>
+<p>​    header字符串，payload字符串和signature字符串三个部分通过.连接，组成JWT字符串。</p>
+<p>​    应用服务器<strong>验证</strong>的时候，通过前两部分header，signature，加上服务器才有的secret，用header保存的加密算法进行加密，比较生成的JWT和传来的是否相同就行了。</p>
+<p>​    优点：JWT字节占用小，并且不占用服务器资源。</p>
+<h1 id="假如客户端浏览器禁用了cookie，该怎么办？"><a href="#假如客户端浏览器禁用了cookie，该怎么办？" class="headerlink" title="假如客户端浏览器禁用了cookie，该怎么办？"></a>假如客户端浏览器禁用了cookie，该怎么办？</h1><p>SessionId, token ,JWT都可以通过cookie传递，如果cookie被浏览器禁用了，</p>
+<p>主要有两种方式：Cookie 与 URL 重写【url?传参】或者将SessionId存储在localStorage&#x2F;sessionStorage</p>
+<p>url重写，比如 <a target="_blank" rel="noopener" href="http://taobao.com/getitem?sessionid=1wui87htentg&?name=baymax&action=buy">http://taobao.com/getitem?sessionid=1wui87htentg&amp;?name=baymax&amp;action=buy</a></p>
+<p>在web开发过程中，cookie是我们常用的功能；最基本的用来存储服务端返回的jsessionid来识别用户，甚至保存其它更多的客户信息。假如客户端浏览器禁用了cookie，</p>
+<p>就要通过其他方式， URL 重写或者 将SessionId存储在localStorage&#x2F;sessionStorage，每次发送html请求时带上（html5）。后端项目返回相应给前端，前端解析出token字符串，保存在localStorage&#x2F;sessionStorage【另外，cookie不能跨域，localStorage&#x2F;sessionStorage能跨域】</p>
+<h1 id="说一下-GET-和-POST-的区别？"><a href="#说一下-GET-和-POST-的区别？" class="headerlink" title="说一下 GET 和 POST 的区别？"></a>说一下 GET 和 POST 的区别？</h1><p>Get 方法的含义是请求从服务器获取资源，这个资源可以是静态的文本、页面、图片视频等，Get请求不带有请求体。</p>
+<p>而 POST 方法可以向指定的资源提交数据，我们通常使用json格式将数据放在HTTP请求报文的body里面。</p>
+<h1 id="GET-和-POST-方法都是安全和幂等的吗？"><a href="#GET-和-POST-方法都是安全和幂等的吗？" class="headerlink" title="GET 和 POST 方法都是安全和幂等的吗？"></a>GET 和 POST 方法都是安全和幂等的吗？</h1><p>GET 方法就是安全且幂等的，因为它是「只读」操作，无论操作多少次，服务器上的数据 都是安全的，且每次的结果都是相同的。</p>
+<p>POST 因为是「新增或提交数据」的操作，会修改服务器上的资源，所以是不安全的，且多次提交数据 就会创建多个资源，所以不是幂等的。</p>
+<h1 id="ARP协议了解吗？"><a href="#ARP协议了解吗？" class="headerlink" title="ARP协议了解吗？"></a>ARP协议了解吗？</h1><p>​    ARP协议能够将IP地址解析成对应的MAC地址，每个主机或者路由器有一个ARP高速缓存表，缓存着IP地址和MAC地址的对应关系。如果缓存未命中，那么则广播发送ARP报文，请求指定IP的MAC地址。</p>
+<h1 id="NAT-x2F-NAPT协议了解吗？"><a href="#NAT-x2F-NAPT协议了解吗？" class="headerlink" title="NAT&#x2F;NAPT协议了解吗？"></a>NAT&#x2F;NAPT协议了解吗？</h1><p>网络地址转换协议，能够解决公网Ip不足的问题，NAPT协议能够使多个内网Ip公用一个公网Ip，NAPT路由器维护一个映射关系表，能够将内网ip：端口号映射成公网Ip：端口号，用这个公网Ip：端口号去访问网络资源。</p>
+<p>Ping命令过程？</p>
+<p>Ping命令基于ICMP协议，ICMP是网络控制报文协议。</p>
+<p>ICMP 用于告知网络包传送过程中产生的错误以及各种控制信息。</p>
+<p>Ping命令发送方向目的方发送icmp报文，目的主机接收到该报文，返回响应报文。如果目的方不可达， 则由路由器返回差错报文。</p>
+<h1 id="Base64编码"><a href="#Base64编码" class="headerlink" title="Base64编码"></a>Base64编码</h1><p>Base64是用64个可打印字符表示二进制数据的一种编码方式。</p>
+<h2 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h2><ul>
+<li><p>将每三个字节的二进制数据，一共24位，分成4组，每组6位，在每个6位数据前补两个0，一共就变成了4个字节，再根据每个字节的值去查表找到对应的字符。</p>
+</li>
+<li><p>那么由于原有数据可能不是三个字节的倍数，转化过程中就可能出现：1.每个拆分成的数据不足6位，那么我们就在后面补0，然后再根据值去查表；2.还会导致拆分的总个数不足4个，那么后面空着的就直接补“&#x3D;”就好。</p>
+</li>
+<li><p><img src="https://github.com/WayV5/imgs/blob/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/base64.png?raw=true" alt="base64.png"></p>
+</li>
+</ul>
+<h2 id="Base64用途"><a href="#Base64用途" class="headerlink" title="Base64用途"></a>Base64用途</h2><ul>
+<li><p><strong>二进制存储文件的传输：</strong></p>
+<p>因为HTTP1.1是文本传输协议，而对于图片、视频这些二进制存储的文件，在网络传输要转换成文本格式才能传输</p>
+</li>
+<li><p><strong>特殊字符引发的解析问题：</strong></p>
+<p> Get请求方法，要把请求参数拼接在url后边，当出现空格的时候就会导致访问链接解析异常；</p>
+<p>还有一些特殊字符会导致http报文格式解析错误；</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2023/04/02/6%E5%85%AB%E8%82%A1_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="next" title="新科哈">
+      新科哈 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#7%E5%B1%82%E6%A8%A1%E5%9E%8B%E4%B8%BA%E4%BB%80%E4%B9%88%E5%B9%B2%E4%B8%8D%E8%BF%87TCP-x2F-IP%E4%BD%93%E7%B3%BB4%E5%B1%82%E6%A8%A1%E5%9E%8B%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">7层模型为什么干不过TCP&#x2F;IP体系4层模型？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E5%88%86%E5%B1%82%E7%9A%84%E5%8E%9F%E5%9B%A0%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">网络模型分层的原因？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%BA%94%E7%94%A8%E5%B1%82%E5%8D%8F%E8%AE%AE%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">常见的应用层协议？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP-%E4%B8%8E-UDP-%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">TCP 与 UDP 的区别（重要）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E9%80%89%E6%8B%A9-TCP-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E9%80%89-UDP"><span class="nav-number">5.</span> <span class="nav-text">什么时候选择 TCP,什么时候选 UDP?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-TCP-%E7%9A%84%E5%8D%8F%E8%AE%AE%E6%9C%89%E5%93%AA%E4%BA%9B-%E4%BD%BF%E7%94%A8-UDP-%E7%9A%84%E5%8D%8F%E8%AE%AE%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="nav-number">6.</span> <span class="nav-text">使用 TCP 的协议有哪些?使用 UDP 的协议有哪些?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E5%92%8C%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B%EF%BC%88%E9%9D%9E%E5%B8%B8%E9%87%8D%E8%A6%81%EF%BC%89"><span class="nav-number">7.</span> <span class="nav-text">TCP 三次握手和四次挥手（非常重要）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E6%98%AF%E4%B8%A4%E6%AC%A1%E6%8F%A1%E6%89%8B%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">TCP为什么不是两次握手？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B"><span class="nav-number">9.</span> <span class="nav-text">四次挥手</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B%EF%BC%9F"><span class="nav-number">10.</span> <span class="nav-text">为什么要四次挥手？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E6%8A%8A%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%8F%91%E9%80%81%E7%9A%84-ACK-%E5%92%8C-FIN-%E5%90%88%E5%B9%B6%E8%B5%B7%E6%9D%A5%EF%BC%8C%E5%8F%98%E6%88%90%E4%B8%89%E6%AC%A1%E6%8C%A5%E6%89%8B%EF%BC%9F"><span class="nav-number">11.</span> <span class="nav-text">为什么不能把服务器发送的 ACK 和 FIN 合并起来，变成三次挥手？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%AC%AC%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%9C%80%E8%A6%81%E7%AD%89%E5%BE%85-2-MSL%EF%BC%88%E6%8A%A5%E6%96%87%E6%AE%B5%E6%9C%80%E9%95%BF%E5%AF%BF%E5%91%BD%EF%BC%89%E6%97%B6%E9%97%B4%E5%90%8E%E6%89%8D%E8%BF%9B%E5%85%A5-CLOSED-%E7%8A%B6%E6%80%81%EF%BC%9F"><span class="nav-number">12.</span> <span class="nav-text">为什么第四次挥手客户端需要等待 2*MSL（报文段最长寿命）时间后才进入 CLOSED 状态？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E4%BC%A0%E8%BE%93%E7%9A%84%E5%8F%AF%E9%9D%A0%E6%80%A7%EF%BC%9F"><span class="nav-number">13.</span> <span class="nav-text">TCP 如何保证传输的可靠性？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP-%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%EF%BC%9F"><span class="nav-number">14.</span> <span class="nav-text">TCP 如何实现流量控制？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP-%E7%9A%84%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E6%98%AF%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E7%9A%84%EF%BC%9F"><span class="nav-number">15.</span> <span class="nav-text">TCP 的拥塞控制是怎么实现的？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E4%B8%8E%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">15.1.</span> <span class="nav-text">拥塞控制与流量控制的区别？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6%E7%9A%84%EF%BC%9F"><span class="nav-number">15.2.</span> <span class="nav-text">TCP如何实现拥塞控制的？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ARQ-%E5%8D%8F%E8%AE%AE%E4%BA%86%E8%A7%A3%E5%90%97"><span class="nav-number">16.</span> <span class="nav-text">ARQ 协议了解吗?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8E%E8%BE%93%E5%85%A5URL-%E5%88%B0%E9%A1%B5%E9%9D%A2%E5%B1%95%E7%A4%BA%E5%88%B0%E5%BA%95%E5%8F%91%E7%94%9F%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F%EF%BC%88%E9%9D%9E%E5%B8%B8%E9%87%8D%E8%A6%81%EF%BC%89"><span class="nav-number">17.</span> <span class="nav-text">从输入URL 到页面展示到底发生了什么？（非常重要）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP%E6%8A%A5%E6%96%87%E6%A0%BC%E5%BC%8F"><span class="nav-number">18.</span> <span class="nav-text">HTTP报文格式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP%E5%93%8D%E5%BA%94%E7%8A%B6%E6%80%81%E7%A0%81"><span class="nav-number">19.</span> <span class="nav-text">HTTP响应状态码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1xx-Informational%EF%BC%88%E4%BF%A1%E6%81%AF%E6%80%A7%E7%8A%B6%E6%80%81%E7%A0%81%EF%BC%89"><span class="nav-number">19.1.</span> <span class="nav-text">1xx Informational（信息性状态码）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2xx-Success%EF%BC%88%E6%88%90%E5%8A%9F%E7%8A%B6%E6%80%81%E7%A0%81%EF%BC%89"><span class="nav-number">19.2.</span> <span class="nav-text">2xx Success（成功状态码）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3xx-Redirection%EF%BC%88%E9%87%8D%E5%AE%9A%E5%90%91%E7%8A%B6%E6%80%81%E7%A0%81%EF%BC%89"><span class="nav-number">19.3.</span> <span class="nav-text">3xx Redirection（重定向状态码）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4xx-Client-Error%EF%BC%88%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%94%99%E8%AF%AF%E7%8A%B6%E6%80%81%E7%A0%81%EF%BC%89"><span class="nav-number">19.4.</span> <span class="nav-text">4xx Client Error（客户端错误状态码）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5xx-Server-Error%EF%BC%88%E6%9C%8D%E5%8A%A1%E7%AB%AF%E9%94%99%E8%AF%AF%E7%8A%B6%E6%80%81%E7%A0%81%EF%BC%89"><span class="nav-number">19.5.</span> <span class="nav-text">5xx Server Error（服务端错误状态码）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP-%E5%92%8C-HTTPS-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89"><span class="nav-number">20.</span> <span class="nav-text">HTTP 和 HTTPS 有什么区别？（重要）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP-1-0-%E5%92%8C-HTTP-1-1-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">21.</span> <span class="nav-text">HTTP 1.0 和 HTTP 1.1 有什么区别？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP-%E6%98%AF%E4%B8%8D%E4%BF%9D%E5%AD%98%E7%8A%B6%E6%80%81%E7%9A%84%E5%8D%8F%E8%AE%AE-%E5%A6%82%E4%BD%95%E4%BF%9D%E5%AD%98%E7%94%A8%E6%88%B7%E7%8A%B6%E6%80%81"><span class="nav-number">22.</span> <span class="nav-text">HTTP 是不保存状态的协议, 如何保存用户状态?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%81%87%E5%A6%82%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B5%8F%E8%A7%88%E5%99%A8%E7%A6%81%E7%94%A8%E4%BA%86cookie%EF%BC%8C%E8%AF%A5%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="nav-number">23.</span> <span class="nav-text">假如客户端浏览器禁用了cookie，该怎么办？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%B4%E4%B8%80%E4%B8%8B-GET-%E5%92%8C-POST-%E7%9A%84%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">24.</span> <span class="nav-text">说一下 GET 和 POST 的区别？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GET-%E5%92%8C-POST-%E6%96%B9%E6%B3%95%E9%83%BD%E6%98%AF%E5%AE%89%E5%85%A8%E5%92%8C%E5%B9%82%E7%AD%89%E7%9A%84%E5%90%97%EF%BC%9F"><span class="nav-number">25.</span> <span class="nav-text">GET 和 POST 方法都是安全和幂等的吗？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ARP%E5%8D%8F%E8%AE%AE%E4%BA%86%E8%A7%A3%E5%90%97%EF%BC%9F"><span class="nav-number">26.</span> <span class="nav-text">ARP协议了解吗？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NAT-x2F-NAPT%E5%8D%8F%E8%AE%AE%E4%BA%86%E8%A7%A3%E5%90%97%EF%BC%9F"><span class="nav-number">27.</span> <span class="nav-text">NAT&#x2F;NAPT协议了解吗？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Base64%E7%BC%96%E7%A0%81"><span class="nav-number">28.</span> <span class="nav-text">Base64编码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="nav-number">28.1.</span> <span class="nav-text">实现原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Base64%E7%94%A8%E9%80%94"><span class="nav-number">28.2.</span> <span class="nav-text">Base64用途</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wei"
+      src="/images/naruto.jpg">
+  <p class="site-author-name" itemprop="name">Wei</p>
+  <div class="site-description" itemprop="description">吾日三省吾身</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/WayV5" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;WayV5" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/19946254539@163.com" title="E-Mail → 19946254539@163.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wei</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
