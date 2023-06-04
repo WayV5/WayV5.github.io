@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="IO概念I&#x2F;O就是输入输出，指的是计算机内存空间与外部设备之间的通信过程。 常见的IO通信：磁盘IO[内存与磁盘],   网络IO[内存与网卡] 操作系统的内存空间分为：内核空间和用户空间。内核空间独立于用户进程，为操作系统内核所属。 涉及到资源有关的操作（如内存管理，文件管理，进程调度等）要在内核空间执行，用户进程无法访问内核空间，因此用户程序要想IO操作时，需要发起IO操作的系统调用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IO模型">
+<meta property="og:url" content="http://example.com/2023/03/02/10%E5%85%AB%E8%82%A1_IO/index.html">
+<meta property="og:site_name" content="Wei&#39;s Blog">
+<meta property="og:description" content="IO概念I&#x2F;O就是输入输出，指的是计算机内存空间与外部设备之间的通信过程。 常见的IO通信：磁盘IO[内存与磁盘],   网络IO[内存与网卡] 操作系统的内存空间分为：内核空间和用户空间。内核空间独立于用户进程，为操作系统内核所属。 涉及到资源有关的操作（如内存管理，文件管理，进程调度等）要在内核空间执行，用户进程无法访问内核空间，因此用户程序要想IO操作时，需要发起IO操作的系统调用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/bdCFacfMslh5ztLkXZ5fVqN6amgPdVfFibGEyfeWKsQz0PnouU1YTdKpVoUMVVSoIC7a7r3xKsYB2XgAPZgZ2QA/640?wx_fmt=png&wxfrom=13&tp=wxpic">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6a9e704af49b4380bb686f0c96d33b81~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bb174e22dbe04bb79fe3fc126aed0c61~tplv-k3u1fbpfcp-watermark.image">
+<meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/88ff862764024c3b8567367df11df6ab~tplv-k3u1fbpfcp-watermark.image">
+<meta property="article:published_time" content="2023-03-02T05:58:16.000Z">
+<meta property="article:modified_time" content="2023-06-04T06:44:33.944Z">
+<meta property="article:author" content="Wei">
+<meta property="article:tag" content="IO模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mmbiz.qpic.cn/mmbiz_png/bdCFacfMslh5ztLkXZ5fVqN6amgPdVfFibGEyfeWKsQz0PnouU1YTdKpVoUMVVSoIC7a7r3xKsYB2XgAPZgZ2QA/640?wx_fmt=png&wxfrom=13&tp=wxpic">
+
+<link rel="canonical" href="http://example.com/2023/03/02/10%E5%85%AB%E8%82%A1_IO/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>IO模型 | Wei's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Wei's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/03/02/10%E5%85%AB%E8%82%A1_IO/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/naruto.jpg">
+      <meta itemprop="name" content="Wei">
+      <meta itemprop="description" content="张弛有度，沉浮于心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          IO模型
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-03-02 13:58:16" itemprop="dateCreated datePublished" datetime="2023-03-02T13:58:16+08:00">2023-03-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-06-04 14:44:33" itemprop="dateModified" datetime="2023-06-04T14:44:33+08:00">2023-06-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/IO/" itemprop="url" rel="index"><span itemprop="name">IO</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="IO概念"><a href="#IO概念" class="headerlink" title="IO概念"></a>IO概念</h1><p>I&#x2F;O就是输入输出，指的是计算机内存空间与外部设备之间的通信过程。</p>
+<p>常见的IO通信：磁盘IO[内存与磁盘],   网络IO[内存与网卡]</p>
+<p>操作系统的内存空间分为：内核空间和用户空间。内核空间独立于用户进程，为操作系统内核所属。</p>
+<p>涉及到资源有关的操作（如内存管理，文件管理，进程调度等）要在内核空间执行，用户进程无法访问内核空间，因此用户程序要想IO操作时，需要发起IO操作的系统调用，由操作系统内核来执行具体的IO操作。</p>
+<span id="more"></span>
+
+<h2 id="有哪些常见的-IO-模型"><a href="#有哪些常见的-IO-模型" class="headerlink" title="有哪些常见的 IO 模型?"></a>有哪些常见的 IO 模型?</h2><p>UNIX 系统下， IO 模型一共有 5 种：<strong>同步阻塞 I&#x2F;O</strong>、<strong>同步非阻塞 I&#x2F;O</strong>、<strong>I&#x2F;O 多路复用</strong>、<strong>信号驱动 I&#x2F;O</strong> 和<strong>异步 I&#x2F;O</strong>。</p>
+<blockquote>
+<p>同步&#x2F;异步：在操作系统角度看，是看数据在系统内核在准备就绪之后，往用户空间拷贝的时候，用户进行是否要等待。</p>
+<p>阻塞&#x2F;非阻塞：看用户进程发起系统调用后，是否需要一直阻塞等待到数据传输完成。</p>
+</blockquote>
+<p>用户进程进行网络IO需要经过以下步骤：</p>
+<ol>
+<li>用户进程向操作系统发起IO系统调用；</li>
+<li>操作系统内核将网卡数据读取到内核缓冲区；</li>
+<li>内核缓冲区的数据拷贝到用户缓冲区。</li>
+</ol>
+<img src="https://mmbiz.qpic.cn/mmbiz_png/bdCFacfMslh5ztLkXZ5fVqN6amgPdVfFibGEyfeWKsQz0PnouU1YTdKpVoUMVVSoIC7a7r3xKsYB2XgAPZgZ2QA/640?wx_fmt=png&wxfrom=13&tp=wxpic" alt="图片" style="zoom:67%;" />
+
+<h1 id="Java-中-3-种常见-IO-模型"><a href="#Java-中-3-种常见-IO-模型" class="headerlink" title="Java 中 3 种常见 IO 模型"></a>Java 中 3 种常见 IO 模型</h1><blockquote>
+<p>当服务端accept到一个客户端请求时，会建立一个socket，生成一个对应的文件描述符fd；<br>一个http请求–&gt; 一个socket连接  –&gt; 操作系统生成一个文件描述符fd，作为访问一个socket相关内存数据的句柄；</p>
+</blockquote>
+<h2 id="BIO-Blocking-I-x2F-O-同步阻塞I-x2F-O"><a href="#BIO-Blocking-I-x2F-O-同步阻塞I-x2F-O" class="headerlink" title="BIO (Blocking I&#x2F;O) 同步阻塞I&#x2F;O"></a>BIO (Blocking I&#x2F;O) 同步阻塞I&#x2F;O</h2><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6a9e704af49b4380bb686f0c96d33b81~tplv-k3u1fbpfcp-watermark.image" alt="图源：《深入拆解Tomcat & Jetty》" style="zoom: 67%;" />
+
+<p>用户线程发起IO系统调用（recvfrom）后，会一直阻塞，直到内核将数据拷贝到用户空间才返回。</p>
+<p>所以一个服务端线程只能同时处理一个请求，面对大量连接时，只能创建多个线程，开销很大。</p>
+<blockquote>
+<p>优点：当数据没准备好，用户线程让出CPU，进入休眠；等到数据拷贝好了，再通过中断唤醒用户线程。</p>
+</blockquote>
+<blockquote>
+<p>缺点：对于单个线程，面对多个请求时，前面的阻塞，后面的也会阻塞，效率低，适合并发量低的场景。</p>
+</blockquote>
+<h2 id="NIO-Non-blocking-x2F-New-I-x2F-O"><a href="#NIO-Non-blocking-x2F-New-I-x2F-O" class="headerlink" title="NIO (Non-blocking&#x2F;New I&#x2F;O)"></a>NIO (Non-blocking&#x2F;New I&#x2F;O)</h2><p>Java 中的 NIO 于 Java 1.4 中引入，对应 <code>java.nio</code> 包，提供了 <code>Channel</code> , <code>Selector</code>，<code>Buffer</code> 等抽象。</p>
+<p>它是支持面向缓冲的，基于通道的 I&#x2F;O 操作方法。 对于高负载、高并发的（网络）应用，应使用 NIO 。</p>
+<p>Java 中的 NIO 可以看作是 <strong>I&#x2F;O 多路复用模型</strong>。【也有很多人认为，Java 中的 NIO 属于同步非阻塞 IO 模型(<strong>×</strong>错的)。】</p>
+<p>那么比较以下二者区别：</p>
+<h3 id="同步非阻塞-IO-模型"><a href="#同步非阻塞-IO-模型" class="headerlink" title="同步非阻塞 IO 模型"></a><strong>同步非阻塞 IO 模型</strong></h3><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bb174e22dbe04bb79fe3fc126aed0c61~tplv-k3u1fbpfcp-watermark.image" alt="图源：《深入拆解Tomcat & Jetty》" style="zoom: 67%;" />
+
+<p>在同步非阻塞IO模型中，用户进程发起IO系统调用后，如果内核中数据没准备就绪，会立即返回，不会阻塞；过段时间再次系统调用，看数据是否就绪；第一次系统调用后开始向内核空间读取数据，因此后续的多次系统调用浪费了CPU资源</p>
+<p>直到某次系统调用，数据在内核空间就绪了，再进行数据拷贝，此时用户进程是阻塞的。</p>
+<p>当服务端accept一个请求后，对应请求的socket对象会在操作系统生成一个文件描述符fd，fd会加入到处理该请求的线程的文件描述符集合fds中去；<br>这个线程没过一段时间，会轮询一遍fds集合，非阻塞地对每个fd进行一次recv系统调用，对于每个fd来说，如果内核空间的数据没就绪，就会返回一个错误，准备好了就会进行数据拷贝（阻塞）</p>
+<blockquote>
+<p>优点：避免用户线程阻塞，一个线程能同时处理多个请求；</p>
+</blockquote>
+<blockquote>
+<p>缺点：多次轮询的系统调用要消耗大量CPU资源。</p>
+</blockquote>
+<h3 id="I-x2F-O-多路复用模型"><a href="#I-x2F-O-多路复用模型" class="headerlink" title="I&#x2F;O 多路复用模型"></a><strong>I&#x2F;O 多路复用模型</strong></h3><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/88ff862764024c3b8567367df11df6ab~tplv-k3u1fbpfcp-watermark.image" alt="img" style="zoom:67%;" />
+
+<p>IO多路复用模型，为一个服务端线程配置了一个选择器selector，能够处理多个客户端连接；<br>当服务端accept一个客户端请求，操作系统会为建立连接的socket对象创建一个文件描述符fd，这个文件描述符会注册到用户服务端线程的集合fds当中,也就是将socket注册到线程的selector；<br>服务端线程会一定频率的执行select&#x2F;poll&#x2F;epoll 等系统调用获取 fd 列表，轮询的检查集合中每个fd对应的数据是否准备就绪，其中有一个就绪了，select就会返回，通知线程为对应的fd通道发起数据拷贝的系统调用。</p>
+<blockquote>
+<p>如果同时有10000个请求过来，BIO就需要10000个线程才能并发处理，而NIO一个线程能通过处理多个请求，只需要50或100个线程（简单理解）就行了。</p>
+<p>同步非阻塞IO，每隔一段时间执行一次系统调用，不管fds集合中有没有相应的数据准备好，都会返回；</p>
+<p>IO多路复用，每隔一段时间执行一次select&#x2F;poll&#x2F;epoll，有fds的数据准备好才会返回，没准备好的时候会一直轮询，避免了多次系统调用，也避免CPU空转。</p>
+</blockquote>
+<h3 id="select-x2F-poll-x2F-epoll的区别"><a href="#select-x2F-poll-x2F-epoll的区别" class="headerlink" title="select&#x2F;poll&#x2F;epoll的区别"></a>select&#x2F;poll&#x2F;epoll的区别</h3><blockquote>
+<p>select的文件描述符集合fds是通过数组方式实现的，数组大小默认1024，有上限；</p>
+<p>1先将fds从用户空间拷贝到内核空间；2内核去遍历判断是否有socket数据准备就绪，更改状态；3将fds从内核空间拷贝到用户空间；4用户线程遍历fds状态。   要两次拷贝，两次遍历。</p>
+</blockquote>
+<blockquote>
+<p>poll和select的区别就是poll的文件描述符集合fds是通过链表实现的，没有上限，当然会受制于操作系统文件描述符上限；select和poll都需要线性遍历，时间复杂度O（n）;</p>
+</blockquote>
+<blockquote>
+<p>epoll内核会创建红黑树存储事件，通过事件和回调机制，只会返回有事件发生的文件描述符，</p>
+<p>时间复杂度O（n）；epoll通过内核和 ⽤户空间共享⼀块内存来实现的，无需select的两次拷贝。</p>
+<p>epoll是Linux特有的，而select是所有操作系统都有的。</p>
+</blockquote>
+<h1 id="AIO-Asynchronous-I-x2F-O"><a href="#AIO-Asynchronous-I-x2F-O" class="headerlink" title="AIO (Asynchronous I&#x2F;O)"></a>AIO (Asynchronous I&#x2F;O)</h1><p>异步IO基于事件和回调机制，应用进程发起系统调用后，会直接得到返回结果，等系统内核从内核空间向用户空间拷贝好之后，再通知用户进程。</p>
+<p>目前来说 AIO 的应用还不是很广泛。Netty 之前也尝试使用过 AIO，不过又放弃了。这是因为，Netty 使用了 AIO 之后，在 Linux 系统上的性能并没有多少提升。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/IO%E6%A8%A1%E5%9E%8B/" rel="tag"># IO模型</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/02/02/4%E5%85%AB%E8%82%A1_JUC/" rel="prev" title="JUC">
+      <i class="fa fa-chevron-left"></i> JUC
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/04/02/1%E5%85%AB%E8%82%A1_%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="next" title="新科哈">
+      新科哈 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#IO%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">IO概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%89%E5%93%AA%E4%BA%9B%E5%B8%B8%E8%A7%81%E7%9A%84-IO-%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.1.</span> <span class="nav-text">有哪些常见的 IO 模型?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java-%E4%B8%AD-3-%E7%A7%8D%E5%B8%B8%E8%A7%81-IO-%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">Java 中 3 种常见 IO 模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#BIO-Blocking-I-x2F-O-%E5%90%8C%E6%AD%A5%E9%98%BB%E5%A1%9EI-x2F-O"><span class="nav-number">2.1.</span> <span class="nav-text">BIO (Blocking I&#x2F;O) 同步阻塞I&#x2F;O</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NIO-Non-blocking-x2F-New-I-x2F-O"><span class="nav-number">2.2.</span> <span class="nav-text">NIO (Non-blocking&#x2F;New I&#x2F;O)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E9%9D%9E%E9%98%BB%E5%A1%9E-IO-%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.2.1.</span> <span class="nav-text">同步非阻塞 IO 模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#I-x2F-O-%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.2.2.</span> <span class="nav-text">I&#x2F;O 多路复用模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#select-x2F-poll-x2F-epoll%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.2.3.</span> <span class="nav-text">select&#x2F;poll&#x2F;epoll的区别</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AIO-Asynchronous-I-x2F-O"><span class="nav-number">3.</span> <span class="nav-text">AIO (Asynchronous I&#x2F;O)</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wei"
+      src="/images/naruto.jpg">
+  <p class="site-author-name" itemprop="name">Wei</p>
+  <div class="site-description" itemprop="description">张弛有度，沉浮于心</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/WayV5" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;WayV5" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/19946254539@163.com" title="E-Mail → 19946254539@163.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wei</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">62k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">56 分钟</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '7ea6ec0be4737f3a243a',
+      clientSecret: '9903476d1463334b299f767fded53e6299c3a4bf',
+      repo        : 'gitalk-comment',
+      owner       : 'WayV5',
+      admin       : [''],
+      id          : 'ef2150cf689f5ed91093bfa343d6b1f5',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

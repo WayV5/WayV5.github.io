@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Spring概念Spring是一个轻量级Java开发框架，里面包含了许多模块，能够简化Java开发工作 主要模块： Core Container: spring-core, spring-beans, spring-context, spring-expression">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring框架">
+<meta property="og:url" content="http://example.com/2023/01/05/7%E5%85%AB%E8%82%A1_Spring%E6%A1%86%E6%9E%B6/index.html">
+<meta property="og:site_name" content="Wei&#39;s Blog">
+<meta property="og:description" content="Spring概念Spring是一个轻量级Java开发框架，里面包含了许多模块，能够简化Java开发工作 主要模块： Core Container: spring-core, spring-beans, spring-context, spring-expression">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://oss.javaguide.cn/github/javaguide/system-design/framework/spring/de6d2b213f112297298f3e223bf08f28.png">
+<meta property="article:published_time" content="2023-01-05T09:33:37.000Z">
+<meta property="article:modified_time" content="2023-06-04T06:40:43.465Z">
+<meta property="article:author" content="Wei">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://oss.javaguide.cn/github/javaguide/system-design/framework/spring/de6d2b213f112297298f3e223bf08f28.png">
+
+<link rel="canonical" href="http://example.com/2023/01/05/7%E5%85%AB%E8%82%A1_Spring%E6%A1%86%E6%9E%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Spring框架 | Wei's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Wei's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/01/05/7%E5%85%AB%E8%82%A1_Spring%E6%A1%86%E6%9E%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/naruto.jpg">
+      <meta itemprop="name" content="Wei">
+      <meta itemprop="description" content="张弛有度，沉浮于心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring框架
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-01-05 17:33:37" itemprop="dateCreated datePublished" datetime="2023-01-05T17:33:37+08:00">2023-01-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-06-04 14:40:43" itemprop="dateModified" datetime="2023-06-04T14:40:43+08:00">2023-06-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%90%8E%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">后端</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Spring概念"><a href="#Spring概念" class="headerlink" title="Spring概念"></a>Spring概念</h1><p>Spring是一个轻量级Java开发框架，里面包含了许多模块，能够简化Java开发工作</p>
+<p>主要模块：</p>
+<p>Core Container: spring-core, spring-beans, spring-context, spring-expression</p>
+<span id="more"></span>
+
+<p>AOP</p>
+<p>Data Access&#x2F;Integration</p>
+<p> Spring Web: spring-web, spring-webmvc, spring-websocket</p>
+<p>Test</p>
+<h2 id="Spring-Spring-MVC-Spring-Boot-之间什么关系"><a href="#Spring-Spring-MVC-Spring-Boot-之间什么关系" class="headerlink" title="Spring,Spring MVC,Spring Boot 之间什么关系?"></a>Spring,Spring MVC,Spring Boot 之间什么关系?</h2><p>Spring框架有很多个模块，其中最核心的就是core模块提供的IoC功能，其他模块比如Spring MVC都要依赖于这个模块；</p>
+<p>Spring MVC模块主要实现了快速构建Web程序的能力，核心思想就是Model层，View层，Controller层分离，来组织代码。</p>
+<p>Spring开发时，许多配置要通过XML文件或者Java语句进行显式的配置，为了简化配置，SpringBoot 框架应运而生。</p>
+<h1 id="Spring-IoC"><a href="#Spring-IoC" class="headerlink" title="Spring IoC"></a>Spring IoC</h1><p><strong>IoC（Inversion of Control:控制反转）</strong> 是一种设计思想，将原来程序中创建对象的控制权交给Spring框架去操管理。</p>
+<p>好处是：我们创建一个对象的时候，可能依赖于很多其他对象，代码就会很繁琐。将对象的依赖关系交给Spring IoC容器去管理，并由IoC容器完成对象的注入。只需提前配置好，用的时候直接调用就可以了，能够大大简化开发。</p>
+<h2 id="什么是-Spring-Bean？"><a href="#什么是-Spring-Bean？" class="headerlink" title="什么是 Spring Bean？"></a>什么是 Spring Bean？</h2><p>Spring Bean就是由IoC容器进行管理的对象。可以通过XML文件，注解，java配置类等方式，告诉IoC容器要管理哪些对象。</p>
+<h2 id="将一个类声明为-Bean-的注解有哪些"><a href="#将一个类声明为-Bean-的注解有哪些" class="headerlink" title="将一个类声明为 Bean 的注解有哪些?"></a>将一个类声明为 Bean 的注解有哪些?</h2><ul>
+<li>@Component  通用注解，下边的注解都会间接引用该注解，如果不知道该类是哪个层，就用这个</li>
+<li>@Repository 对应持久层</li>
+<li>@Service 业务逻辑层</li>
+<li>@Controller 控制层</li>
+</ul>
+<h2 id="Component-和-Bean-的区别是什么？"><a href="#Component-和-Bean-的区别是什么？" class="headerlink" title="@Component 和 @Bean 的区别是什么？"></a>@Component 和 @Bean 的区别是什么？</h2><ul>
+<li>@Component 注解作用于类，而@Bean注解作用于方法。</li>
+<li>@Bean通常和@Component注解一起使用，@Component作用在类上，表示这个类作为配置类使用，相当于一个XML文件，而类中方法的@Bean注解，相当于配置信息，将方法的返回对象加入到IoC容器中。</li>
+</ul>
+<blockquote>
+<p>@Configuration注解注入的是将某类的代理类加入到IoC容器中，通常和@Bean一起使用，来作为配置类使用，代理xml的配置方式。</p>
+</blockquote>
+<h2 id="注入-Bean-的注解有哪些？"><a href="#注入-Bean-的注解有哪些？" class="headerlink" title="注入 Bean 的注解有哪些？"></a>注入 Bean 的注解有哪些？</h2><ul>
+<li>@Autowired 默认通过类型注入</li>
+<li>@Resource 默认通过名字注入</li>
+</ul>
+<h2 id="Bean-的作用域有哪些"><a href="#Bean-的作用域有哪些" class="headerlink" title="Bean 的作用域有哪些?"></a>Bean 的作用域有哪些?</h2><ul>
+<li>singleton ：Spring bean默认是单例的，单例模式的应用。</li>
+<li>prototype : 每次获取bean都会创建一个新的bean</li>
+<li>request ：每次HTTP请求，创建一个新的bean，（请求bean）</li>
+<li>session：每次有一个新的session传来HTTP请求，创建一个新的bean，（会话bean）</li>
+<li>application&#x2F;global-session：每个 Web 应用在启动时创建一个 Bean（应用 Bean）</li>
+<li>websocket <strong>：</strong>每一次 WebSocket 会话产生一个新的 bean</li>
+</ul>
+<h2 id="单例-Bean-的线程安全问题了解吗？"><a href="#单例-Bean-的线程安全问题了解吗？" class="headerlink" title="单例 Bean 的线程安全问题了解吗？"></a>单例 Bean 的线程安全问题了解吗？</h2><p>大多数bean都是无状态的（没有成员变量），都是用他的方法，比如dao,service，就线程安全的；</p>
+<p>如果用到涉及成员变量的bean,可以通过以下方式解决线程安全问题：</p>
+<ol>
+<li>在bean中尽量避免定义可变的成员变量；</li>
+<li>如果必须需要可变的成员变量，就定义一个ThreadLocal成员变量，保存在ThreadLocal中。</li>
+</ol>
+<h2 id="bean的生命周期"><a href="#bean的生命周期" class="headerlink" title="bean的生命周期"></a>bean的生命周期</h2><blockquote>
+<p>实例化 —&gt; 设置属性 —&gt; 自定义初始化方法 —&gt; bean的使用 —&gt; 自定义销毁方法</p>
+</blockquote>
+<blockquote>
+<p>实例化：通过反射，默认调用无参构造函数，实例化对象</p>
+<p>设置属性：通过反射，调用set方法设置属性参数</p>
+<p>自定义初始化方法init</p>
+<p>自定义的销毁方法destory</p>
+</blockquote>
+<h1 id="Spring-AOP"><a href="#Spring-AOP" class="headerlink" title="Spring AOP"></a>Spring AOP</h1><p>AOP(Aspect Oriented Programming)是一种面向切面的编程思想，将影响多个类的行为，集成到一个模块中去，减少代码的重复度，降低模块间的耦合。</p>
+<p>Spring AOP 就是基于动态代理的，有两种动态代理模式JDK动态代理和Cglib动态代理；如果被代理的对象实现了某个接口，则采用JDK动态代理，采用接口方式实现代理；如果被代理的对象没有接口，则采用Cglib动态代理，生成一个被代理类的子类，来作为代理。</p>
+<h2 id="Spring-AOP-和-AspectJ-AOP-有什么区别？"><a href="#Spring-AOP-和-AspectJ-AOP-有什么区别？" class="headerlink" title="Spring AOP 和 AspectJ AOP 有什么区别？"></a>Spring AOP 和 AspectJ AOP 有什么区别？</h2><p><strong>Spring AOP 属于运行时增强，而 AspectJ 是编译时增强。</strong> Spring AOP 基于代理(Proxying)，而 AspectJ 基于字节码操作(Bytecode Manipulation)。</p>
+<p>Spring AOP 已经集成了 AspectJ ，AspectJ 应该算的上是 Java 生态系统中最完整的 AOP 框架了。AspectJ 相比于 Spring AOP 功能更加强大，但是 Spring AOP 相对来说更简单。</p>
+<h2 id="AspectJ-定义的通知类型有哪些？"><a href="#AspectJ-定义的通知类型有哪些？" class="headerlink" title="AspectJ 定义的通知类型有哪些？"></a>AspectJ 定义的通知类型有哪些？</h2><ul>
+<li>Before 前置通知</li>
+<li>After 后置通知</li>
+<li>AfterReturning 返回通知</li>
+<li>AfterThrowing 抛异常通知</li>
+<li>Around 环绕通知</li>
+</ul>
+<h1 id="Spring-MVC"><a href="#Spring-MVC" class="headerlink" title="Spring MVC"></a>Spring MVC</h1><h2 id="SpringMCV工作原理"><a href="#SpringMCV工作原理" class="headerlink" title="SpringMCV工作原理"></a>SpringMCV工作原理</h2><p><img src="https://oss.javaguide.cn/github/javaguide/system-design/framework/spring/de6d2b213f112297298f3e223bf08f28.png" alt="img"></p>
+<p>1.客户端的请求先到DispatcherServlet，DispatcherServlet是Servlet接口的一个实现类；</p>
+<p>2.通过HandlerMapping，根据uri路径信息寻找Handler(Controller)，找到Handler之后生成适配器HandlerAdapter，DispatcherServlet就能通过适配器执行Handler的方法了；</p>
+<p>3.Handler执行完毕，将响应结果返回给DispatcherServlet，web容器再把他封装成response返回给客户端。</p>
+<h1 id="Spring框架用了哪些设计模式"><a href="#Spring框架用了哪些设计模式" class="headerlink" title="Spring框架用了哪些设计模式"></a>Spring框架用了哪些设计模式</h1><p>工厂设计模式：Spring bean对象是通过BeanFactory创建的(BeanFactory是接口，具体实现类是各种Application Context)</p>
+<p>代理模式：AOP的实现</p>
+<p>单例模式：Spring bean默认是单例模式</p>
+<p>适配器模式：spring MVC中DispatcherServlet通过适配器，适配各种Controller</p>
+<h1 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h1><p>Spring可以通过显示编程 或 注解方式开启事务</p>
+<ol>
+<li>通过 <code>TransactionTemplate</code>或者 <code>TransactionManager</code> 手动管理事务</li>
+<li>通过@Transactional注解（通过AOP实现）,可作用于类或方法，作用于类时类中所有public方法都开启事务。</li>
+</ol>
+<h2 id="Spring事务的隔离级别"><a href="#Spring事务的隔离级别" class="headerlink" title="Spring事务的隔离级别"></a>Spring事务的隔离级别</h2><p>默认与数据库的隔离级别一致。一共有四种：RU,RC,RR,Serival</p>
+<h2 id="Transactional-rollbackFor-x3D-Exception-class-注解了解吗？"><a href="#Transactional-rollbackFor-x3D-Exception-class-注解了解吗？" class="headerlink" title="@Transactional(rollbackFor &#x3D; Exception.class)注解了解吗？"></a>@Transactional(rollbackFor &#x3D; Exception.class)注解了解吗？</h2><p>@Transactional注解的rollbackFor如果不配置，默认发生RuntimeException才发生回滚，配置成Exception.class，发生所有异常都会回滚。</p>
+<h1 id="Spring-Security"><a href="#Spring-Security" class="headerlink" title="Spring Security"></a>Spring Security</h1>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/12/28/11%E5%85%AB%E8%82%A1_%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="prev" title="排序算法">
+      <i class="fa fa-chevron-left"></i> 排序算法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/01/08/13%E5%85%AB%E8%82%A1_Redis_mongoDB/" rel="next" title="Redis">
+      Redis <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">Spring概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Spring-MVC-Spring-Boot-%E4%B9%8B%E9%97%B4%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB"><span class="nav-number">1.1.</span> <span class="nav-text">Spring,Spring MVC,Spring Boot 之间什么关系?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-IoC"><span class="nav-number">2.</span> <span class="nav-text">Spring IoC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Spring-Bean%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">什么是 Spring Bean？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%86%E4%B8%80%E4%B8%AA%E7%B1%BB%E5%A3%B0%E6%98%8E%E4%B8%BA-Bean-%E7%9A%84%E6%B3%A8%E8%A7%A3%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="nav-number">2.2.</span> <span class="nav-text">将一个类声明为 Bean 的注解有哪些?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Component-%E5%92%8C-Bean-%E7%9A%84%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">2.3.</span> <span class="nav-text">@Component 和 @Bean 的区别是什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B3%A8%E5%85%A5-Bean-%E7%9A%84%E6%B3%A8%E8%A7%A3%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">2.4.</span> <span class="nav-text">注入 Bean 的注解有哪些？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bean-%E7%9A%84%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="nav-number">2.5.</span> <span class="nav-text">Bean 的作用域有哪些?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E4%BE%8B-Bean-%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98%E4%BA%86%E8%A7%A3%E5%90%97%EF%BC%9F"><span class="nav-number">2.6.</span> <span class="nav-text">单例 Bean 的线程安全问题了解吗？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bean%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">2.7.</span> <span class="nav-text">bean的生命周期</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-AOP"><span class="nav-number">3.</span> <span class="nav-text">Spring AOP</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-AOP-%E5%92%8C-AspectJ-AOP-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">Spring AOP 和 AspectJ AOP 有什么区别？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AspectJ-%E5%AE%9A%E4%B9%89%E7%9A%84%E9%80%9A%E7%9F%A5%E7%B1%BB%E5%9E%8B%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">3.2.</span> <span class="nav-text">AspectJ 定义的通知类型有哪些？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-MVC"><span class="nav-number">4.</span> <span class="nav-text">Spring MVC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SpringMCV%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">4.1.</span> <span class="nav-text">SpringMCV工作原理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring%E6%A1%86%E6%9E%B6%E7%94%A8%E4%BA%86%E5%93%AA%E4%BA%9B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="nav-number">5.</span> <span class="nav-text">Spring框架用了哪些设计模式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-%E4%BA%8B%E5%8A%A1"><span class="nav-number">6.</span> <span class="nav-text">Spring 事务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring%E4%BA%8B%E5%8A%A1%E7%9A%84%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="nav-number">6.1.</span> <span class="nav-text">Spring事务的隔离级别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transactional-rollbackFor-x3D-Exception-class-%E6%B3%A8%E8%A7%A3%E4%BA%86%E8%A7%A3%E5%90%97%EF%BC%9F"><span class="nav-number">6.2.</span> <span class="nav-text">@Transactional(rollbackFor &#x3D; Exception.class)注解了解吗？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-Security"><span class="nav-number">7.</span> <span class="nav-text">Spring Security</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wei"
+      src="/images/naruto.jpg">
+  <p class="site-author-name" itemprop="name">Wei</p>
+  <div class="site-description" itemprop="description">张弛有度，沉浮于心</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/WayV5" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;WayV5" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/19946254539@163.com" title="E-Mail → 19946254539@163.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wei</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">62k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">56 分钟</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '7ea6ec0be4737f3a243a',
+      clientSecret: '9903476d1463334b299f767fded53e6299c3a4bf',
+      repo        : 'gitalk-comment',
+      owner       : 'WayV5',
+      admin       : [''],
+      id          : '67d4f09006af557be5ff371eab7afecb',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
