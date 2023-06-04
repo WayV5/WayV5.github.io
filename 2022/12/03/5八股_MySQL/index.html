@@ -17,7 +17,7 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="MySQL逻辑架构1.连接器 管理客户端连接，验证登陆权限 2.缓存查询 对用户的查询内容进行缓存，缓存命中则不必走存储引擎。但是再MySQL8.0之后移除了这一功能，因为：">
@@ -149,9 +149,6 @@
       </li>
   </ul>
 </nav>
-<div>
-<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=450 src="//music.163.com/outchain/player?type=0&id=63484374&auto=1&height=430"></iframe>
-</div>
 
 
 
@@ -516,7 +513,7 @@
 <h3 id="最左匹配"><a href="#最左匹配" class="headerlink" title="最左匹配"></a>最左匹配</h3><p>在使用联合索引时，<strong>MySQL</strong> 会根据联合索引中的字段顺序，从左到右依次到查询条件中去匹配。匹配完成或者遇到范围查询（如&gt; &lt; between）无法继续匹配时，匹配结束。</p>
 <h3 id="索引下推"><a href="#索引下推" class="headerlink" title="索引下推"></a>索引下推</h3><p>如果是联合索引，遇到无法继续匹配的情况了，比如范围查找，那么其他查询条件如果在索引中能找到，会先做判断，不满足的就不用回表了，减少回表次数。</p>
 <h2 id="怎么给字符串字段加索引？"><a href="#怎么给字符串字段加索引？" class="headerlink" title="怎么给字符串字段加索引？"></a>怎么给字符串字段加索引？</h2><p>场景1：邮箱登录；</p>
-<p>给邮箱字段加索引。 <a href="mailto:&#x7a;&#104;&#x61;&#x6e;&#103;&#x73;&#115;&#120;&#121;&#x7a;&#x40;&#120;&#120;&#120;&#46;&#99;&#111;&#x6d;">&#x7a;&#104;&#x61;&#x6e;&#103;&#x73;&#115;&#120;&#121;&#x7a;&#x40;&#120;&#120;&#120;&#46;&#99;&#111;&#x6d;</a>；问题：字段太长，占据空间太大</p>
+<p>给邮箱字段加索引。 <a href="mailto:&#x7a;&#104;&#97;&#x6e;&#x67;&#115;&#x73;&#x78;&#x79;&#x7a;&#64;&#120;&#120;&#120;&#46;&#x63;&#x6f;&#x6d;">&#x7a;&#104;&#97;&#x6e;&#x67;&#115;&#x73;&#x78;&#x79;&#x7a;&#64;&#120;&#120;&#120;&#46;&#x63;&#x6f;&#x6d;</a>；问题：字段太长，占据空间太大</p>
 <p><strong>前缀索引</strong>，取前几个字符做索引，最左匹配原则。使用前缀索引，定义好长度，就可以做到既节省空间，又不用额外增加太多的查询成本。</p>
 <p>前缀索引的问题是会增加一些扫描行数，牺牲了一些匹配精确度。并且前缀索引依赖于区分度。</p>
 <p>场景2：身份证号</p>
@@ -663,7 +660,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -691,7 +688,9 @@
   </div>
 
 
-
+<div>
+<iframe frameborder="no" border="0" marginwidth="10" marginheight="10" width=281 height=300 src="https://music.163.com/outchain/player?type=0&id=8456542318&auto=1&height=430"></iframe>
+</div>
       </div>
 
     </div>
