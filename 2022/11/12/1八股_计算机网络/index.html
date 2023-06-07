@@ -249,7 +249,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>9.6k</span>
+              <span>9.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -454,6 +454,8 @@
 <ul>
 <li><p>在通信建立前采用非对称加密的方式交换「会话秘钥」，后续就不再使用非对称加密。 在通信过程中全部使用对称加密的「会话秘钥」的方式加密明文数据。</p>
 </li>
+<li><p>「会话秘钥」由浏览器生成，通过公钥加密后，发送给服务器。</p>
+</li>
 <li><p>将服务器公钥放入到<strong>数字证书</strong>中，解决了冒充的风险。</p>
 </li>
 <li><p>采用「混合加密」的方式的原因： 对称加密只使用一个密钥，运算速度快，密钥必须保密，无法做到安全的密钥交换。 非对称加密使用两个密钥：公钥和私钥，公钥可以任意分发而私钥保密，解决了密钥交换问题但 速度慢。</p>
@@ -464,7 +466,7 @@
 </li>
 <li><p><strong>状态响应码</strong> : HTTP&#x2F;1.1中新加入了大量的状态码</p>
 </li>
-<li><p><strong>Host****字段</strong> <strong>:</strong> HTTP&#x2F;1.1在请求头中加入了Host字段。</p>
+<li><p><strong>Host</strong>字段 <strong>:</strong> HTTP&#x2F;1.1在请求头中加入了Host字段。</p>
 </li>
 <li><p><strong>支持管道（<strong><strong>pipeline</strong></strong>）网络传输</strong>：HTTP1.1只要第一个请求发出去了，不必等其回来，就可以发第二个请求 出去，可以减少整体的响应时间。</p>
 </li>
@@ -515,7 +517,7 @@
 </ul>
 <h2 id="Base64用途"><a href="#Base64用途" class="headerlink" title="Base64用途"></a>Base64用途</h2><ul>
 <li><p><strong>二进制存储文件的传输：</strong></p>
-<p>因为HTTP1.1是文本传输协议，而对于图片、视频这些二进制存储的文件，在网络传输要转换成文本格式才能传输</p>
+<p>因为HTTP1.1是文本传输协议，而对于图片、视频这些二进制存储的文件，在网络传输要转换成文本格式才能传输，json直接传输byte[ ]可能导致字节流发生变化？</p>
 </li>
 <li><p><strong>特殊字符引发的解析问题：</strong></p>
 <p> Get请求方法，要把请求参数拼接在url后边，当出现空格的时候就会导致访问链接解析异常；</p>

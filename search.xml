@@ -52,133 +52,6 @@
 <h2 id="Exception和Error"><a href="#Exception和Error" class="headerlink" title="Exception和Error"></a>Exception和Error</h2>]]></content>
   </entry>
   <entry>
-    <title>Redis</title>
-    <url>/2023/01/08/13%E5%85%AB%E8%82%A1_Redis_mongoDB/</url>
-    <content><![CDATA[<h1 id="Redis基础概念"><a href="#Redis基础概念" class="headerlink" title="Redis基础概念"></a>Redis基础概念</h1><p>Redis是一种基于内存的数据库，读写速度快，常用于缓存；他是非关系型数据库nosql，数据采用键值对关系存储。</p>
-<p>采用NIO的IO多路复用模型。默认一共有16个库。redis服务进程是单线程的。</p>
-<blockquote>
-<p>关系型数据库:像mysql数据库，表中的每条记录都有字段关系的约束。</p>
-</blockquote>
-<span id="more"></span>
-
-<h1 id="Redis的数据类型"><a href="#Redis的数据类型" class="headerlink" title="Redis的数据类型"></a>Redis的数据类型</h1><h2 id="String"><a href="#String" class="headerlink" title="String"></a>String</h2><p>最基本的数据类型，可以存储字符串，整数，浮点数，jpg，序列化的对象等等。最大512MB</p>
-<h2 id="Hash"><a href="#Hash" class="headerlink" title="Hash"></a>Hash</h2><p>可以看成一个map容器，一个容器可以存储多个键值对。&lt;key,&lt;key1,value&gt;&gt;</p>
-<h2 id="List"><a href="#List" class="headerlink" title="List"></a>List</h2><p>双向链表结构</p>
-<h2 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h2><p>无序不可重复集合</p>
-<h2 id="Zset-Sorted-set"><a href="#Zset-Sorted-set" class="headerlink" title="Zset(Sorted set)"></a>Zset(Sorted set)</h2><p>有序不可重复集合；每个元素有一个分数（score），默认按照分数从小到大排序</p>
-<h1 id="Redis持久化"><a href="#Redis持久化" class="headerlink" title="Redis持久化"></a>Redis持久化</h1><h2 id="RDB持久化（全量同步）（默认开启）"><a href="#RDB持久化（全量同步）（默认开启）" class="headerlink" title="RDB持久化（全量同步）（默认开启）"></a>RDB持久化（全量同步）（默认开启）</h2><p>周期性的将redis数据以snapshot形式存储到二进制文件，一般一个小时一次；</p>
-<p>redis通过fork一个子线程来定时生成rdb文件，避免影响redis服务进程的执行效率。</p>
-<h2 id="AOF持久化（增量同步）"><a href="#AOF持久化（增量同步）" class="headerlink" title="AOF持久化（增量同步）"></a>AOF持久化（增量同步）</h2><p>AOF文件记录的是redis的增删改操作；</p>
-<p>AOF同步策略：1. 每秒同步 2.每个增删改操作同步 3.不同步</p>
-<blockquote>
-<ol>
-<li>RDB存储的是压缩过的二进制文件，占用空间小；AOF占用空间大；因此RDB更适合做备份，并且RDB是存储的快照，恢复大量数据时速度比较快。</li>
-<li>AOF文件可以做到秒级备份，安全性更高。</li>
-<li>如果对于数据丢失安全性要求不高，只用RDB就行了；如果对安全性要求较高，可以RDB和AOF混用。</li>
-</ol>
-</blockquote>
-<h1 id="Redis缓存的好处"><a href="#Redis缓存的好处" class="headerlink" title="Redis缓存的好处"></a>Redis缓存的好处</h1><p>因此磁盘的访问速度远低于内存的访问速度，常用的数据缓存到内存中，能保证系统的高可用性和并发性。</p>
-<h1 id="Redis的三种缓存读写（更新）策略"><a href="#Redis的三种缓存读写（更新）策略" class="headerlink" title="Redis的三种缓存读写（更新）策略"></a>Redis的三种缓存读写（更新）策略</h1><h2 id="旁路缓存"><a href="#旁路缓存" class="headerlink" title="旁路缓存"></a>旁路缓存</h2><p><img src="https://oss.javaguide.cn/github/javaguide/database/redis/cache-aside-write.png" alt="img"></p>
-<p><strong>读</strong>的时候：1.先到redis中读取 2.如果没有数据，就去数据库中读 并返回3. 再把数据放到redis中；</p>
-<p><strong>写</strong>的时候：1.先更新数据库 2.然后直接删除缓存中对应的数据</p>
-<blockquote>
-<p>必须先更新db，再删除cache; 否则如果先删除cache再更新db，会造成cache和db数据不一致</p>
-</blockquote>
-<h2 id="读写穿透"><a href="#读写穿透" class="headerlink" title="读写穿透"></a>读写穿透</h2><p>读的时候：1.先到redis中读取 2.如果没有数据，就去数据库加载数据到redis 3.redis返回数据</p>
-<p>写的时候：1.先查cache，cache不存在，直接更新db；2.如果查到cache,直接更新cache,然后由redis更新db；</p>
-<h2 id="异步缓存写入"><a href="#异步缓存写入" class="headerlink" title="异步缓存写入"></a>异步缓存写入</h2><p>与读写穿透相似，都是由redis来更新db，但是这个更新是批量异步更新的。这点和mysql的批量同步机制类似。</p>
-<h1 id="除了缓存Redis还能干什么"><a href="#除了缓存Redis还能干什么" class="headerlink" title="除了缓存Redis还能干什么"></a>除了缓存Redis还能干什么</h1><ol>
-<li>消息队列</li>
-<li>分布式锁</li>
-<li>限流</li>
-</ol>
-<h1 id="Redis事务"><a href="#Redis事务" class="headerlink" title="Redis事务"></a>Redis事务</h1><p>redis事务比较鸡肋，应用较少，不能保证原子性；且事务中的每个命令都要redis服务器进行一次交互，比较浪费网络资源。</p>
-<p>为了解决redis事务的缺陷，提出了Lua脚本，可以批量的原子性的执行redis命令，减少网络开销。</p>
-<p>Lua脚本在执行过程中不会有其他Lua脚本和redis执行同时执行；但是Lua脚本如果执行到一半出现崩溃，后面的不会执行，执行过的也不会回滚。</p>
-<h1 id="Redis生产问题"><a href="#Redis生产问题" class="headerlink" title="Redis生产问题"></a>Redis生产问题</h1><h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>频繁的使用大量不存在的key进行查询，导致缓存无法命中，给数据造成很大压力。</p>
-<p>解决方案：</p>
-<ol>
-<li>缓存无效的key【没太大用，因为黑客攻击会使用大量不同的key】</li>
-<li>对客户端限流，限制请求频率。</li>
-<li>布隆过滤器【将所有可能存在的请求的值都放在布隆过滤器中，请求来了之后先用布隆过滤器判断，如果请求无效，直接返回错误参数给客户端。】</li>
-</ol>
-<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>热点key的过期问题。热key过期瞬间会有大量请求打到数据库，给数据库造成压力。</p>
-<p>解决方案：</p>
-<ol>
-<li>设置热key永不过期，或设置一个比较长的过期时间。</li>
-<li>在秒杀场景下，对热key提前预热，设置在秒杀结束之前不过期。</li>
-<li>请求数据库写到缓存的这个操作，加互斥锁，保证只有一个请求到达数据库。</li>
-</ol>
-<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>在同一时间有大量key同时失效，导致大量请求都打到数据库上。</p>
-<p>解决方法：</p>
-<ol>
-<li>失效时间都加一个随机值；</li>
-<li>集群部署redis</li>
-<li>设置所有Key永不过期【笨方法】</li>
-</ol>
-<h1 id="过期数据的删除策略"><a href="#过期数据的删除策略" class="headerlink" title="过期数据的删除策略"></a>过期数据的删除策略</h1><h2 id="惰性删除"><a href="#惰性删除" class="headerlink" title="惰性删除"></a>惰性删除</h2><p>在用到key的时候，再对数据进行过期检查，删除过期数据，这样对CPU友好</p>
-<h2 id="定期删除"><a href="#定期删除" class="headerlink" title="定期删除"></a>定期删除</h2><p>每隔一段时间对过期数据进行删除，这样对内存友好；</p>
-<blockquote>
-<p>redis采用 惰性删除 + 定期删除的策略</p>
-</blockquote>
-<h1 id="主从复制"><a href="#主从复制" class="headerlink" title="主从复制"></a>主从复制</h1><p>如果用单点redis，那么redis挂了之后全部请求都打在db，给数据库带来很大压力。</p>
-<p>主从复制就是建立一个redis主节点master，可以有多个从节点来同步主节点的数据，从而实现主节点写，从节点读；当主节点宕机了，可以从从节点中选择一个作为主节点来实现故障转移。保证redis的高可用性。</p>
-<h2 id="主从复制下，从节点数据过期怎么处理？"><a href="#主从复制下，从节点数据过期怎么处理？" class="headerlink" title="主从复制下，从节点数据过期怎么处理？"></a>主从复制下，从节点数据过期怎么处理？</h2><p>从节点数据过期的话，会删除过期数据，并返回空值；</p>
-<h2 id="主从过期时间不一致问题？"><a href="#主从过期时间不一致问题？" class="headerlink" title="主从过期时间不一致问题？"></a>主从过期时间不一致问题？</h2><p>由于主从同步时，网络传输原因，可能造成过期时间不一致，因为如果采用EXPIRE设置过期时间，是按照命令执行时间开始计时过期时间的；因此可以采用设置UNIX时间戳的过期时间设置方式，但要注意主从节点的时区设置一致。</p>
-<h2 id="如何实现主从同步？"><a href="#如何实现主从同步？" class="headerlink" title="如何实现主从同步？"></a>如何实现主从同步？</h2><ol>
-<li>首次主从连接的时候，采用全量同步，用主节点的RDB文件来给从节点进行同步；</li>
-<li>后续操作，采用增量同步，根据主节点的AOF文件，主节点根据从节点的offset偏移量，讲偏移量后的数据同步到从节点</li>
-</ol>
-<h2 id="主从复制的缺陷"><a href="#主从复制的缺陷" class="headerlink" title="主从复制的缺陷"></a>主从复制的缺陷</h2><p>如果主节点宕机，需要人工选取一个从节点来作为新的主节点，进行配置，不能够自动完成。这时就需要哨兵机制了。</p>
-<h1 id="Sentinal"><a href="#Sentinal" class="headerlink" title="Sentinal"></a>Sentinal</h1><p>Sentinal（哨兵）模式是一种redis的运行方式，在主从复制的基础上，多了哨兵角色，来监控redis节点运行状态，自动完成故障转移。</p>
-<p>想要保证高可用性，sentinal数量应大于等于3且为单数。防止sentinal误判。</p>
-<blockquote>
-<ol>
-<li>sentinal会检测集群中所有节点的运行状态</li>
-<li>当主节点故障，且判断出主节点故障的哨兵数量大于预设阈值，则判定主节点下线；</li>
-<li>判定主节点下线后，采取故障转移，把一个从节点升级为主节点，并完成相应主从关系的配置。</li>
-</ol>
-</blockquote>
-<blockquote>
-<p>每隔sentinal每隔一段时间会向集群中所有节点发送ping命令，如果收到回复超时，则单个sentinal会判断某个redis节点的<strong>主观下线</strong>；当判断某个节点的sentinal数量大于预设阈值时，则判断该节点<strong>客观下线</strong>。</p>
-</blockquote>
-<h2 id="sentinal如何选举新的master"><a href="#sentinal如何选举新的master" class="headerlink" title="sentinal如何选举新的master"></a>sentinal如何选举新的master</h2><ol>
-<li>首先看从节点的优先级replica-priority，挑优先级最高的从节点选做master；（最高优先级是1，最低是100；0表示永不被升级）</li>
-<li>优先级相同，则看哪个节点的数据偏移量，偏移量越大说明同步到的原主节点数据越多，则优先被选为master；</li>
-<li>最后看runid；每个redis启动时都会生成一个40位的随机数作为runid，选取runid最小的升级。</li>
-</ol>
-<h1 id="Cluster集群"><a href="#Cluster集群" class="headerlink" title="Cluster集群"></a>Cluster集群</h1><h2 id="为什么需要Cluster集群"><a href="#为什么需要Cluster集群" class="headerlink" title="为什么需要Cluster集群"></a>为什么需要Cluster集群</h2><p>传统的主从复制和哨兵集群只有一个master，每个节点都保存全部数据，通过故障转移策略，来保证高可用性，和<strong>读</strong>吞吐量；但是无法解决数据总量过大带来的缓存压力和<strong>写</strong>压力。</p>
-<p>因此有了Cluster集群，能够配置多个master节点，每个master节点可以有一个或多个从节点；</p>
-<p>存储数据根据key值进行负载均衡，分别存储在各个主从节点；Cluster集群是去（无）中心化的，每个主节点都可以作为集群入口，根据查找的key值不同，根据路由原则，讲请求分发到对应的master。</p>
-<p>通过横向扩展可以根据需求方便的进行集群动态扩容和缩容；</p>
-<h2 id="一个最基本的cluster集群"><a href="#一个最基本的cluster集群" class="headerlink" title="一个最基本的cluster集群"></a>一个最基本的cluster集群</h2><p>为了保证高可用性，最基本的cluster集群要3个master，每个master配有一个slave，当一个master挂掉，由它的从节点代替成为master。</p>
-<h2 id="哈希槽slots"><a href="#哈希槽slots" class="headerlink" title="哈希槽slots"></a>哈希槽slots</h2><p>一个cluster集群有16384 &#x3D; 2^14 &#x3D; 16K个哈希槽，根据key值，对数据进行哈希，分配到每个哈希槽，每个主节点及其从节点负责一定数量的哈希槽的数据存储与访问；</p>
-<h2 id="重定向"><a href="#重定向" class="headerlink" title="重定向"></a>重定向</h2><p>如果当前访问的key对应的哈希槽与redis节点不对应，则请求会被重定向到相应节点。</p>
-<h1 id="MongoDB"><a href="#MongoDB" class="headerlink" title="MongoDB"></a>MongoDB</h1><p>一种非关系型数据库，为快速开发web应用而生，灵活性更强；</p>
-<p>其数据模型是面向文档的，所谓文档是一种类似JSON的结构，称为BSON，可以存储比较复杂的数据类型。</p>
-<h2 id="MongoDB的存储结构"><a href="#MongoDB的存储结构" class="headerlink" title="MongoDB的存储结构"></a>MongoDB的存储结构</h2><ul>
-<li>文档：由BSON键值对组成，类似于关系型数据库的行；BSON（Binary JSON 二进制JSON，遍历速度优于JSON）</li>
-<li>集合：一个集合可以包含多个文档，类似于关系型数据库的表；集合没有固定的结构，但是集合中存放的文档往往是有一定联系的。</li>
-<li>数据库：一个数据库可以包含多个文档</li>
-</ul>
-<h2 id="MongoDB的特点"><a href="#MongoDB的特点" class="headerlink" title="MongoDB的特点"></a>MongoDB的特点</h2><ul>
-<li>数据记录为文档格式，具体来说是BSON文档，类似于JSON的结构；</li>
-<li>模式自由：文档存放在集合中，集合相当于关系型数据库表的概念，但是没有固定的表结构，比较灵活。</li>
-<li>支持事务：虽然是NoSQL,但是支持事务</li>
-<li>支持索引：索引类型多样</li>
-<li>支持分片集群</li>
-<li>支持存储大文件</li>
-</ul>
-<h2 id="MongoDB的适合应用场景"><a href="#MongoDB的适合应用场景" class="headerlink" title="MongoDB的适合应用场景"></a>MongoDB的适合应用场景</h2><p>MongDB的优势在于其数据模型灵活，便于扩展。</p>
-]]></content>
-      <categories>
-        <category>数据库</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>IO模型</title>
     <url>/2023/03/02/10%E5%85%AB%E8%82%A1_IO/</url>
     <content><![CDATA[<h1 id="IO概念"><a href="#IO概念" class="headerlink" title="IO概念"></a>IO概念</h1><p>I&#x2F;O就是输入输出，指的是计算机内存空间与外部设备之间的通信过程。</p>
@@ -260,53 +133,59 @@
       </tags>
   </entry>
   <entry>
-    <title>Java集合</title>
-    <url>/2022/11/23/14%E5%85%AB%E8%82%A1_%E9%9B%86%E5%90%88/</url>
-    <content><![CDATA[<h1 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a>ArrayList</h1><p>ArrayList基于动态数组实现，当使用无参构造函数创建一个ArrayList对象时，初始化一个空数组，当第一次往里面add值得时候，数组扩容为10，之后每次当容量满的时候，扩容为原来的1.5倍。扩容时先创建一个新容量的数组，然后将原数据拷贝过去。</p>
+    <title>排序算法</title>
+    <url>/2022/12/30/11%E5%85%AB%E8%82%A1_%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</url>
+    <content><![CDATA[<h1 id="经典排序算法的性能"><a href="#经典排序算法的性能" class="headerlink" title="经典排序算法的性能"></a>经典排序算法的性能</h1><p><img src="https://github.com/WayV5/imgs/blob/main/%E6%8E%92%E5%BA%8F/p1.png?raw=true" alt="十大排序算法"></p>
 <span id="more"></span>
 
-<h1 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h1><p>在JDK1.8之前，基于<strong>数组</strong>+<strong>链表</strong>实现，JDK1.8之后，基于<strong>数组</strong>+链表+<strong>红黑树</strong>；</p>
-<h2 id="寻址算法"><a href="#寻址算法" class="headerlink" title="寻址算法"></a>寻址算法</h2><p>HashMap时根据key对象的hashCode进行散列的，首先要对key对象的hashCode进行一个扰动函数处理，扰动函数的目的是散列效果更好，减小哈希冲突。</p>
+<p>图片来源：<a href="http://www.guoyaohua.com/sorting.html#%E5%BC%95%E8%A8%80">http://www.guoyaohua.com/sorting.html#%E5%BC%95%E8%A8%80</a></p>
+<h1 id="冒泡排序"><a href="#冒泡排序" class="headerlink" title="冒泡排序"></a>冒泡排序</h1><p>每次循环把最大值挪到最后，最小值逐渐向前挪（冒泡）。</p>
+<p>时间复杂度：最好O(n)，最坏O(n2)，平均O(n2);</p>
+<p>空间复杂度：O(1);</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BubbleSort</span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">            <span class="type">boolean</span> <span class="variable">flag</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; arr.length - i; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (arr[j] &gt; arr[j + <span class="number">1</span>]) &#123;</span><br><span class="line">                    <span class="type">int</span> <span class="variable">tmp</span> <span class="operator">=</span> arr[j];</span><br><span class="line">                    arr[j] = arr[j + <span class="number">1</span>];</span><br><span class="line">                    arr[j + <span class="number">1</span>] = tmp;</span><br><span class="line">                    flag = <span class="literal">false</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (flag) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="选择排序"><a href="#选择排序" class="headerlink" title="选择排序"></a>选择排序</h1><p>每次循环，选择最小的，放到前边</p>
+<p>时间复杂度：最好O(n2)，最坏O(n2)，平均O(n2);</p>
+<p>空间复杂度：O(1);</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SelectionSort</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">minValIdx</span> <span class="operator">=</span> i;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> i + <span class="number">1</span>; j &lt; arr.length; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (arr[j] &lt; arr[minValIdx]) &#123;</span><br><span class="line">                    minValIdx = j;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (minValIdx != i) &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">temp</span> <span class="operator">=</span> arr[minValIdx];</span><br><span class="line">                arr[minValIdx] = arr[i];</span><br><span class="line">                arr[i] = temp;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="归并排序"><a href="#归并排序" class="headerlink" title="归并排序"></a>归并排序</h1><p><strong>分治思想</strong>。</p>
+<p>为了避免每次递归都创建一个新数组，事先创建一个O(n)的数组，用起止坐标控制；</p>
+<p>每次递归，将左右两个数组借助临时数组进行排序。【后序遍历】</p>
+<p>时间复杂度：最好O(nlogn)，最坏O(nlogn)，平均O(nlogn);</p>
+<p>空间复杂度：O(n);</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MergeSort</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        <span class="type">int</span>[] temp = <span class="keyword">new</span> <span class="title class_">int</span>[arr.length];</span><br><span class="line">        mergeSort(arr, <span class="number">0</span>, arr.length, temp);</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">mergeSort</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right, <span class="type">int</span>[] temp)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (right - left &lt;= <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> left + (right - left) / <span class="number">2</span>;</span><br><span class="line">        mergeSort(arr, left, mid, temp);</span><br><span class="line">        mergeSort(arr, mid, right, temp);</span><br><span class="line">        merge(arr, left, right, temp);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">merge</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right, <span class="type">int</span>[] temp)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> left + (right - left) / <span class="number">2</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> left, j = mid, idx = left;</span><br><span class="line">        <span class="keyword">while</span> (i &lt; mid &amp;&amp; j &lt; right) &#123;</span><br><span class="line">            <span class="keyword">if</span> (arr[i] &lt; arr[j]) &#123;</span><br><span class="line">                temp[idx++] = arr[i++];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                temp[idx++] = arr[j++];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (i &lt; mid) &#123;</span><br><span class="line">            temp[idx++] = arr[i++];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (j &lt; right) &#123;</span><br><span class="line">            temp[idx++] = arr[j++];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> left; k &lt; right; k++) &#123;</span><br><span class="line">            arr[k] = temp[k];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h1><p><strong>分治思想</strong>。</p>
+<ol>
+<li>从序列中随便选取一个元素，作为基准pivot，【一般取最后一个】</li>
+<li>分区操作(partition)：然基准前的元素都小于基准，基准后的元素都大于基准；</li>
+<li>以基准为分界线，递归进行分区操作。【前序遍历】</li>
+</ol>
+<p>时间复杂度：最好O(nlogn)，最坏O(nlogn)，平均O(nlogn);</p>
+<p>空间复杂度：O(logn);</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">QuickSort</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        quickSort(arr, <span class="number">0</span>, arr.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">quickSort</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (left &gt;= right) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> <span class="variable">povitIdx</span> <span class="operator">=</span> partition(arr, left, right);</span><br><span class="line">        quickSort(arr, left, povitIdx - <span class="number">1</span>);</span><br><span class="line">        quickSort(arr, povitIdx + <span class="number">1</span>, right);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">partition</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">pointer</span> <span class="operator">=</span> left;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> left; i &lt; right; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (arr[i] &lt; arr[right]) &#123;</span><br><span class="line">                swap(arr, i, pointer);</span><br><span class="line">                pointer++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        swap(arr, pointer, right);</span><br><span class="line">        <span class="keyword">return</span> pointer;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">temp</span> <span class="operator">=</span> arr[a];</span><br><span class="line">        arr[a] = arr[b];</span><br><span class="line">        arr[b] = temp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="堆排序"><a href="#堆排序" class="headerlink" title="堆排序"></a>堆排序</h1><p>并不是真的用堆的数据结构，而是看作堆。升序排列用大顶堆方便操作。</p>
+<ol>
+<li><p>先建立起大顶堆；</p>
 <blockquote>
-<p>JDK1.8的扰动函数hash()      (h &#x3D; key.hashCode()) ^ (h &gt;&gt;&gt; 16)</p>
-<p>将hashCode有符号右移16位，然后和原来的hashCode异或，得到哈希值</p>
+<p>heapify()方法，将某一个节点进行大顶堆化操作；i节点的左子节点索引为2i+1,右子节点索引为2i+2，在左右节点索引没超过heapLen前提下，比较找出三个节点中最大的，变成头节点；如果交换了节点，还要递归向下heapify()。</p>
 </blockquote>
-<p>寻址： hash &amp; (n - 1)  n位数组长度</p>
-<h2 id="为什么HashMap的数组长度要是2的整数次方？"><a href="#为什么HashMap的数组长度要是2的整数次方？" class="headerlink" title="为什么HashMap的数组长度要是2的整数次方？"></a>为什么HashMap的数组长度要是2的整数次方？</h2><p>这要从HashMap的寻址算法说起了，寻址的思想就是对key的哈希值对数组长度进行取模运算，但是计算机取模运算速度比较慢，因此HashMap用与运算来代替取模，采用hash &amp; (n - 1)的方式进行寻址，提高计算速度。</p>
-<p> 这样计算的原理是：n是2的次方，那么n-1的二进制表示就都是1，和哈希值相与的话，比n大的二进制位就都变成了0，其效果和取模运算是相同的；如果数组长度不是2的整数次方，还使用这种寻址方式的话，那么n-1低位就不都是1了，与运算得到的散列效果就不会连续的了，哈希冲突概率提高。</p>
-<h2 id="HashMap如何解决哈希冲突"><a href="#HashMap如何解决哈希冲突" class="headerlink" title="HashMap如何解决哈希冲突"></a>HashMap如何解决哈希冲突</h2><p>HashMap通过拉链法解决哈希冲突，如果有key寻址到数组的相同位置，那么就通过链表的方式存储后添加进来的元素。JDK1.8之前采用头插法，之后采用尾插法。</p>
-<p>当链表长度大于转换阈值（默认是8）的时候，如果数组长度＞64，会优先进行扩容，如果数组长度≥64，链表会转化成红黑树；如果红黑树的节点数≤6，红黑树会退化成链表。</p>
-<h2 id="HashMap的扩容机制"><a href="#HashMap的扩容机制" class="headerlink" title="HashMap的扩容机制"></a>HashMap的扩容机制</h2><p>通过无参构造函数new一个HashMap对象时，会创建一个空的数组，第一次put值的时候，初始化一个长度为16的数组。</p>
-<p>当HashMap中的<strong>节点数量</strong>（k-v数量）＞数组长度<em>负载因子（默认为0.75）时（初始为16</em> x 0.75 &#x3D; 12），数组容量扩容为原来的2倍，并进行resize()，扩容时会创建新的数组，并对原有的链表和红黑树结构的元素数据进行重新哈希分配rehash</p>
-<h2 id="为什么链表到红黑树的转化因子是8？"><a href="#为什么链表到红黑树的转化因子是8？" class="headerlink" title="为什么链表到红黑树的转化因子是8？"></a>为什么链表到红黑树的转化因子是8？</h2><p>在理想条件下，使用随机hashCode进行寻址，每个节点在桶中出现的概率是遵循泊松分布的，当我们的负载因子选用0.75时，一个桶中出现链表长度大于8的概率不超过千万分之一。</p>
-<h2 id="为什么要引入红黑树"><a href="#为什么要引入红黑树" class="headerlink" title="为什么要引入红黑树"></a>为什么要引入红黑树</h2><p>因为链表的搜索时间复杂度时O（n），当链表长度过长时，搜索效率大大降低；红黑树是log(n)，但是红黑树的空间占用大（链表的2倍）；因此在节点数较少时，红黑树的搜索时间复杂度并不比链表高多少，采用链表，当节点数多时才转换成红黑树。</p>
 <blockquote>
-<p>红黑树：自动平衡，自动排序。</p>
+<p>从最后一个非叶子节点（len &#x2F; 2 - 1）开始，到头节点，每个都要执行heapify()；这算是个剪枝操作，从最后一个节点开始也可以，但是叶子节点无需heapify()，因此可剪枝。</p>
 </blockquote>
-<h2 id="HashMap的遍历方式"><a href="#HashMap的遍历方式" class="headerlink" title="HashMap的遍历方式"></a>HashMap的遍历方式</h2><h3 id="Iterator迭代器—EntrySet"><a href="#Iterator迭代器—EntrySet" class="headerlink" title="Iterator迭代器—EntrySet"></a>Iterator迭代器—EntrySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Iterator&lt;Map.Entry&lt;Integer, Integer&gt;&gt; it = map.entrySet().iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">	Map.Entry&lt;Integer, Integer&gt; entry = it.next();</span><br><span class="line">	<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> entry.getKey();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Iterator迭代器—KeySet"><a href="#Iterator迭代器—KeySet" class="headerlink" title="Iterator迭代器—KeySet"></a>Iterator迭代器—KeySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Iterator&lt;Integer&gt; it = map.keySet().iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">	<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> it.next();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> map.get(k);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Foreach—EntrySet"><a href="#Foreach—EntrySet" class="headerlink" title="Foreach—EntrySet"></a>Foreach—EntrySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (Map.Entry&lt;Integer, Integer&gt; entry : map.entrySet()) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> entry.getKey();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Foreach—KeySet"><a href="#Foreach—KeySet" class="headerlink" title="Foreach—KeySet"></a>Foreach—KeySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (Integer key : map.keySet()) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> map.get(key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Lambda"><a href="#Lambda" class="headerlink" title="Lambda"></a>Lambda</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.forEach((k, v) -&gt; &#123;</span><br><span class="line">    System.out.println(k);</span><br><span class="line">    System.out.println(v);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Streams-API-单线程"><a href="#Streams-API-单线程" class="headerlink" title="Streams API 单线程"></a>Streams API 单线程</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.entrySet().stream().forEach((entry) -&gt; &#123;</span><br><span class="line">    System.out.println(entry.getKey());</span><br><span class="line">    System.out.println(entry.getValue());</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Streams-API-多线程"><a href="#Streams-API-多线程" class="headerlink" title="Streams API 多线程"></a>Streams API 多线程</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.entrySet().parallelStream().forEach((entry) -&gt; &#123;</span><br><span class="line">    System.out.println(entry.getKey());</span><br><span class="line">    System.out.println(entry.getValue());</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="速度比较"><a href="#速度比较" class="headerlink" title="速度比较"></a>速度比较</h3><p>1.迭代器EntrySet 2.foreach EntrySet 3.foreach KeySey 4. 迭代器KeySet 5.Lambda 6.Streams API</p>
-<p><strong><code>entrySet</code> 的性能比 <code>keySet</code> 的性能高出了一倍之多，因此我们应该尽量使用 <code>entrySet</code> 来实现 Map 集合的遍历</strong>。</p>
-<h3 id="安全性问题"><a href="#安全性问题" class="headerlink" title="安全性问题"></a>安全性问题</h3><p>不能在遍历map时，通过map.remove()方法来删除元素，这是不安全的操作；但是可以用迭代器，通过迭代器的iterator.remove()来安全的删除元素。</p>
-<p>同样的我们也可以使用 Lambda 中的 <code>removeIf</code> 来提前删除数据，或者是使用 Stream 中的 <code>filter</code> 过滤掉要删除的数据进行循环，这样都是安全的，当然我们也可以在 <code>for</code> 循环前删除数据在遍历也是线程安全的。</p>
-]]></content>
+</li>
+<li><p>依次将堆顶与最后一个对调，然后将剩余元素再建立大顶堆，heapLen减1；</p>
+</li>
+</ol>
+<p>时间复杂度：最好O(nlogn)，最坏O(nlogn)，平均O(nlogn);</p>
+<p>空间复杂度：O(1);</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HeapSort</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">temp</span> <span class="operator">=</span> arr[a];</span><br><span class="line">        arr[a] = arr[b];</span><br><span class="line">        arr[b] = temp;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">heapify</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> idx, <span class="type">int</span> heapLen)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">left</span> <span class="operator">=</span> idx * <span class="number">2</span> + <span class="number">1</span>, right = idx * <span class="number">2</span> + <span class="number">2</span>;   <span class="comment">//左右节点下标</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">maxValIdx</span> <span class="operator">=</span> idx;</span><br><span class="line">        <span class="keyword">if</span> (left &lt; heapLen &amp;&amp; arr[left] &gt; arr[maxValIdx]) maxValIdx = left;</span><br><span class="line">        <span class="keyword">if</span> (right &lt; heapLen &amp;&amp; arr[right] &gt; arr[maxValIdx]) maxValIdx = right;</span><br><span class="line">        <span class="keyword">if</span> (maxValIdx != idx) &#123;</span><br><span class="line">            swap(arr, idx, maxValIdx);</span><br><span class="line">            heapify(arr, maxValIdx, heapLen);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">heapBuild</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> heapLen)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> arr.length / <span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;        <span class="comment">//从后往前找到第一个非叶子节点，开始树化</span></span><br><span class="line">            heapify(arr, i, heapLen);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">heapLen</span> <span class="operator">=</span> arr.length;</span><br><span class="line">        heapBuild(arr, heapLen);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> arr.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            swap(arr, i, <span class="number">0</span>);</span><br><span class="line">            heapLen--;</span><br><span class="line">            heapify(arr, <span class="number">0</span>, heapLen);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>后端</category>
+        <category>算法</category>
       </categories>
       <tags>
-        <tag>Java</tag>
+        <tag>排序算法</tag>
       </tags>
   </entry>
   <entry>
@@ -366,62 +245,6 @@
       </tags>
   </entry>
   <entry>
-    <title>排序算法</title>
-    <url>/2022/12/30/11%E5%85%AB%E8%82%A1_%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</url>
-    <content><![CDATA[<h1 id="经典排序算法的性能"><a href="#经典排序算法的性能" class="headerlink" title="经典排序算法的性能"></a>经典排序算法的性能</h1><p><img src="https://github.com/WayV5/imgs/blob/main/%E6%8E%92%E5%BA%8F/p1.png?raw=true" alt="十大排序算法"></p>
-<span id="more"></span>
-
-<p>图片来源：<a href="http://www.guoyaohua.com/sorting.html#%E5%BC%95%E8%A8%80">http://www.guoyaohua.com/sorting.html#%E5%BC%95%E8%A8%80</a></p>
-<h1 id="冒泡排序"><a href="#冒泡排序" class="headerlink" title="冒泡排序"></a>冒泡排序</h1><p>每次循环把最大值挪到最后，最小值逐渐向前挪（冒泡）。</p>
-<p>时间复杂度：最好O(n)，最坏O(n2)，平均O(n2);</p>
-<p>空间复杂度：O(1);</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BubbleSort</span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">            <span class="type">boolean</span> <span class="variable">flag</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; arr.length - i; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (arr[j] &gt; arr[j + <span class="number">1</span>]) &#123;</span><br><span class="line">                    <span class="type">int</span> <span class="variable">tmp</span> <span class="operator">=</span> arr[j];</span><br><span class="line">                    arr[j] = arr[j + <span class="number">1</span>];</span><br><span class="line">                    arr[j + <span class="number">1</span>] = tmp;</span><br><span class="line">                    flag = <span class="literal">false</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (flag) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="选择排序"><a href="#选择排序" class="headerlink" title="选择排序"></a>选择排序</h1><p>每次循环，选择最小的，放到前边</p>
-<p>时间复杂度：最好O(n2)，最坏O(n2)，平均O(n2);</p>
-<p>空间复杂度：O(1);</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SelectionSort</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">minValIdx</span> <span class="operator">=</span> i;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> i + <span class="number">1</span>; j &lt; arr.length; j++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (arr[j] &lt; arr[minValIdx]) &#123;</span><br><span class="line">                    minValIdx = j;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (minValIdx != i) &#123;</span><br><span class="line">                <span class="type">int</span> <span class="variable">temp</span> <span class="operator">=</span> arr[minValIdx];</span><br><span class="line">                arr[minValIdx] = arr[i];</span><br><span class="line">                arr[i] = temp;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h1 id="归并排序"><a href="#归并排序" class="headerlink" title="归并排序"></a>归并排序</h1><p><strong>分治思想</strong>。</p>
-<p>为了避免每次递归都创建一个新数组，事先创建一个O(n)的数组，用起止坐标控制；</p>
-<p>每次递归，将左右两个数组借助临时数组进行排序。【后序遍历】</p>
-<p>时间复杂度：最好O(nlogn)，最坏O(nlogn)，平均O(nlogn);</p>
-<p>空间复杂度：O(n);</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MergeSort</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        <span class="type">int</span>[] temp = <span class="keyword">new</span> <span class="title class_">int</span>[arr.length];</span><br><span class="line">        mergeSort(arr, <span class="number">0</span>, arr.length, temp);</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">mergeSort</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right, <span class="type">int</span>[] temp)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (right - left &lt;= <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> left + (right - left) / <span class="number">2</span>;</span><br><span class="line">        mergeSort(arr, left, mid, temp);</span><br><span class="line">        mergeSort(arr, mid, right, temp);</span><br><span class="line">        merge(arr, left, right, temp);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">merge</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right, <span class="type">int</span>[] temp)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">mid</span> <span class="operator">=</span> left + (right - left) / <span class="number">2</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> left, j = mid, idx = left;</span><br><span class="line">        <span class="keyword">while</span> (i &lt; mid &amp;&amp; j &lt; right) &#123;</span><br><span class="line">            <span class="keyword">if</span> (arr[i] &lt; arr[j]) &#123;</span><br><span class="line">                temp[idx++] = arr[i++];</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                temp[idx++] = arr[j++];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (i &lt; mid) &#123;</span><br><span class="line">            temp[idx++] = arr[i++];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (j &lt; right) &#123;</span><br><span class="line">            temp[idx++] = arr[j++];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> left; k &lt; right; k++) &#123;</span><br><span class="line">            arr[k] = temp[k];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h1 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h1><p><strong>分治思想</strong>。</p>
-<ol>
-<li>从序列中随便选取一个元素，作为基准pivot，【一般取最后一个】</li>
-<li>分区操作(partition)：然基准前的元素都小于基准，基准后的元素都大于基准；</li>
-<li>以基准为分界线，递归进行分区操作。【前序遍历】</li>
-</ol>
-<p>时间复杂度：最好O(nlogn)，最坏O(nlogn)，平均O(nlogn);</p>
-<p>空间复杂度：O(nlogn);</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">QuickSort</span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        quickSort(arr, <span class="number">0</span>, arr.length - <span class="number">1</span>);</span><br><span class="line">        System.out.println(Arrays.toString(arr));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">quickSort</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (left &gt;= right) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> <span class="variable">povitIdx</span> <span class="operator">=</span> partition(arr, left, right);</span><br><span class="line">        quickSort(arr, left, povitIdx - <span class="number">1</span>);</span><br><span class="line">        quickSort(arr, povitIdx + <span class="number">1</span>, right);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">partition</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> left, <span class="type">int</span> right)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">pointer</span> <span class="operator">=</span> left;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> left; i &lt; right; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (arr[i] &lt; arr[right]) &#123;</span><br><span class="line">                swap(arr, i, pointer);</span><br><span class="line">                pointer++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        swap(arr, pointer, right);</span><br><span class="line">        <span class="keyword">return</span> pointer;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">temp</span> <span class="operator">=</span> arr[a];</span><br><span class="line">        arr[a] = arr[b];</span><br><span class="line">        arr[b] = temp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h1 id="堆排序"><a href="#堆排序" class="headerlink" title="堆排序"></a>堆排序</h1><p>并不是真的用堆的数据结构，而是看作堆。升序排列用大顶堆方便操作。</p>
-<ol>
-<li><p>先建立起大顶堆；</p>
-<blockquote>
-<p>heapify()方法，将某一个节点进行大顶堆化操作；i节点的左子节点索引为2i+1,右子节点索引为2i+2，在左右节点索引没超过heapLen前提下，比较找出三个节点中最大的，变成头节点；如果交换了节点，还要递归向下heapify()。</p>
-</blockquote>
-<blockquote>
-<p>从最后一个非叶子节点（len &#x2F; 2 - 1）开始，到头节点，每个都要执行heapify()；这算是个剪枝操作，从最后一个节点开始也可以，但是叶子节点无需heapify()，因此可剪枝。</p>
-</blockquote>
-</li>
-<li><p>依次将堆顶与最后一个对调，然后将剩余元素再建立大顶堆，heapLen减1；</p>
-</li>
-</ol>
-<p>时间复杂度：最好O(nlogn)，最坏O(nlogn)，平均O(nlogn);</p>
-<p>空间复杂度：O(1);</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HeapSort</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">int</span> heapLen;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">sort</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        heapLen = arr.length;</span><br><span class="line">        buildMaxHeap(arr);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> arr.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            swap(arr, <span class="number">0</span>, i);</span><br><span class="line">            heapLen--;</span><br><span class="line">            heapify(arr, <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">swap</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> a, <span class="type">int</span> b)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">temp</span> <span class="operator">=</span> arr[a];</span><br><span class="line">        arr[a] = arr[b];</span><br><span class="line">        arr[b] = temp;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">heapify</span><span class="params">(<span class="type">int</span>[] arr, <span class="type">int</span> idx)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">left</span> <span class="operator">=</span> <span class="number">2</span> * idx + <span class="number">1</span>, right = <span class="number">2</span> * idx + <span class="number">2</span>;</span><br><span class="line">        <span class="type">int</span> <span class="variable">maxValIdx</span> <span class="operator">=</span> idx;</span><br><span class="line">        <span class="keyword">if</span> (left &lt; heapLen &amp;&amp; arr[left] &gt; arr[maxValIdx]) &#123;</span><br><span class="line">            maxValIdx = left;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (right &lt; heapLen &amp;&amp; arr[right] &gt; arr[maxValIdx]) &#123;</span><br><span class="line">            maxValIdx = right;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (maxValIdx != idx) &#123;</span><br><span class="line">            swap(arr, maxValIdx, idx);</span><br><span class="line">            heapify(arr, maxValIdx);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">buildMaxHeap</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> arr.length / <span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">            heapify(arr, i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>算法</category>
-      </categories>
-      <tags>
-        <tag>排序算法</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Git的一些基本使用命令</title>
     <url>/2023/06/01/16%E5%85%AB%E8%82%A1_git/</url>
     <content><![CDATA[<h1 id="第一次-从远端拉取代码"><a href="#第一次-从远端拉取代码" class="headerlink" title="第一次 从远端拉取代码"></a>第一次 从远端拉取代码</h1><p>git clone  远端地址</p>
@@ -446,6 +269,56 @@
       </categories>
       <tags>
         <tag>Git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java集合</title>
+    <url>/2022/11/23/14%E5%85%AB%E8%82%A1_%E9%9B%86%E5%90%88/</url>
+    <content><![CDATA[<h1 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a>ArrayList</h1><p>ArrayList基于动态数组实现，当使用无参构造函数创建一个ArrayList对象时，初始化一个空数组，当第一次往里面add值得时候，数组扩容为10，之后每次当容量满的时候，扩容为原来的1.5倍。扩容时先创建一个新容量的数组，然后将原数据拷贝过去。</p>
+<span id="more"></span>
+
+<h1 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h1><p>在JDK1.8之前，基于<strong>数组</strong>+<strong>链表</strong>实现，JDK1.8之后，基于<strong>数组</strong>+链表+<strong>红黑树</strong>；</p>
+<h2 id="寻址算法"><a href="#寻址算法" class="headerlink" title="寻址算法"></a>寻址算法</h2><p>HashMap时根据key对象的hashCode进行散列的，首先要对key对象的hashCode进行一个扰动函数处理，扰动函数的目的是散列效果更好，减小哈希冲突。</p>
+<blockquote>
+<p>JDK1.8的扰动函数hash()      (h &#x3D; key.hashCode()) ^ (h &gt;&gt;&gt; 16)</p>
+<p>将hashCode有符号右移16位，然后和原来的hashCode异或，得到哈希值</p>
+</blockquote>
+<p>寻址： hash &amp; (n - 1)  n位数组长度</p>
+<h2 id="为什么HashMap的数组长度要是2的整数次方？"><a href="#为什么HashMap的数组长度要是2的整数次方？" class="headerlink" title="为什么HashMap的数组长度要是2的整数次方？"></a>为什么HashMap的数组长度要是2的整数次方？</h2><p>这要从HashMap的寻址算法说起了，寻址的思想就是对key的哈希值对数组长度进行取模运算，但是计算机取模运算速度比较慢，因此HashMap用与运算来代替取模，采用hash &amp; (n - 1)的方式进行寻址，提高计算速度。</p>
+<p> 这样计算的原理是：n是2的次方，那么n-1的二进制表示就都是1，和哈希值相与的话，比n大的二进制位就都变成了0，其效果和取模运算是相同的；如果数组长度不是2的整数次方，还使用这种寻址方式的话，那么n-1低位就不都是1了，与运算得到的散列效果就不会连续的了，哈希冲突概率提高。</p>
+<h2 id="HashMap如何解决哈希冲突"><a href="#HashMap如何解决哈希冲突" class="headerlink" title="HashMap如何解决哈希冲突"></a>HashMap如何解决哈希冲突</h2><p>HashMap通过拉链法解决哈希冲突，如果有key寻址到数组的相同位置，那么就通过链表的方式存储后添加进来的元素。JDK1.8之前采用头插法，之后采用尾插法。</p>
+<p>当链表长度大于转换阈值（默认是8）的时候，如果数组长度＞64，会优先进行扩容，如果数组长度≥64，链表会转化成红黑树；如果红黑树的节点数≤6，红黑树会退化成链表。</p>
+<h2 id="HashMap的扩容机制"><a href="#HashMap的扩容机制" class="headerlink" title="HashMap的扩容机制"></a>HashMap的扩容机制</h2><p>通过无参构造函数new一个HashMap对象时，会创建一个空的数组，第一次put值的时候，初始化一个长度为16的数组。</p>
+<p>当HashMap中的<strong>节点数量</strong>（k-v数量）＞数组长度<em>负载因子（默认为0.75）时（初始为16</em> x 0.75 &#x3D; 12），数组容量扩容为原来的2倍，并进行resize()，扩容时会创建新的数组，并对原有的链表和红黑树结构的元素数据进行重新哈希分配rehash</p>
+<h2 id="为什么链表到红黑树的转化因子是8？"><a href="#为什么链表到红黑树的转化因子是8？" class="headerlink" title="为什么链表到红黑树的转化因子是8？"></a>为什么链表到红黑树的转化因子是8？</h2><p>在理想条件下，使用随机hashCode进行寻址，每个节点在桶中出现的概率是遵循泊松分布的，当我们的负载因子选用0.75时，一个桶中出现链表长度大于8的概率不超过千万分之一。</p>
+<h2 id="为什么要引入红黑树"><a href="#为什么要引入红黑树" class="headerlink" title="为什么要引入红黑树"></a>为什么要引入红黑树</h2><p>因为链表的搜索时间复杂度时O（n），当链表长度过长时，搜索效率大大降低；红黑树是log(n)，但是红黑树的空间占用大（链表的2倍）；因此在节点数较少时，红黑树的搜索时间复杂度并不比链表高多少，采用链表，当节点数多时才转换成红黑树。</p>
+<blockquote>
+<p>红黑树：自动平衡，自动排序。</p>
+</blockquote>
+<h2 id="HashMap的遍历方式"><a href="#HashMap的遍历方式" class="headerlink" title="HashMap的遍历方式"></a>HashMap的遍历方式</h2><h3 id="Iterator迭代器—EntrySet"><a href="#Iterator迭代器—EntrySet" class="headerlink" title="Iterator迭代器—EntrySet"></a>Iterator迭代器—EntrySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Iterator&lt;Map.Entry&lt;Integer, Integer&gt;&gt; it = map.entrySet().iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">	Map.Entry&lt;Integer, Integer&gt; entry = it.next();</span><br><span class="line">	<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> entry.getKey();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Iterator迭代器—KeySet"><a href="#Iterator迭代器—KeySet" class="headerlink" title="Iterator迭代器—KeySet"></a>Iterator迭代器—KeySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Iterator&lt;Integer&gt; it = map.keySet().iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">	<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> it.next();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> map.get(k);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Foreach—EntrySet"><a href="#Foreach—EntrySet" class="headerlink" title="Foreach—EntrySet"></a>Foreach—EntrySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (Map.Entry&lt;Integer, Integer&gt; entry : map.entrySet()) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> entry.getKey();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Foreach—KeySet"><a href="#Foreach—KeySet" class="headerlink" title="Foreach—KeySet"></a>Foreach—KeySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (Integer key : map.keySet()) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> map.get(key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Lambda"><a href="#Lambda" class="headerlink" title="Lambda"></a>Lambda</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.forEach((k, v) -&gt; &#123;</span><br><span class="line">    System.out.println(k);</span><br><span class="line">    System.out.println(v);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Streams-API-单线程"><a href="#Streams-API-单线程" class="headerlink" title="Streams API 单线程"></a>Streams API 单线程</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.entrySet().stream().forEach((entry) -&gt; &#123;</span><br><span class="line">    System.out.println(entry.getKey());</span><br><span class="line">    System.out.println(entry.getValue());</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Streams-API-多线程"><a href="#Streams-API-多线程" class="headerlink" title="Streams API 多线程"></a>Streams API 多线程</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.entrySet().parallelStream().forEach((entry) -&gt; &#123;</span><br><span class="line">    System.out.println(entry.getKey());</span><br><span class="line">    System.out.println(entry.getValue());</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="速度比较"><a href="#速度比较" class="headerlink" title="速度比较"></a>速度比较</h3><p>1.迭代器EntrySet 2.foreach EntrySet 3.foreach KeySey 4. 迭代器KeySet 5.Lambda 6.Streams API</p>
+<p><strong><code>entrySet</code> 的性能比 <code>keySet</code> 的性能高出了一倍之多，因此我们应该尽量使用 <code>entrySet</code> 来实现 Map 集合的遍历</strong>。</p>
+<h3 id="安全性问题"><a href="#安全性问题" class="headerlink" title="安全性问题"></a>安全性问题</h3><p>不能在遍历map时，通过map.remove()方法来删除元素，这是不安全的操作；但是可以用迭代器，通过迭代器的iterator.remove()来安全的删除元素。</p>
+<p>同样的我们也可以使用 Lambda 中的 <code>removeIf</code> 来提前删除数据，或者是使用 Stream 中的 <code>filter</code> 过滤掉要删除的数据进行循环，这样都是安全的，当然我们也可以在 <code>for</code> 循环前删除数据在遍历也是线程安全的。</p>
+<h1 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h1>]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -637,6 +510,8 @@
 <ul>
 <li><p>在通信建立前采用非对称加密的方式交换「会话秘钥」，后续就不再使用非对称加密。 在通信过程中全部使用对称加密的「会话秘钥」的方式加密明文数据。</p>
 </li>
+<li><p>「会话秘钥」由浏览器生成，通过公钥加密后，发送给服务器。</p>
+</li>
 <li><p>将服务器公钥放入到<strong>数字证书</strong>中，解决了冒充的风险。</p>
 </li>
 <li><p>采用「混合加密」的方式的原因： 对称加密只使用一个密钥，运算速度快，密钥必须保密，无法做到安全的密钥交换。 非对称加密使用两个密钥：公钥和私钥，公钥可以任意分发而私钥保密，解决了密钥交换问题但 速度慢。</p>
@@ -647,7 +522,7 @@
 </li>
 <li><p><strong>状态响应码</strong> : HTTP&#x2F;1.1中新加入了大量的状态码</p>
 </li>
-<li><p><strong>Host****字段</strong> <strong>:</strong> HTTP&#x2F;1.1在请求头中加入了Host字段。</p>
+<li><p><strong>Host</strong>字段 <strong>:</strong> HTTP&#x2F;1.1在请求头中加入了Host字段。</p>
 </li>
 <li><p><strong>支持管道（<strong><strong>pipeline</strong></strong>）网络传输</strong>：HTTP1.1只要第一个请求发出去了，不必等其回来，就可以发第二个请求 出去，可以减少整体的响应时间。</p>
 </li>
@@ -698,7 +573,7 @@
 </ul>
 <h2 id="Base64用途"><a href="#Base64用途" class="headerlink" title="Base64用途"></a>Base64用途</h2><ul>
 <li><p><strong>二进制存储文件的传输：</strong></p>
-<p>因为HTTP1.1是文本传输协议，而对于图片、视频这些二进制存储的文件，在网络传输要转换成文本格式才能传输</p>
+<p>因为HTTP1.1是文本传输协议，而对于图片、视频这些二进制存储的文件，在网络传输要转换成文本格式才能传输，json直接传输byte[ ]可能导致字节流发生变化？</p>
 </li>
 <li><p><strong>特殊字符引发的解析问题：</strong></p>
 <p> Get请求方法，要把请求参数拼接在url后边，当出现空格的时候就会导致访问链接解析异常；</p>
@@ -714,240 +589,316 @@
       </tags>
   </entry>
   <entry>
-    <title>操作系统</title>
-    <url>/2022/11/12/2%E5%85%AB%E8%82%A1_%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</url>
-    <content><![CDATA[<h1 id="什么是操作系统？"><a href="#什么是操作系统？" class="headerlink" title="什么是操作系统？"></a>什么是操作系统？</h1><p>​    操作系统是在计算机上运行的最基本的软件程序，它位于计算机硬件资源和应用程序之间，能够管理计算机的硬件资源和应用程序，为应用程序提供服务。</p>
+    <title>Redis</title>
+    <url>/2023/01/08/13%E5%85%AB%E8%82%A1_Redis_mongoDB/</url>
+    <content><![CDATA[<h1 id="Redis基础概念"><a href="#Redis基础概念" class="headerlink" title="Redis基础概念"></a>Redis基础概念</h1><p>Redis是一种基于内存的数据库，读写速度快，常用于缓存；他是非关系型数据库nosql，数据采用键值对关系存储。</p>
+<p>采用NIO的IO多路复用模型。默认一共有16个库。redis服务进程是单线程的。</p>
+<blockquote>
+<p>关系型数据库:像mysql数据库，表中的每条记录都有字段关系的约束。</p>
+</blockquote>
 <span id="more"></span>
 
-<h1 id="系统调用？"><a href="#系统调用？" class="headerlink" title="系统调用？"></a>系统调用？</h1><p>​    首先要提到进程在操作系统上运行的两个等级  用户态和核心态，</p>
-<p>用户态只能直接读取用户程序的数据，特权较低，想要运行涉及到资源的相关操作，比如进程调度，文件管理，内存管理这些，必须通过操作系统执行内核代码去执行，操作系统为用户进程提供了使用接口，用户进程调用，转交给操作系统去执行这些特权指令，此时状态称为内核态，这个调用接口称作系统调用。</p>
-<p>​    这样做的好处是：具有用户态和内核态的区分，保证了计算机系统的</p>
-<p>​    <strong>安全性</strong>：如果用户能直接操控系统资源，有些指令是很危险的，安全性难以保证。</p>
-<p>​    <strong>性能</strong>：如果用户直接访问共享资源，势必会产生冲突，影响执行效率。</p>
-<p>​    系统调用会发生进程的用户态和核心态之间的转换，转换时需要保存现场，恢复现场，状态的保存和恢复都要在CPU寄存器，浪费CPU资源（空间资源、时间资源）。</p>
-<h1 id="进程"><a href="#进程" class="headerlink" title="进程?"></a>进程?</h1><p>​    进程实体由 PCB 程序段 数据段 三部分组成。</p>
-<p>   *<em>PCB</em>***：进程控制块，是操作系统跟踪、管理进程的一个数据结构。组成有：</p>
-<ul>
-<li>进程描述信息：PID UID</li>
-<li>进程控制和管理信息：如当前进程状态，进程优先级等</li>
-<li>资源分配清单：程序段指针，数据段指针，键盘，鼠标。。。</li>
-<li>CPU相关信息：保存当前CPU寄存器中的值，用于记录和恢复进程<strong>上下文切换</strong>时的状态。</li>
-</ul>
-<h2 id="进程有哪几种状态"><a href="#进程有哪几种状态" class="headerlink" title="进程有哪几种状态?"></a>进程有哪几种状态?</h2><ul>
-<li>创建状态(new) ：进程正在被创建，尚未到就绪状态。</li>
-<li>就绪状态(ready) ：进程获得了除了CPU之外的一切所需资源，一旦得到CPU时间片即可运行。</li>
-<li>运行状态(running) ：进程正在CPU上运行(单核 CPU 下任意时刻只有一个进程处于运行状态)。</li>
-<li>阻塞状态(waiting)：由于进程缺少某种资源或等待某件事情而进入的状态</li>
-<li>结束状态(terminated) ：进程正在从系统中消失。可能是进程正常结束或其他原因中断退出运行。</li>
-</ul>
-<p>阻塞态的进程占⽤着物理内存，在<strong>虚拟内存管理</strong>的操作系统中，通常会把阻塞态的进程的物理内存空间换出到硬盘，等需要再次运⾏的时候，再从硬盘换⼊到物理内存。</p>
-<p>挂起态：新的状态，描述进程没有占⽤实际的物理内存空间的情况，这个状态就是挂起状态</p>
-<p>阻塞挂起状态： 进程在外存（硬盘）并等待某个事件的出现</p>
-<p>就绪挂起状态： 进程在外存（硬盘），但只要进⼊内存，马上运行</p>
-<p><img src="https://github.com/WayV5/imgs/blob/main/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/p1.png?raw=true" alt="p1.png"></p>
-<h2 id="进程调度"><a href="#进程调度" class="headerlink" title="进程调度?"></a>进程调度?</h2><p>进程调度就是按照某种算法，为处于就绪队列中的进程分配CPU资源的方式。</p>
-<p>进程调度算法有以下几种：</p>
-<p>​    早期批处理系统：</p>
-<ol>
-<li><p><strong>先来先服务：非抢占式</strong>（进程主动放弃CPU，正常&#x2F;异常完成，或主动阻塞[请求IO]）。按照进程请求CPU的顺序。有利于长作业，不利于短作业。</p>
-</li>
-<li><p><strong>短作业优先：默认非抢占式（也有抢占式版本）</strong>。按照估计出的进程运行时间来排队，事件短的排在前边。如果一直有短作业请求，那么长作业会产生<strong>饥饿</strong>。</p>
-</li>
-<li><p><strong>高响应比优先：非抢占式</strong>。响应比&#x3D;（等待时间+进程作业时间）&#x2F;进程作业时间。响应比大的排在前边。</p>
-</li>
-</ol>
-<p>​    交互式系统：</p>
-<ol>
-<li><p><strong>时间片轮转：抢占式（定时中断）</strong>。为每个进程分配一个优先级，优先级高的优先进行调度。</p>
-</li>
-<li><p><strong>优先级调度算法：</strong>抢占、非抢占式都有。为每个进程分配⼀个优先级，按优先级进⾏调度。</p>
-</li>
-<li><p><strong>多级反馈队列：抢占式。</strong>设置多个队列，各级队列优先级从高到低，时间片长度从小到大。一个进程如果时间片用完了还没执行完，那么就会被分到下一个队列。【平衡优秀，但是可能会造成饥饿】</p>
-</li>
-</ol>
-<h2 id="进程通信？"><a href="#进程通信？" class="headerlink" title="进程通信？"></a>进程通信？</h2><p><strong>同一主机间进程通信</strong></p>
-<ol>
-<li><strong>管道&#x2F;匿名管道(Pipes)</strong> ：半双工，先进先出，位于内存中。只能用于具有亲缘关系的父子进程间或者兄弟进程之间的通信。</li>
-<li><strong>有名管道(Named Pipes)</strong> : 匿名管道由于没有名字，只能用于亲缘关系的进程间通信。为了克服这个缺点，提出了有名管道，可以实现本机<strong>任意</strong>两个进程通信。有名管道以<strong>磁盘文件</strong>的方式存在。</li>
-<li><strong>信号(Signal)</strong> ：信号是一种比较复杂的通信方式，用于通知接收进程某个事件已经发生；</li>
-<li><strong>消息队列(Message Queuing)</strong> ：<strong>消息队列存放在内核</strong>中，只有在内核重启(即，操作系统重启)或者显式地删除一个消息队列时，该消息队列才会被真正的删除。消息队列可以实现消息的随机查询,消息<strong>不一定要以先进先出</strong>的次序读取,也可以按消息的类型读取.比 FIFO 更有优势。<strong>消息队列克服了信号承载信息量少，管道只能承载无格式字节流以及缓冲区大小受限等缺点。</strong></li>
-<li><strong>信号量(Semaphores)</strong> ：信号量是解决<strong>进程同步</strong>的一种方式，能够解决并发进程对共享数据的访问问题。</li>
-<li><strong>共享内存(Shared memory)</strong> ：使得多个进程可以访问同一块内存空间，不同进程可以及时看到对方进程中对共享内存中数据的更新。这种方式需要依靠某种同步操作，如互斥锁和信号量等。可以说这是最有用的进程间通信方式。</li>
-</ol>
-<p><strong>不同主机间进程通信</strong></p>
-<ol>
-<li><strong>套接字(Sockets)</strong> : 此方法主要用于在客户端和服务器之间通过网络进行通信。套接字是支持 TCP&#x2F;IP 的网络通信的基本操作单元，可以看做是不同主机之间的进程进行双向通信的端点，简单的说就是通信的两方的一种约定，用套接字中的相关函数来完成通信过程。</li>
-</ol>
-<h2 id="进程同步？"><a href="#进程同步？" class="headerlink" title="进程同步？"></a>进程同步？</h2><p>并发执行的进程之间访问共享资源时，可能会发生冲突，那么如何协调并发执行的进程之间对资源的使用，就叫做进程同步。</p>
-<p>操作系统一般有下面三种线程同步的方式：</p>
-<ol>
-<li><strong>互斥量(Mutex)：又叫互斥锁，</strong>采用互斥对象机制，只有拥有互斥对象的线程才有访问公共资源的权限。因为互斥对象只有一个，所以可以保证公共资源不会被多个线程同时访问。比如 Java 中的 synchronized 关键词和各种 Lock 都是这种机制。</li>
-<li><strong>信号量(Semaphore)</strong> ：它允许同一时刻多个线程访问同一资源，信号量其实就是一个变量，能够表示系统中某种资源的数量，可根据操作信号量值的结果判断是否对公共资源具有访问的权限。</li>
-<li>**事件(Event) :**Wait&#x2F;Notify：通过通知操作的方式来保持多线程同步，还可以方便的实现多线程优先级的比较操作。</li>
-</ol>
-<h2 id="僵尸进程和孤儿进程？"><a href="#僵尸进程和孤儿进程？" class="headerlink" title="僵尸进程和孤儿进程？"></a>僵尸进程和孤儿进程？</h2><p>Linux 系统中，子进程通常是通过fork()系统调用创建的，该调用会创建一个新的进程，该进程是原有进程的一个副本。子进程和父进程的运行是相互独立的，它们各自拥有自己的 PCB，即使父进程结束了，子进程仍然可以继续运行。</p>
-<ul>
-<li><p>僵尸进程：任何⼀个⼦进程(init除外)在exit()之后，并⾮马上就消失掉，⽽是留下⼀个称为僵⼫进程 (Zombie)的数据结构，包含进程的PCB信息，以便父进程得到子进程的状态信息（mysql主从复制，从库起一个子线程来接收处理binlog），父进程使用wait()或waitpid()系统调用才能释放子进程的PCB。父进程长时间不使用wait()或waitpid()就会留下僵尸进程。</p>
-</li>
-<li><p>孤儿进程：父进程已经结束，子进程还在执行。孤儿进程通常是由于父进程意外终止或未及时调用 wait()或 waitpid()等系统调用来回收子进程导致的。解决方法为：操作系统有一个进程号为1的init进程，操作系统会把孤儿进程的父进程设置为init进程，由init进程来回收孤儿进程的资源。</p>
-</li>
-</ul>
-<h2 id="死锁？"><a href="#死锁？" class="headerlink" title="死锁？"></a>死锁？</h2><p>一个进程集合中的每一个进程，都在等待其他进程执行某件事情，而产生的同时被阻塞的现象。</p>
-<h3 id="死锁产生的四个必要条件"><a href="#死锁产生的四个必要条件" class="headerlink" title="死锁产生的四个必要条件"></a>死锁产生的四个必要条件</h3><ol>
-<li><p><strong>互斥</strong>：造成进程死锁的资源必须为互斥资源，在一个时刻只能被一个进程使用。资源必须处于非共享模式，即一次只有一个进程可以使用。如果另一进程申请该资源，那么必须等待直到该资源被释放为止。</p>
-</li>
-<li><p><strong>不可抢占</strong>：已经分配给⼀个进程的资源不能强制性地被抢占，它只能被占有它的进程显式地释放</p>
-</li>
-<li><p><strong>占有且等待</strong>：一个进程至少应该占有一个资源，并等待另一资源，而该资源被其他进程所占有。</p>
-</li>
-<li><p><strong>循环等待</strong>：有一组等待进程 {P0, P1,…, Pn}， P0 等待的资源被 P1 占有，P1 等待的资源被 P2 占有，……，Pn-1 等待的资源被 Pn 占有，Pn 等待的资源被 P0 占有。</p>
-</li>
-</ol>
-<h3 id="解决死锁的方法"><a href="#解决死锁的方法" class="headerlink" title="解决死锁的方法"></a>解决死锁的方法</h3><p>解决死锁的方法可以从多个角度去分析，一般的情况下，有<strong>预防死锁，避免死锁，死锁的检测和解除</strong>。</p>
-<ol>
-<li><p><strong>预防死锁</strong> ：想办法采用某种策略，能够使产生死锁的必要条件被破坏。</p>
-</li>
-<li><p><strong>避免死锁 ：银行家算法，****在系统分配资源之前，根据当前资源使用情况进行判断，看分配之后是否会进入不安全状态，来判断是否分配资源。</strong></p>
-</li>
-<li><p><strong>死锁的检测和解除</strong>：</p>
-</li>
-</ol>
-<blockquote>
-<p>检测：有向图来记录资源分配，检测有向图中是否存在环，来判断是否死锁。</p>
-<p> 恢复: (1) 利用抢占恢复  ： 强行将某进程挂起</p>
-<p>（2）利用回滚恢复  ：将某一进程回滚到不发生死锁的状态</p>
-<p>（3）强行杀死某一进程</p>
-</blockquote>
-<h2 id="Java如何排查死锁"><a href="#Java如何排查死锁" class="headerlink" title="Java如何排查死锁"></a>Java如何排查死锁</h2><ol>
-<li><p>先看日志</p>
-</li>
-<li><p>再看堆栈信息：</p>
-<ol>
-<li><p>jps -l 查看全部线程信息</p>
-</li>
-<li><p>jstack + 线程号 ：查看堆栈信息</p>
-</li>
-</ol>
-</li>
-</ol>
-<h3 id="能写一个模拟产生死锁的代码吗？"><a href="#能写一个模拟产生死锁的代码吗？" class="headerlink" title="能写一个模拟产生死锁的代码吗？"></a>能写一个模拟产生死锁的代码吗？</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DeadLockDemo</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Object</span> <span class="variable">resource1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();<span class="comment">//资源 1</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Object</span> <span class="variable">resource2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();<span class="comment">//资源 2</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (resource1) &#123;</span><br><span class="line">                System.out.println(Thread.currentThread() + <span class="string">&quot;get resource1&quot;</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                System.out.println(Thread.currentThread() + <span class="string">&quot;waiting get resource2&quot;</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (resource2) &#123;</span><br><span class="line">                    System.out.println(Thread.currentThread() + <span class="string">&quot;get resource2&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="string">&quot;线程 1&quot;</span>).start();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (resource2) &#123;</span><br><span class="line">                System.out.println(Thread.currentThread() + <span class="string">&quot;get resource2&quot;</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                System.out.println(Thread.currentThread() + <span class="string">&quot;waiting get resource1&quot;</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (resource1) &#123;</span><br><span class="line">                    System.out.println(Thread.currentThread() + <span class="string">&quot;get resource1&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="string">&quot;线程 2&quot;</span>).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="线程"><a href="#线程" class="headerlink" title="线程?"></a>线程?</h2><h3 id="线程和进程的区别"><a href="#线程和进程的区别" class="headerlink" title="线程和进程的区别"></a>线程和进程的区别</h3><ul>
-<li><p>进程是操作系统进⾏<strong>资源</strong>调度和分配的基本单位，而线程是最小的执行单位。</p>
-</li>
-<li><p>一个进程在运行过程中可以产生多个线程，线程更加轻量化：</p>
-</li>
-</ul>
-<blockquote>
-<p>线程共享进程的资源（内存空间、网络连接、文件句柄），因此<strong>创建和终止</strong>的时间更快；</p>
-<p>线程的切换仅涉及到少量的寄存器和栈区，因此线程<strong>上下文切换</strong>的速度更快；</p>
-<p>线程天生共享了进程的大多数资源，因此<strong>线程间通信</strong>效率更高。</p>
-</blockquote>
-<h3 id="多线程的好处？"><a href="#多线程的好处？" class="headerlink" title="多线程的好处？"></a>多线程的好处？</h3><p>​    线程比进程的开销小，创建和终止的速度快，上下文切换的速度也快，有些应用从功能上要同时发生多个活动，分解成多个线程执行，可以简化模型，加快执行效率；</p>
-<h1 id="内存？"><a href="#内存？" class="headerlink" title="内存？"></a>内存？</h1><h2 id="用户代码到内存中的流程"><a href="#用户代码到内存中的流程" class="headerlink" title="用户代码到内存中的流程"></a>用户代码到内存中的流程</h2><p>程序代码编写 -&gt; 编译 -&gt; 链接 -&gt;装入</p>
-<p>链接：编译出的机器代码都有各自独立的逻辑地址，链接就是整合他们的逻辑地址，形成一个具有统一逻辑地址的可执行文件。</p>
+<h1 id="Redis的数据类型"><a href="#Redis的数据类型" class="headerlink" title="Redis的数据类型"></a>Redis的数据类型</h1><h2 id="String"><a href="#String" class="headerlink" title="String"></a>String</h2><p>最基本的数据类型，可以存储字符串，整数，浮点数，jpg，序列化的对象等等。最大512MB</p>
+<h2 id="Hash"><a href="#Hash" class="headerlink" title="Hash"></a>Hash</h2><p>可以看成一个map容器，一个容器可以存储多个键值对。&lt;key,&lt;key1,value&gt;&gt;</p>
+<h2 id="List"><a href="#List" class="headerlink" title="List"></a>List</h2><p>双向链表结构</p>
+<h2 id="Set"><a href="#Set" class="headerlink" title="Set"></a>Set</h2><p>无序不可重复集合</p>
+<h2 id="Zset-Sorted-set"><a href="#Zset-Sorted-set" class="headerlink" title="Zset(Sorted set)"></a>Zset(Sorted set)</h2><p>有序不可重复集合；每个元素有一个分数（score），默认按照分数从小到大排序</p>
+<h1 id="Redis持久化"><a href="#Redis持久化" class="headerlink" title="Redis持久化"></a>Redis持久化</h1><h2 id="RDB持久化（全量同步）（默认开启）"><a href="#RDB持久化（全量同步）（默认开启）" class="headerlink" title="RDB持久化（全量同步）（默认开启）"></a>RDB持久化（全量同步）（默认开启）</h2><p>周期性的将redis数据以snapshot形式存储到二进制文件，一般一个小时一次；</p>
+<p>redis通过fork一个子线程来定时生成rdb文件，避免影响redis服务进程的执行效率。</p>
+<h2 id="AOF持久化（增量同步）"><a href="#AOF持久化（增量同步）" class="headerlink" title="AOF持久化（增量同步）"></a>AOF持久化（增量同步）</h2><p>AOF文件记录的是redis的增删改操作；</p>
+<p>AOF同步策略：1. 每秒同步 2.每个增删改操作同步 3.不同步</p>
 <blockquote>
 <ol>
-<li>静态链接</li>
-<li>装入时动态链接</li>
-<li>运行时动态链接</li>
+<li>RDB存储的是压缩过的二进制文件，占用空间小；AOF占用空间大；因此RDB更适合做备份，并且RDB是存储的快照，恢复大量数据时速度比较快。</li>
+<li>AOF文件可以做到秒级备份，安全性更高。</li>
+<li>如果对于数据丢失安全性要求不高，只用RDB就行了；如果对安全性要求较高，可以RDB和AOF混用。</li>
 </ol>
 </blockquote>
-<p>装入：将可执行文件放入内存</p>
+<h1 id="Redis缓存的好处"><a href="#Redis缓存的好处" class="headerlink" title="Redis缓存的好处"></a>Redis缓存的好处</h1><p>因此磁盘的访问速度远低于内存的访问速度，常用的数据缓存到内存中，能保证系统的高可用性和并发性。</p>
+<h1 id="Redis的三种缓存读写（更新）策略"><a href="#Redis的三种缓存读写（更新）策略" class="headerlink" title="Redis的三种缓存读写（更新）策略"></a>Redis的三种缓存读写（更新）策略</h1><h2 id="旁路缓存"><a href="#旁路缓存" class="headerlink" title="旁路缓存"></a>旁路缓存</h2><p><img src="https://oss.javaguide.cn/github/javaguide/database/redis/cache-aside-write.png" alt="img"></p>
+<p><strong>读</strong>的时候：1.先到redis中读取 2.如果没有数据，就去数据库中读 并返回3. 再把数据放到redis中；</p>
+<p><strong>写</strong>的时候：1.先更新数据库 2.然后直接删除缓存中对应的数据</p>
+<blockquote>
+<p>必须先更新db，再删除cache; 否则如果先删除cache再更新db，会造成cache和db数据不一致</p>
+</blockquote>
+<h2 id="读写穿透"><a href="#读写穿透" class="headerlink" title="读写穿透"></a>读写穿透</h2><p>读的时候：1.先到redis中读取 2.如果没有数据，就去数据库加载数据到redis 3.redis返回数据</p>
+<p>写的时候：1.先查cache，cache不存在，直接更新db；2.如果查到cache,直接更新cache,然后由redis更新db；</p>
+<h2 id="异步缓存写入"><a href="#异步缓存写入" class="headerlink" title="异步缓存写入"></a>异步缓存写入</h2><p>与读写穿透相似，都是由redis来更新db，但是这个更新是批量异步更新的。这点和mysql的批量同步机制类似。</p>
+<h1 id="除了缓存Redis还能干什么"><a href="#除了缓存Redis还能干什么" class="headerlink" title="除了缓存Redis还能干什么"></a>除了缓存Redis还能干什么</h1><ol>
+<li>消息队列</li>
+<li>分布式锁</li>
+<li>限流</li>
+</ol>
+<h1 id="Redis事务"><a href="#Redis事务" class="headerlink" title="Redis事务"></a>Redis事务</h1><p>redis事务比较鸡肋，应用较少，不能保证原子性；且事务中的每个命令都要redis服务器进行一次交互，比较浪费网络资源。</p>
+<p>为了解决redis事务的缺陷，提出了Lua脚本，可以批量的原子性的执行redis命令，减少网络开销。</p>
+<p>Lua脚本在执行过程中不会有其他Lua脚本和redis执行同时执行；但是Lua脚本如果执行到一半出现崩溃，后面的不会执行，执行过的也不会回滚。</p>
+<h1 id="Redis生产问题"><a href="#Redis生产问题" class="headerlink" title="Redis生产问题"></a>Redis生产问题</h1><h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>频繁的使用大量不存在的key进行查询，导致缓存无法命中，给数据造成很大压力。</p>
+<p>解决方案：</p>
+<ol>
+<li>缓存无效的key【没太大用，因为黑客攻击会使用大量不同的key】</li>
+<li>对客户端限流，限制请求频率。</li>
+<li>布隆过滤器【将所有可能存在的请求的值都放在布隆过滤器中，请求来了之后先用布隆过滤器判断，如果请求无效，直接返回错误参数给客户端。】</li>
+</ol>
+<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>热点key的过期问题。热key过期瞬间会有大量请求打到数据库，给数据库造成压力。</p>
+<p>解决方案：</p>
+<ol>
+<li>设置热key永不过期，或设置一个比较长的过期时间。</li>
+<li>在秒杀场景下，对热key提前预热，设置在秒杀结束之前不过期。</li>
+<li>请求数据库写到缓存的这个操作，加互斥锁，保证只有一个请求到达数据库。</li>
+</ol>
+<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>在同一时间有大量key同时失效，导致大量请求都打到数据库上。</p>
+<p>解决方法：</p>
+<ol>
+<li>失效时间都加一个随机值；</li>
+<li>集群部署redis</li>
+<li>设置所有Key永不过期【笨方法】</li>
+</ol>
+<h1 id="过期数据的删除策略"><a href="#过期数据的删除策略" class="headerlink" title="过期数据的删除策略"></a>过期数据的删除策略</h1><h2 id="惰性删除"><a href="#惰性删除" class="headerlink" title="惰性删除"></a>惰性删除</h2><p>在用到key的时候，再对数据进行过期检查，删除过期数据，这样对CPU友好</p>
+<h2 id="定期删除"><a href="#定期删除" class="headerlink" title="定期删除"></a>定期删除</h2><p>每隔一段时间对过期数据进行删除，这样对内存友好；</p>
+<blockquote>
+<p>redis采用 惰性删除 + 定期删除的策略</p>
+</blockquote>
+<h1 id="主从复制"><a href="#主从复制" class="headerlink" title="主从复制"></a>主从复制</h1><p>如果用单点redis，那么redis挂了之后全部请求都打在db，给数据库带来很大压力。</p>
+<p>主从复制就是建立一个redis主节点master，可以有多个从节点来同步主节点的数据，从而实现主节点写，从节点读；当主节点宕机了，可以从从节点中选择一个作为主节点来实现故障转移。保证redis的高可用性。</p>
+<h2 id="主从复制下，从节点数据过期怎么处理？"><a href="#主从复制下，从节点数据过期怎么处理？" class="headerlink" title="主从复制下，从节点数据过期怎么处理？"></a>主从复制下，从节点数据过期怎么处理？</h2><p>从节点数据过期的话，会删除过期数据，并返回空值；</p>
+<h2 id="主从过期时间不一致问题？"><a href="#主从过期时间不一致问题？" class="headerlink" title="主从过期时间不一致问题？"></a>主从过期时间不一致问题？</h2><p>由于主从同步时，网络传输原因，可能造成过期时间不一致，因为如果采用EXPIRE设置过期时间，是按照命令执行时间开始计时过期时间的；因此可以采用设置UNIX时间戳的过期时间设置方式，但要注意主从节点的时区设置一致。</p>
+<h2 id="如何实现主从同步？"><a href="#如何实现主从同步？" class="headerlink" title="如何实现主从同步？"></a>如何实现主从同步？</h2><ol>
+<li>首次主从连接的时候，采用全量同步，用主节点的RDB文件来给从节点进行同步；</li>
+<li>后续操作，采用增量同步，根据主节点的AOF文件，主节点根据从节点的offset偏移量，讲偏移量后的数据同步到从节点</li>
+</ol>
+<h2 id="主从复制的缺陷"><a href="#主从复制的缺陷" class="headerlink" title="主从复制的缺陷"></a>主从复制的缺陷</h2><p>如果主节点宕机，需要人工选取一个从节点来作为新的主节点，进行配置，不能够自动完成。这时就需要哨兵机制了。</p>
+<h1 id="Sentinal"><a href="#Sentinal" class="headerlink" title="Sentinal"></a>Sentinal</h1><p>Sentinal（哨兵）模式是一种redis的运行方式，在主从复制的基础上，多了哨兵角色，来监控redis节点运行状态，自动完成故障转移。</p>
+<p>想要保证高可用性，sentinal数量应大于等于3且为单数。防止sentinal误判。</p>
 <blockquote>
 <ol>
-<li>绝对装入</li>
-<li>静态重定位装入</li>
-<li>动态运行时装入：重定位寄存器</li>
+<li>sentinal会检测集群中所有节点的运行状态</li>
+<li>当主节点故障，且判断出主节点故障的哨兵数量大于预设阈值，则判定主节点下线；</li>
+<li>判定主节点下线后，采取故障转移，把一个从节点升级为主节点，并完成相应主从关系的配置。</li>
 </ol>
 </blockquote>
-<h2 id="局部性原理？"><a href="#局部性原理？" class="headerlink" title="局部性原理？"></a>局部性原理？</h2><p>​    局部性原理是计算机程序运行所呈现出的一种局部性规律，分为时间局部性和空间局部性。</p>
-<ul>
-<li><p>时间局部性：执行了一条指令，那么这条指令很可能很快会被再次被执行；某个数据被访问过，这个数据很可能很快被再次被访问（由于存在大量循环）</p>
-</li>
-<li><p>空间局部性：一个程序访问了一个存储单元，在不久时间内，附近的存储单元很可能被访问。（因为数据存放形式大多是连续的）</p>
-</li>
-</ul>
-<h2 id="内存管理主要做什么"><a href="#内存管理主要做什么" class="headerlink" title="内存管理主要做什么"></a>内存管理主要做什么</h2><ul>
-<li><strong>内存空间的分配与回收</strong></li>
-<li><em>地址转换*<em>：装入时完成逻辑地址到物理地址的转换</em></em></li>
-<li>内存空间的扩展<strong>：覆盖、交换、虚拟内存</strong></li>
-<li>存储保护**：每个用户进程只能访问各自的内存地址</li>
-</ul>
-<h2 id="内存空间的分配与回收"><a href="#内存空间的分配与回收" class="headerlink" title="内存空间的分配与回收?"></a>内存空间的分配与回收?</h2><blockquote>
-<p>内存管理分为<strong>连续分配</strong>管理方式和<strong>非连续</strong>分配管理方式，连续分配管理方式是指为一个用户程序分配一个连续的内存空间。</p>
+<blockquote>
+<p>每隔sentinal每隔一段时间会向集群中所有节点发送ping命令，如果收到回复超时，则单个sentinal会判断某个redis节点的<strong>主观下线</strong>；当判断某个节点的sentinal数量大于预设阈值时，则判断该节点<strong>客观下线</strong>。</p>
 </blockquote>
-<h3 id="连续分配管理方式"><a href="#连续分配管理方式" class="headerlink" title="连续分配管理方式"></a><strong>连续分配</strong>管理方式</h3><p>又有固定分区分配和动态分区分配:</p>
-<ol>
-<li><p>固定分区分配：是将用户内存空间分为若干个固定大小的分区，每个分区只能运行一个用户程序，会产生<strong>内部碎片，</strong>导致内存利用率低。</p>
-</li>
-<li><p>动态分区分配：在用户进程装入内存时，根据进程的大小动态分配内存空间。回收再分配时，会产生<strong>外部碎片</strong>，可用”紧凑”的技术来解决，但是“紧凑”的<strong>时间代价</strong>很高。</p>
-</li>
+<h2 id="sentinal如何选举新的master"><a href="#sentinal如何选举新的master" class="headerlink" title="sentinal如何选举新的master"></a>sentinal如何选举新的master</h2><ol>
+<li>首先看从节点的优先级replica-priority，挑优先级最高的从节点选做master；（最高优先级是1，最低是100；0表示永不被升级）</li>
+<li>优先级相同，则看哪个节点的数据偏移量，偏移量越大说明同步到的原主节点数据越多，则优先被选为master；</li>
+<li>最后看runid；每个redis启动时都会生成一个40位的随机数作为runid，选取runid最小的升级。</li>
 </ol>
-<h3 id="非连续分配管理方式"><a href="#非连续分配管理方式" class="headerlink" title="非连续分配管理方式"></a><strong>非连续分配</strong>管理方式</h3><p>分为页式分配、段式分配、段页式分配。</p>
-<h4 id="页式分配管理"><a href="#页式分配管理" class="headerlink" title="页式分配管理"></a>页式分配管理</h4><ul>
-<li><p>将内存采用固定分区分配的方式进行分配，不过每个分区空间更小，称为<strong>页框。</strong></p>
-</li>
-<li><p>将进程分成多个部分，每个部分大小与页框相等，称为<strong>页&#x2F;页面</strong>。</p>
-</li>
-<li><p>那么只有最后一个页有可能产生很小的内部碎片。</p>
-</li>
+<h1 id="Cluster集群"><a href="#Cluster集群" class="headerlink" title="Cluster集群"></a>Cluster集群</h1><h2 id="为什么需要Cluster集群"><a href="#为什么需要Cluster集群" class="headerlink" title="为什么需要Cluster集群"></a>为什么需要Cluster集群</h2><p>传统的主从复制和哨兵集群只有一个master，每个节点都保存全部数据，通过故障转移策略，来保证高可用性，和<strong>读</strong>吞吐量；但是无法解决数据总量过大带来的缓存压力和<strong>写</strong>压力。</p>
+<p>因此有了Cluster集群，能够配置多个master节点，每个master节点可以有一个或多个从节点；</p>
+<p>存储数据根据key值进行负载均衡，分别存储在各个主从节点；Cluster集群是去（无）中心化的，每个主节点都可以作为集群入口，根据查找的key值不同，根据路由原则，讲请求分发到对应的master。</p>
+<p>通过横向扩展可以根据需求方便的进行集群动态扩容和缩容；</p>
+<h2 id="一个最基本的cluster集群"><a href="#一个最基本的cluster集群" class="headerlink" title="一个最基本的cluster集群"></a>一个最基本的cluster集群</h2><p>为了保证高可用性，最基本的cluster集群要3个master，每个master配有一个slave，当一个master挂掉，由它的从节点代替成为master。</p>
+<h2 id="哈希槽slots"><a href="#哈希槽slots" class="headerlink" title="哈希槽slots"></a>哈希槽slots</h2><p>一个cluster集群有16384 &#x3D; 2^14 &#x3D; 16K个哈希槽，根据key值，对数据进行哈希，分配到每个哈希槽，每个主节点及其从节点负责一定数量的哈希槽的数据存储与访问；</p>
+<h2 id="重定向"><a href="#重定向" class="headerlink" title="重定向"></a>重定向</h2><p>如果当前访问的key对应的哈希槽与redis节点不对应，则请求会被重定向到相应节点。</p>
+<h1 id="MongoDB"><a href="#MongoDB" class="headerlink" title="MongoDB"></a>MongoDB</h1><p>一种非关系型数据库，为快速开发web应用而生，灵活性更强；</p>
+<p>其数据模型是面向文档的，所谓文档是一种类似JSON的结构，称为BSON，可以存储比较复杂的数据类型。</p>
+<h2 id="MongoDB的存储结构"><a href="#MongoDB的存储结构" class="headerlink" title="MongoDB的存储结构"></a>MongoDB的存储结构</h2><ul>
+<li>文档：由BSON键值对组成，类似于关系型数据库的行；BSON（Binary JSON 二进制JSON，遍历速度优于JSON）</li>
+<li>集合：一个集合可以包含多个文档，类似于关系型数据库的表；集合没有固定的结构，但是集合中存放的文档往往是有一定联系的。</li>
+<li>数据库：一个数据库可以包含多个文档</li>
 </ul>
-<h5 id="页式分配如何得到物理地址？"><a href="#页式分配如何得到物理地址？" class="headerlink" title="页式分配如何得到物理地址？"></a><strong>页式分配如何得到物理地址？</strong></h5><p>将程序页放入内存页框时可以采用离散的方式存放，因此难点在于逻辑地址到物理地址的转换。</p>
-<p>​		<em>页号</em>* &#x3D; 逻辑地址&#x2F;页面大小  <strong>页内偏移量</strong> &#x3D; 逻辑地址%页面大小</p>
-<p>​		<strong>页表</strong>记录了页号与页面地址的对应关系，通过页号查询得到页面地址，再结合页内偏移量就能得到实际的物理地址。页表存储地址的信息存放在PCB中。</p>
-<p>当然这是基本的分页管理方式，如果采用的是虚拟内存技术，那么在地址转换过程要更加复杂，页表还要记录页面在外存中的状态，判断页面是否在内存中，（也就是判断是否缺页），进行页面置换，页表项也要动态更新。</p>
-<p><img src="https://github.com/WayV5/imgs/blob/main/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/p2.png?raw=true" alt="p2.png"></p>
-<p>​		页表中的页号字段其实是隐含的，因为每个页表项（每条记录）是等长的，看多少位能把所有的业内偏移量表示，就用了多少位。</p>
-<h5 id="快表"><a href="#快表" class="headerlink" title="快表"></a>快表</h5><p>​		快表是为了解决页式管理时，逻辑地址到物理地址转换时，查询页表速度较慢的问题。</p>
-<p>​		快表是页表的<strong>高速缓存存储器</strong>，当需要查询页表时，先查询快表中的缓存，缓存命中直接返回页面地址，未命中则去查询页表，然后缓存到快表中。</p>
-<p>​		由于局部性原理，我们访问了一个内存单元，那么这个内存单元附近的内存单元很可能在短时间内被访问，因此很可能查询到的页号是相同的，所以这种缓存机制命中率是很高的，能够很好的提高地址转换效率。</p>
-<p>​    	这种操作系统的设计思想在我们开发系统时也经常用到。</p>
-<h5 id="多级页表"><a href="#多级页表" class="headerlink" title="多级页表"></a>多级页表</h5><p>​    	多级页表是为了避免，由于页表是连续存放的，把全部页表一直放在内存中占用过多内存空间。由于局部性原理，在一段时间内，程序只需要访问某些特定的存储空间就可以了，那些不需要的页表就不需要保留在内存中，我们通过将页表分块来解决。多级页表属于时间换空间的典型场景。</p>
-<h4 id="段式分配管理"><a href="#段式分配管理" class="headerlink" title="段式分配管理"></a>段式分配管理</h4><p>​    	分段的实际意义是：将用户程序按照逻辑关系，分成多个段（如MAIN段, 子程序段，数据段等）,以段为单元离散存放在物理内存中。</p>
-<p>​    	地址转换方式：段表记录了每个段的段号，段长，以及在物理内存中的基址，然后根据段号+段内偏移量，实现逻辑地址到物理地址的转换。</p>
-<p>段式管理和页式管理的区别和共同点：</p>
-<ul>
-<li>两者的<strong>相同点</strong>是：</li>
+<h2 id="MongoDB的特点"><a href="#MongoDB的特点" class="headerlink" title="MongoDB的特点"></a>MongoDB的特点</h2><ul>
+<li>数据记录为文档格式，具体来说是BSON文档，类似于JSON的结构；</li>
+<li>模式自由：文档存放在集合中，集合相当于关系型数据库表的概念，但是没有固定的表结构，比较灵活。</li>
+<li>支持事务：虽然是NoSQL,但是支持事务</li>
+<li>支持索引：索引类型多样</li>
+<li>支持分片集群</li>
+<li>支持存储大文件</li>
 </ul>
-<p>​		在完成逻辑地址到物理地址转换时，都通过一定映射关系来完成，分页有页表，分段有段表，通过页号段号+偏移量来实现，只不过由于分段长度不是固定的，段表需要额外维护一个段长的字段。（段长对于寻址没有帮助，作用在做越界检查，看段内地址是否大于段长）</p>
-<ul>
-<li>两者的<strong>主要区别</strong>是：</li>
-</ul>
-<p>​    	分页是以系统为基准的，系统将内存固定分成了等长的页框，那用户程序就要基于这个标准，被分成一个个页面装入内存；</p>
-<p>​    	分段是以用户程序为基准的，根据用户程序的逻辑模块，分成一个个段，长度是不固定的，然后以段为单元分配在系统内存中；这种分段做法的好处是方便进行资源的保护和共享，缺点就是内存利用率低，会产生外部碎片（和连续内存分配中的动态分区分配很像）。</p>
-<p>​    	在现代使用虚拟技术的计算机系统上，多采用分页管理。</p>
-<h4 id="段页式分配管理"><a href="#段页式分配管理" class="headerlink" title="段页式分配管理"></a>段页式分配管理</h4><p>​    	段页式管理综合分页和分段两种方式，先按照用户程序的逻辑模块分段，然后再将每段分成固定长度的页面，页长由系统决定。</p>
-<p>​    	不会产生外部碎片，每段分成最后一页会有较小的内部碎片。</p>
-<p>​    	<strong>地址转换</strong>：维护两个表</p>
-<p>​		段表记录  段号-段内页数-起始页号</p>
-<p>​		页表记录  页号-页基址 </p>
-<p>​       根据段号和段内偏移量可算出页号和页内偏移量，根据页号和业内偏移量可知物理地址。</p>
-<p>​			a)    段号查表得到起始页号；<br>​			b)   页号 &#x3D; 起始页号 + 段内偏移量&#x2F;页长；<br>​			c)    页内偏移量 &#x3D; 段内偏移量 % 页长；</p>
-<h2 id="内存空间的扩充？"><a href="#内存空间的扩充？" class="headerlink" title="内存空间的扩充？"></a>内存空间的扩充？</h2><h3 id="覆盖技术"><a href="#覆盖技术" class="headerlink" title="覆盖技术"></a>覆盖技术</h3><p>​    早期计算机使用，将内存分为<strong>固定区</strong>和<strong>覆盖区</strong>，固定区存放需要常驻内存的程序模块，对于不会同时装入内存的程序模块，共享某一段覆盖区。实现了内存空间的扩展。</p>
-<p>​    缺点：哪些程序段是常驻内存的，哪些可以共享覆盖区的，需要程序员声明，增加了编程负担。</p>
-<h3 id="交换技术"><a href="#交换技术" class="headerlink" title="交换技术"></a>交换技术</h3><p>​    当内存紧张时，将暂时不具备运行条件的进程换到外存，比如处于阻塞态、就绪态的进程，可以给它换到外存，此时状态叫他挂起态，然后具备运行条件再换入内存。</p>
-<p>​    外存的磁盘空间分为<strong>对换区</strong>和<strong>文件区</strong>：</p>
-<p>​    <strong>文件区</strong>：用于存放文件，追求存储空间的利用率，离散分布，随机读写；</p>
-<p>​    <strong>对换区</strong>：用于存放被换出的进程数据，追究的是换入换出的速度，采用顺序读写的方式，IO速度更快。</p>
-<p>​    交换技术以进程为单位，而虚拟内存是针对进程内的页面的。</p>
-<h3 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h3><h4 id="什么是虚拟内存？"><a href="#什么是虚拟内存？" class="headerlink" title="什么是虚拟内存？"></a>什么是虚拟内存？</h4><p>​    虚拟内存通过一种“数据交换”的方式，将暂时用不到的程序模块放在外存中，在逻辑上扩展了系统的内存空间，是局部性原理的一个重要应用。</p>
-<p>​    请求分页管理方式：基本分页管理+虚拟内存。</p>
-<h4 id="页缺失是什么意思？"><a href="#页缺失是什么意思？" class="headerlink" title="页缺失是什么意思？"></a>页缺失是什么意思？</h4><p>需要访问的程序页不在内存中，被置换到了外存当中。</p>
-<h4 id="页面置换算法有哪些？"><a href="#页面置换算法有哪些？" class="headerlink" title="页面置换算法有哪些？"></a>页面置换算法有哪些？</h4><p>​    页面置换算法是在请求分页管理方式中，当内存块都被占满的情况下，有新的页面要从外存中请求调入时，淘汰当前内存中页面的规则。</p>
-<p>页面置换算法性能指标是缺页率。</p>
-<p>a)    <strong>最佳置换算法OPT</strong>：每次选择淘汰以后永不访问，或最长时间不被访问的页面。这种算法是最理想的算法，但是由于这个衡量标准只能在上帝视角才知道，因此无法实现。但是可以作为衡量其他算法的一个标准</p>
-<p>b)   <strong>先入先出置换算法FIFO</strong>：维护一个<strong>先进先出队列</strong>，最先进入内存的页面被淘汰。</p>
-<p>算法实现简单，但是当为进程分配的内存页增加时，缺页率反而会上升，称为Belady异常。</p>
-<p>c)    <strong>最近最久页面置换算法LRU</strong>：淘汰最近最久没有被使用的页面。页表中记录分配一个字段，记录这个页面没被使用的时间。Mysql里边，当buffer pool满了的时候，淘汰页面用的就是这个算法。</p>
-<p>d)   <strong>时钟页面置换算法：</strong>可以认为是一种最近未使用算法，即逐出的页面都是最近没有使用的那个。</p>
+<h2 id="MongoDB的适合应用场景"><a href="#MongoDB的适合应用场景" class="headerlink" title="MongoDB的适合应用场景"></a>MongoDB的适合应用场景</h2><p>MongDB的优势在于其数据模型灵活，便于扩展。</p>
 ]]></content>
       <categories>
-        <category>操作系统</category>
+        <category>数据库</category>
       </categories>
       <tags>
-        <tag>操作系统</tag>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JVM</title>
+    <url>/2023/02/26/3%E5%85%AB%E8%82%A1_JVM/</url>
+    <content><![CDATA[<h1 id="内存区域"><a href="#内存区域" class="headerlink" title="内存区域"></a>内存区域</h1><p>​    JVM管理的内存区域称为运行时数据区，包括以下几个部分：</p>
+<p>​    <strong>线程共享的：</strong></p>
+<ol>
+<li>堆</li>
+<li>方法区（JDK8之后变为本地内存中的元空间）</li>
+</ol>
+<p>​    <strong>线程私有的：</strong></p>
+<ol>
+<li><p>虚拟机栈</p>
+</li>
+<li><p>本地方法栈</p>
+</li>
+<li><p>程序计数器</p>
+</li>
+</ol>
+<span id="more"></span>
+
+<h2 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h2><p>​    可以看作当前进行线程所执行字节码的行号指示器。</p>
+<p>​    作用：</p>
+<ol>
+<li>代码执行中的跳转、循环等流程依赖于程序计数器。</li>
+<li>线程切换程序计数器保存、恢复线程的执行到哪一步</li>
+</ol>
+<p>唯一一个不会出现OOM情况内存区域</p>
+<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p>​    每个方法被执行都会创建一个栈帧，方法被调用到执行完毕的过程，对应着栈帧在虚拟机栈中从入栈到出栈的过程。</p>
+<p>​    栈帧包含：局部变量表，操作数栈，动态链接，方法出口</p>
+<h3 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h3><p>​    主要存放了编译期可知的各种数据类型（boolean、byte、char、short、int、float、long、double）、对象引用（reference 类型，它不同于对象本身，可能是一个指向对象起始地址的引用指针，也可能是指向一个代表对象的句柄或其他与此对象相关的位置）。</p>
+<h3 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h3><p>​    如果一个方法调用其他方法，那么就要使用运行时常量池的该方法的符号引用，将符号引用转化为内存中实际地址的直接引用的过程，叫做动态链接。</p>
+<p>​    有些符号引用在类加载阶段或第一次使用时完成饿了转换，称为静态解析；</p>
+<p>​    另外一部分在每次运行期间被转换，称为动态链接。</p>
+<p>如果线程请求的栈深度大于虚拟机请求所允许的深度，将抛出stackoverflowError,</p>
+<p>如果虚拟机栈容量空一动态扩展，则当扩展时无法申请到足够内存空间时，会抛OOM错误。</p>
+<h2 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h2><p>​    与虚拟机栈相似，只不过是运行本地方法（Native方法）</p>
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><p>​    线程共享，几乎所有对象实例都在这里分配内存。</p>
+<p>​    新生代 老年代 永久代，都是因为大部分都是基于分代垃圾回收器而得名的，只是一个设计风格，而并非java虚拟机固定的布局。</p>
+<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p>​    存储已被JVM加载的类型信息、常量、静态变量、等</p>
+<p>​    方法区的具体实现并不是固定的，JDK8之前是永久代实现，JDK8之后就变成本地内存中的元空间了。</p>
+<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>​    位于方法区，编译期生成的各种字面量、<strong>符号引用</strong>，在类加载之后存放到方法区的运行时常量池。</p>
+<p>​    一般情况下，类加载后，由符号引用翻译出来的直接引用也存储在运行时常量池。</p>
+<p>​    符号引用：在一个类中（当然不仅是类，还包括类的其他部分，比如方法，字段等），用到其他类（或其他类的方法、字段等），编译时并不知道其具体内存地址，要等类加载之后才知道，因此先用一个符号引用来表示。</p>
+<p>​    在Java中，一个java类将会编译成一个class文件。在编译时，java类并不知道所引用的类的实际地址，因此只能使用符号引用来代替</p>
+<h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>​    位于本地内存。</p>
+<h2 id="一个对象的创建过程"><a href="#一个对象的创建过程" class="headerlink" title="一个对象的创建过程"></a>一个对象的创建过程</h2><p><strong>1.</strong>    <strong>类加载检查</strong></p>
+<p>​    当虚拟机遇到一个new 指令时，首先检查能否在常量池定位到对应的类的符号引用，再检查该类是否被加载过，如果没有必须先执行类加载过程。</p>
+<ol start="2">
+<li><strong>分配内存</strong></li>
+</ol>
+<p>​    对象所需的内存大小在类加载完成后便可确定，分配内存就是在堆空间划出一块固定内存给新建的对象。有两种方式，1. “指针碰撞”：内存空间是规整的； 2. “空闲列表”:内存空间不规整； 能否规整看垃圾收集器是否有空间压缩整理功能。</p>
+<ol start="3">
+<li><strong>初始化零值</strong></li>
+</ol>
+<p>··   将对象的内存空间（不包括对象头）都初始化为0，保证Java对象不用赋初值就能直接使用。</p>
+<ol start="4">
+<li><strong>设置对象头</strong></li>
+</ol>
+<p>​    对象头包扩：对象的类型指针，hashCode, 线程的锁信息，对应的元数据信息等。</p>
+<ol start="5">
+<li><strong>执行 init 方法</strong></li>
+</ol>
+<p>​    按照程序员设置的参数，执行初始化方法。</p>
+<h1 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h1><h2 id="一个类的生命周期"><a href="#一个类的生命周期" class="headerlink" title="一个类的生命周期"></a>一个类的生命周期</h2><p>加载 验证 准备 解析 初始化 使用 卸载</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true" alt="p1.png"></p>
+<p>类加载过程包括：加载-&gt;连接-&gt;初始化 ， 连接过程包括：验证、准备、解析。</p>
+<h2 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h2><p><strong>加载：</strong></p>
+<p>​    通过<strong>类加载器</strong>完成，具体用哪个加载器，通过双亲委派模型选取。</p>
+<ol>
+<li>虚拟机获得类的二进制字节流Class文件</li>
+</ol>
+<p>​       获取方式多样：源程序.java编译得来，压缩包jar、网络传输Web Applet 、运行时动态生成：动态代理</p>
+<ol start="2">
+<li>将字节流代表的静态存储结构，转化为方法区内的运行时数据结构。</li>
+<li>在内存中生成代表这个类的java.lang.Class对象，作为方法区这个类数据的访问接口<strong>。</strong></li>
+</ol>
+<p><strong>验证：</strong></p>
+<p>​    保证Class文件中的信息是否正确，且不会危害虚拟机安全：</p>
+<p>​    Class文件格式是否正确，字节码语义是否符合逻辑，符号引用的验证</p>
+<p><strong>准备</strong>：</p>
+<p>​    为静态变量(类变量，static修饰)分配内存，并设置初值为0；</p>
+<p>​    在JDK8之前，Class对象与静态变量存储在方法区（JDK8之前方法区由永久代实现）；</p>
+<p>JDK8之后，Class对象与静态变量放在Java堆里了。</p>
+<p>​    Public static int value &#x3D; 123;</p>
+<p>​    准备阶段后，value为0，而不是123，赋值为123要等到类的初始化，通过<code>&lt;clinit&gt;()</code>方法；</p>
+<p>​    而如果final修饰静态变量，在准备阶段就会直接被赋值。</p>
+<p><strong>解析</strong>：</p>
+<p>​    将符号引用（类的，方法，字段，等）转化为直接引用</p>
+<p><strong>初始化</strong>:</p>
+<p>​    根据程序员的代码，主观初始化静态变量和其他资源。这个阶段就是执行类构造器的<clinit>()方法的过程，这个方法是Javac编译器的自动生成物。</p>
+<p>​    <clinit>()收集静态变量的赋值行为和静态语句块static{}</p>
+<p>​    即  public static int value &#x3D; 123;</p>
+<p>​       static { value &#x3D; 456;}</p>
+<p>​    按照他们在源文件中出现的顺序进行。</p>
+<h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><p>​    类加载器是一个负责加载类的对象，用于实现类加载过程中的加载这一步。</p>
+<p>每个 Java 类都有一个引用指向加载它的 ClassLoader。</p>
+<p>数组类不是通过 ClassLoader 创建的（数组类没有对应的二进制字节流），是由 JVM 直接生成的。</p>
+<p><strong>类加载器的主要作用就是加载</strong> <strong>Java</strong> <strong>类的字节码（</strong><code>.class</code><strong>文件）到</strong> <strong>JVM</strong> <strong>中（在内存中生成一个代表该类的</strong><code>Class</code><strong>对象）</strong></p>
+<p>JVM 启动的时候，并不会一次性加载所有的类，而是根据需要去动态加载。也就是说，大部分类在具体用到的时候才会去加载，这样对内存更加友好。</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p2.png?raw=true" alt="p2.png"></p>
+<h2 id="双亲委派模型："><a href="#双亲委派模型：" class="headerlink" title="双亲委派模型："></a>双亲委派模型：</h2><p>​		先判断这个类有没有被加载过，如果加载过直接返回，没加载过就走加载流程。</p>
+<p>​		一个类加载器收到加载请求，要先把请求委派给父类加载器，这个请求会一直传递到最顶层类加载器；</p>
+<p>​		只有父类加载器反馈加载不了（它的搜索范围内找不到class文件），子加载器才能加载。</p>
+<p>​		这种父子关系不是通过<strong>继承</strong>实现的，而是使用<strong>组合</strong>关系来复用父加载器的代码</p>
+<p>​		好处：双亲委派模型主要是为了类加载的稳定性，可以避免加载相同名字的类造成混乱，比如Object类存放在rt.jar，由启动类加载器加载，如果用户自己编了一个Object类，类加载请求最终会传递到最顶层的启动类加载器，判断Object类加载过了，就不会加载用户的Object类了。</p>
+<h1 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h1><h2 id="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"><a href="#为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？" class="headerlink" title="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"></a>为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？</h2><p>​		因为虚拟机栈、本地方法栈、程序计数器是线程私有的，随线程生，随线程灭，且每一个栈帧所需的大小在编译期即可确定，不受程序运行期变量数据的影响，因此内存的分配和回收都具有确定性，因此不需要过多考虑如何回收。</p>
+<p>​		而堆和方法区中的内存分配受不同运行情况影响，比如一个接口的多个实现类所需内存不同，一个方法执行不同条件分支所需内存也可能不一样，因此只有处于运行期间才能指导会创建哪些对象，创建多少对象。</p>
+<h2 id="Java引用分类"><a href="#Java引用分类" class="headerlink" title="Java引用分类"></a>Java引用分类</h2><ol>
+<li><p>强引用</p>
+<blockquote>
+<p>程序代码中最常见的引用方式，只要强引用关系还在，被引用对象永远不能被回收。</p>
+</blockquote>
+</li>
+<li><p>软引用</p>
+<blockquote>
+<p>用来描述一些还有用，但非必须的对象。被软引用关联的对象，在系统将要发生内存溢出异常前，会将这些对象列入回收范围，进行第二次回收。</p>
+</blockquote>
+</li>
+<li><p>弱引用</p>
+<blockquote>
+<p>用来描述非必须对象。弱引用关联的对象只能生存到下一次垃圾收集发生。</p>
+</blockquote>
+</li>
+<li><p>虚引用</p>
+<blockquote>
+<p>不影响对象生存时间，也无法通过虚引用获取对象实例。为对象设置虚引用的唯一目的就是：为了在这个对象被回收时收到一个系统通知。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="死亡对象的判定方法"><a href="#死亡对象的判定方法" class="headerlink" title="死亡对象的判定方法"></a>死亡对象的判定方法</h2><blockquote>
+<p>对象死亡即不存在对该对象的引用。</p>
+</blockquote>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>​    	给对象中添加一个引用计数器：每当有一个地方引用它，计数器就加 1；当引用失效，计数器就减 1；任何时候计数器为 0 的对象就是不可能再被使用的。</p>
+<p>​    	这个方法简单，效率高，但是无法解决两个对象循环引用的现象，因此现代虚拟机不采用这种方式。</p>
+<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><p>​    	通过一系列称为”GC roots”对象为根节点，通过引用关系向下查找，如果一个对象不和任何一个GC roots的调用链相连，则说明该对象不可达，将被判定为回收对象。</p>
+<p>​    	可作为GC roots的对象包括以下几种：</p>
+<ol>
+<li>虚拟机栈中引用的对象。</li>
+<li>方法区类静态变量引用的对象。</li>
+<li>被同步锁synchronized关键字持有的对象</li>
+<li>方法去常量池引用的对象等</li>
+</ol>
+<h2 id="可达性分析出对象可以被回收，就代表一定会被回收吗？"><a href="#可达性分析出对象可以被回收，就代表一定会被回收吗？" class="headerlink" title="可达性分析出对象可以被回收，就代表一定会被回收吗？"></a>可达性分析出对象可以被回收，就代表一定会被回收吗？</h2><p>不一定。</p>
+<p>当对象通过可达性分析，判定为不可用对象后，会被第一次标记，之后将对象放入一个名叫F-Queue的队列里，再进行一次筛选，判断有没有必要执行该对象的finalize（）方法，【如果该对象没有重写finalize()方法，或者finalize()方法已经被调用过一次了，就判定为没必要执行finalize()方法。】</p>
+<p>Finalize方法是对象逃脱死亡的最后一次机会，如果对象重新与引用链上的任何一个对象建立关联，即使是把自己this赋给某个类变量或者对象的成员变量也行，那么对象就会逃脱回收。</p>
+<p>所以说Object类的finalize方法设计的比较糟糕，它是Java诞生时对C C++程序员容易接受的一项妥协，运行代价昂贵，不确定性大，JDK9之后就开始逐渐弃用了。</p>
+<h2 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h2><p>​    	主要针对分代收集理论，“分代收集”的几个假说</p>
+<ul>
+<li><p>弱分代假说：绝大多数对象都是朝生夕灭的（新生代有98%熬不过第一轮垃圾回收）</p>
+</li>
+<li><p>强分代假说: 熬过越多次垃圾回收的对象就越难以消亡</p>
+</li>
+<li><p>跨代引用假说：跨代引用相对于同代引用来说仅占少数;</p>
+</li>
+</ul>
+<p>部分收集Partial GC:</p>
+<ul>
+<li>新生代收集Minor GC&#x2F;Young GC</li>
+<li>老年代收集 Major GC&#x2F;Old GC</li>
+<li>混合收集 Mixed GC</li>
+</ul>
+<p>整堆收集Full GC:</p>
+<ul>
+<li>收集整个Java堆和方法区的垃圾收集</li>
+</ul>
+<h3 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h3><p>​    	最基础的垃圾收集算法，通过垃圾判定，对对象进行标记，标记之后统一回收所标记的对象。</p>
+<p>​    	缺点：执行效率不稳定，并且会产生内存碎片。</p>
+<h3 id="标记-复制算法"><a href="#标记-复制算法" class="headerlink" title="标记-复制算法"></a>标记-复制算法</h3><p>​    	最早的标记-复制算法采用“半区复制”，就是将内存空间分成两个大小相等的块，每次只是用一个，当一个满了，将活着的对象复制到另一个块，其余的回收。</p>
+<p>​    	不会产生内存碎片，但是代价是可用的内存空间变少了。</p>
+<p>​    	因此后来根据对象“朝生夕灭”的特性，提出了更优化的标记-复制算法，将新生代分为一个Eden区和两个Suivivor区，比例为8：1：1；</p>
+<p>​    	每次给对象分配内存，只是用Eden区和其中一个Suivivor区，垃圾回收时，将存活的对象复制到另一个Suivivor区，如果空间不足，就通过<strong>分配担保机制</strong>，直接进入老年代。</p>
+<h3 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h3><p>​    先标记，之后将存活对象向空间一端移动，然后清除掉边界外的空间。</p>
+<p>​    不会产生内存碎片，但是对象移动的效率慢，多用于老年代。</p>
+<h2 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h2><p>​    比如在新生代中，每次收集都会有大量对象死去，所以可以选择”标记-复制“算法，只需要付出少量对象的复制成本就可以完成每次垃圾收集。而老年代的对象存活几率是比较高的，而且没有额外的空间对它进行分配担保，所以我们必须选择“标记-清除”或“标记-整理”算法进行垃圾收集。</p>
+<p>​    年龄增大到15岁，将从新生代晋升到老年代。</p>
+<h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p>​    	如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</p>
+<p>​    	现代虚拟机采用的垃圾收集器多采用：</p>
+<p>​		新生代采用标记-复制算法，老年代采用标记-整理算法。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -1328,281 +1279,94 @@
       </tags>
   </entry>
   <entry>
-    <title>JVM</title>
-    <url>/2023/02/26/3%E5%85%AB%E8%82%A1_JVM/</url>
-    <content><![CDATA[<h1 id="内存区域"><a href="#内存区域" class="headerlink" title="内存区域"></a>内存区域</h1><p>​    JVM管理的内存区域称为运行时数据区，包括以下几个部分：</p>
-<p>​    <strong>线程共享的：</strong></p>
-<ol>
-<li>堆</li>
-<li>方法区（JDK8之后变为本地内存中的元空间）</li>
-</ol>
-<p>​    <strong>线程私有的：</strong></p>
-<ol>
-<li><p>虚拟机栈</p>
-</li>
-<li><p>本地方法栈</p>
-</li>
-<li><p>程序计数器</p>
-</li>
-</ol>
+    <title>服务器</title>
+    <url>/2022/12/14/8%E5%85%AB%E8%82%A1_Tomcat&amp;Nginx/</url>
+    <content><![CDATA[<h1 id="Tomcat"><a href="#Tomcat" class="headerlink" title="Tomcat"></a>Tomcat</h1><h2 id="什么是web容器？"><a href="#什么是web容器？" class="headerlink" title="什么是web容器？"></a>什么是web容器？</h2><p>早期的HTTP服务器主要用于返回静态资源，如Apache,Nginx服务器都是静态服务器，像浏览器返回静态html,浏览器负责解析html页面；</p>
+<p>servlet技术提供了HTTP服务器动态访问应用程序的能力，但是servlet不能独立运行，没有main方法，需要借助容器来运行，如tomcat,jetty等servlet容器，由容器管理servlet。</p>
+<p>tomcat就是一个常用的servlet容器，为了方便使用，他也同时具备了HTTP服务器的功能，因此叫做web容器。（tomcat就是一个java程序，servlet由这个java程序创建）</p>
 <span id="more"></span>
 
-<h2 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h2><p>​    可以看作当前进行线程所执行字节码的行号指示器。</p>
-<p>​    作用：</p>
+<p>简单来说，tomcat是一个http服务器+servlet容器：</p>
+<blockquote>
+<p> http服务器：完成网络通信，处理http请求，并返回http响应。具体来说是处理socket连接（解析应用层协议，tcp&#x2F;udp），负责网络IO的字节流与request, response对象的转化。</p>
+<p>servlet容器：加载和管理servlet对象。http服务器将请求交给servlet处理，servlet容器将请求分发到具体的servlet，调用service()方法去执行业务代码。</p>
+</blockquote>
+<blockquote>
+<p>一个web容器可以放多个web程序，将程序放在webapps目录下即可；对于一个springmvc项目有一个DispatchServlet，一个web容器中放多个web程序就会有多个servlet。</p>
+</blockquote>
+<h1 id="Servlet"><a href="#Servlet" class="headerlink" title="Servlet"></a>Servlet</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>Servlet指的是任何实现了Servlet接口的类，由servlet容器创建并管理，用于处理客户端传来的http请求，执行具体的业务代码，再返回响应。最主要的方式是service()方法，具体的业务代码逻辑在service()方法中实现。</p>
+<blockquote>
+<p>Servlet是一个Java接口，是实现Web技术的核心。我们平时说的Tomcat容器中的servlet是一个实例，由Tomcat容器创建，servlet的核心执行方法是service()，客户端传来的Http请求，会被Tomcat封装成ServletRequest对象，servlet的响应则被封装到ServletResponse对象中，通过这种请求&#x2F;响应模型，来实现客户端与服务端的交互。</p>
+</blockquote>
+<blockquote>
+<p>HttpServlet是一个抽象类，它实现了Servlet接口，对Servlet功能进行了扩展。</p>
+</blockquote>
+<p>servlet是单例的，在第一次访问的时候被tomcat创建，会出现并发问题，如何解决？</p>
+<blockquote>
 <ol>
-<li>代码执行中的跳转、循环等流程依赖于程序计数器。</li>
-<li>线程切换程序计数器保存、恢复线程的执行到哪一步</li>
+<li>尽量避免使用静态变量和成员变量</li>
+<li>如果必须要用，要对静态变量和成员变量线程不安全方法声明锁。</li>
 </ol>
-<p>唯一一个不会出现OOM情况内存区域</p>
-<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p>​    每个方法被执行都会创建一个栈帧，方法被调用到执行完毕的过程，对应着栈帧在虚拟机栈中从入栈到出栈的过程。</p>
-<p>​    栈帧包含：局部变量表，操作数栈，动态链接，方法出口</p>
-<h3 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h3><p>​    主要存放了编译期可知的各种数据类型（boolean、byte、char、short、int、float、long、double）、对象引用（reference 类型，它不同于对象本身，可能是一个指向对象起始地址的引用指针，也可能是指向一个代表对象的句柄或其他与此对象相关的位置）。</p>
-<h3 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h3><p>​    如果一个方法调用其他方法，那么就要使用运行时常量池的该方法的符号引用，将符号引用转化为内存中实际地址的直接引用的过程，叫做动态链接。</p>
-<p>​    有些符号引用在类加载阶段或第一次使用时完成饿了转换，称为静态解析；</p>
-<p>​    另外一部分在每次运行期间被转换，称为动态链接。</p>
-<p>如果线程请求的栈深度大于虚拟机请求所允许的深度，将抛出stackoverflowError,</p>
-<p>如果虚拟机栈容量空一动态扩展，则当扩展时无法申请到足够内存空间时，会抛OOM错误。</p>
-<h2 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h2><p>​    与虚拟机栈相似，只不过是运行本地方法（Native方法）</p>
-<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><p>​    线程共享，几乎所有对象实例都在这里分配内存。</p>
-<p>​    新生代 老年代 永久代，都是因为大部分都是基于分代垃圾回收器而得名的，只是一个设计风格，而并非java虚拟机固定的布局。</p>
-<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p>​    存储已被JVM加载的类型信息、常量、静态变量、等</p>
-<p>​    方法区的具体实现并不是固定的，JDK8之前是永久代实现，JDK8之后就变成本地内存中的元空间了。</p>
-<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>​    位于方法区，编译期生成的各种字面量、<strong>符号引用</strong>，在类加载之后存放到方法区的运行时常量池。</p>
-<p>​    一般情况下，类加载后，由符号引用翻译出来的直接引用也存储在运行时常量池。</p>
-<p>​    符号引用：在一个类中（当然不仅是类，还包括类的其他部分，比如方法，字段等），用到其他类（或其他类的方法、字段等），编译时并不知道其具体内存地址，要等类加载之后才知道，因此先用一个符号引用来表示。</p>
-<p>​    在Java中，一个java类将会编译成一个class文件。在编译时，java类并不知道所引用的类的实际地址，因此只能使用符号引用来代替</p>
-<h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>​    位于本地内存。</p>
-<h2 id="一个对象的创建过程"><a href="#一个对象的创建过程" class="headerlink" title="一个对象的创建过程"></a>一个对象的创建过程</h2><p><strong>1.</strong>    <strong>类加载检查</strong></p>
-<p>​    当虚拟机遇到一个new 指令时，首先检查能否在常量池定位到对应的类的符号引用，再检查该类是否被加载过，如果没有必须先执行类加载过程。</p>
-<ol start="2">
-<li><strong>分配内存</strong></li>
-</ol>
-<p>​    对象所需的内存大小在类加载完成后便可确定，分配内存就是在堆空间划出一块固定内存给新建的对象。有两种方式，1. “指针碰撞”：内存空间是规整的； 2. “空闲列表”:内存空间不规整； 能否规整看垃圾收集器是否有空间压缩整理功能。</p>
-<ol start="3">
-<li><strong>初始化零值</strong></li>
-</ol>
-<p>··   将对象的内存空间（不包括对象头）都初始化为0，保证Java对象不用赋初值就能直接使用。</p>
-<ol start="4">
-<li><strong>设置对象头</strong></li>
-</ol>
-<p>​    对象头包扩：对象的类型指针，hashCode, 线程的锁信息，对应的元数据信息等。</p>
-<ol start="5">
-<li><strong>执行 init 方法</strong></li>
-</ol>
-<p>​    按照程序员设置的参数，执行初始化方法。</p>
-<h1 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h1><h2 id="一个类的生命周期"><a href="#一个类的生命周期" class="headerlink" title="一个类的生命周期"></a>一个类的生命周期</h2><p>加载 验证 准备 解析 初始化 使用 卸载</p>
-<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true" alt="p1.png"></p>
-<p>类加载过程包括：加载-&gt;连接-&gt;初始化 ， 连接过程包括：验证、准备、解析。</p>
-<h2 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h2><p><strong>加载：</strong></p>
-<p>​    通过<strong>类加载器</strong>完成，具体用哪个加载器，通过双亲委派模型选取。</p>
-<ol>
-<li>虚拟机获得类的二进制字节流Class文件</li>
-</ol>
-<p>​       获取方式多样：源程序.java编译得来，压缩包jar、网络传输Web Applet 、运行时动态生成：动态代理</p>
-<ol start="2">
-<li>将字节流代表的静态存储结构，转化为方法区内的运行时数据结构。</li>
-<li>在内存中生成代表这个类的java.lang.Class对象，作为方法区这个类数据的访问接口<strong>。</strong></li>
-</ol>
-<p><strong>验证：</strong></p>
-<p>​    保证Class文件中的信息是否正确，且不会危害虚拟机安全：</p>
-<p>​    Class文件格式是否正确，字节码语义是否符合逻辑，符号引用的验证</p>
-<p><strong>准备</strong>：</p>
-<p>​    为静态变量(类变量，static修饰)分配内存，并设置初值为0；</p>
-<p>​    在JDK8之前，Class对象与静态变量存储在方法区（JDK8之前方法区由永久代实现）；</p>
-<p>JDK8之后，Class对象与静态变量放在Java堆里了。</p>
-<p>​    Public static int value &#x3D; 123;</p>
-<p>​    准备阶段后，value为0，而不是123，赋值为123要等到类的初始化，通过<code>&lt;clinit&gt;()</code>方法；</p>
-<p>​    而如果final修饰静态变量，在准备阶段就会直接被赋值。</p>
-<p><strong>解析</strong>：</p>
-<p>​    将符号引用（类的，方法，字段，等）转化为直接引用</p>
-<p><strong>初始化</strong>:</p>
-<p>​    根据程序员的代码，主观初始化静态变量和其他资源。这个阶段就是执行类构造器的<clinit>()方法的过程，这个方法是Javac编译器的自动生成物。</p>
-<p>​    <clinit>()收集静态变量的赋值行为和静态语句块static{}</p>
-<p>​    即  public static int value &#x3D; 123;</p>
-<p>​       static { value &#x3D; 456;}</p>
-<p>​    按照他们在源文件中出现的顺序进行。</p>
-<h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><p>​    类加载器是一个负责加载类的对象，用于实现类加载过程中的加载这一步。</p>
-<p>每个 Java 类都有一个引用指向加载它的 ClassLoader。</p>
-<p>数组类不是通过 ClassLoader 创建的（数组类没有对应的二进制字节流），是由 JVM 直接生成的。</p>
-<p><strong>类加载器的主要作用就是加载</strong> <strong>Java</strong> <strong>类的字节码（</strong><code>.class</code><strong>文件）到</strong> <strong>JVM</strong> <strong>中（在内存中生成一个代表该类的</strong><code>Class</code><strong>对象）</strong></p>
-<p>JVM 启动的时候，并不会一次性加载所有的类，而是根据需要去动态加载。也就是说，大部分类在具体用到的时候才会去加载，这样对内存更加友好。</p>
-<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p2.png?raw=true" alt="p2.png"></p>
-<h2 id="双亲委派模型："><a href="#双亲委派模型：" class="headerlink" title="双亲委派模型："></a>双亲委派模型：</h2><p>​		先判断这个类有没有被加载过，如果加载过直接返回，没加载过就走加载流程。</p>
-<p>​		一个类加载器收到加载请求，要先把请求委派给父类加载器，这个请求会一直传递到最顶层类加载器；</p>
-<p>​		只有父类加载器反馈加载不了（它的搜索范围内找不到class文件），子加载器才能加载。</p>
-<p>​		这种父子关系不是通过<strong>继承</strong>实现的，而是使用<strong>组合</strong>关系来复用父加载器的代码</p>
-<p>​		好处：双亲委派模型主要是为了类加载的稳定性，可以避免加载相同名字的类造成混乱，比如Object类存放在rt.jar，由启动类加载器加载，如果用户自己编了一个Object类，类加载请求最终会传递到最顶层的启动类加载器，判断Object类加载过了，就不会加载用户的Object类了。</p>
-<h1 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h1><h2 id="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"><a href="#为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？" class="headerlink" title="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"></a>为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？</h2><p>​		因为虚拟机栈、本地方法栈、程序计数器是线程私有的，随线程生，随线程灭，且每一个栈帧所需的大小在编译期即可确定，不受程序运行期变量数据的影响，因此内存的分配和回收都具有确定性，因此不需要过多考虑如何回收。</p>
-<p>​		而堆和方法区中的内存分配受不同运行情况影响，比如一个接口的多个实现类所需内存不同，一个方法执行不同条件分支所需内存也可能不一样，因此只有处于运行期间才能指导会创建哪些对象，创建多少对象。</p>
-<h2 id="Java引用分类"><a href="#Java引用分类" class="headerlink" title="Java引用分类"></a>Java引用分类</h2><ol>
-<li><p>强引用</p>
-<blockquote>
-<p>程序代码中最常见的引用方式，只要强引用关系还在，被引用对象永远不能被回收。</p>
 </blockquote>
-</li>
-<li><p>软引用</p>
-<blockquote>
-<p>用来描述一些还有用，但非必须的对象。被软引用关联的对象，在系统将要发生内存溢出异常前，会将这些对象列入回收范围，进行第二次回收。</p>
-</blockquote>
-</li>
-<li><p>弱引用</p>
-<blockquote>
-<p>用来描述非必须对象。弱引用关联的对象只能生存到下一次垃圾收集发生。</p>
-</blockquote>
-</li>
-<li><p>虚引用</p>
-<blockquote>
-<p>不影响对象生存时间，也无法通过虚引用获取对象实例。为对象设置虚引用的唯一目的就是：为了在这个对象被回收时收到一个系统通知。</p>
-</blockquote>
-</li>
-</ol>
-<h2 id="死亡对象的判定方法"><a href="#死亡对象的判定方法" class="headerlink" title="死亡对象的判定方法"></a>死亡对象的判定方法</h2><blockquote>
-<p>对象死亡即不存在对该对象的引用。</p>
-</blockquote>
-<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>​    	给对象中添加一个引用计数器：每当有一个地方引用它，计数器就加 1；当引用失效，计数器就减 1；任何时候计数器为 0 的对象就是不可能再被使用的。</p>
-<p>​    	这个方法简单，效率高，但是无法解决两个对象循环引用的现象，因此现代虚拟机不采用这种方式。</p>
-<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><p>​    	通过一系列称为”GC roots”对象为根节点，通过引用关系向下查找，如果一个对象不和任何一个GC roots的调用链相连，则说明该对象不可达，将被判定为回收对象。</p>
-<p>​    	可作为GC roots的对象包括以下几种：</p>
-<ol>
-<li>虚拟机栈中引用的对象。</li>
-<li>方法区类静态变量引用的对象。</li>
-<li>被同步锁synchronized关键字持有的对象</li>
-<li>方法去常量池引用的对象等</li>
-</ol>
-<h2 id="可达性分析出对象可以被回收，就代表一定会被回收吗？"><a href="#可达性分析出对象可以被回收，就代表一定会被回收吗？" class="headerlink" title="可达性分析出对象可以被回收，就代表一定会被回收吗？"></a>可达性分析出对象可以被回收，就代表一定会被回收吗？</h2><p>不一定。</p>
-<p>当对象通过可达性分析，判定为不可用对象后，会被第一次标记，之后将对象放入一个名叫F-Queue的队列里，再进行一次筛选，判断有没有必要执行该对象的finalize（）方法，【如果该对象没有重写finalize()方法，或者finalize()方法已经被调用过一次了，就判定为没必要执行finalize()方法。】</p>
-<p>Finalize方法是对象逃脱死亡的最后一次机会，如果对象重新与引用链上的任何一个对象建立关联，即使是把自己this赋给某个类变量或者对象的成员变量也行，那么对象就会逃脱回收。</p>
-<p>所以说Object类的finalize方法设计的比较糟糕，它是Java诞生时对C C++程序员容易接受的一项妥协，运行代价昂贵，不确定性大，JDK9之后就开始逐渐弃用了。</p>
-<h2 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h2><p>​    	主要针对分代收集理论，“分代收集”的几个假说</p>
-<ul>
-<li><p>弱分代假说：绝大多数对象都是朝生夕灭的（新生代有98%熬不过第一轮垃圾回收）</p>
-</li>
-<li><p>强分代假说: 熬过越多次垃圾回收的对象就越难以消亡</p>
-</li>
-<li><p>跨代引用假说：跨代引用相对于同代引用来说仅占少数;</p>
-</li>
-</ul>
-<p>部分收集Partial GC:</p>
-<ul>
-<li>新生代收集Minor GC&#x2F;Young GC</li>
-<li>老年代收集 Major GC&#x2F;Old GC</li>
-<li>混合收集 Mixed GC</li>
-</ul>
-<p>整堆收集Full GC:</p>
-<ul>
-<li>收集整个Java堆和方法区的垃圾收集</li>
-</ul>
-<h3 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h3><p>​    	最基础的垃圾收集算法，通过垃圾判定，对对象进行标记，标记之后统一回收所标记的对象。</p>
-<p>​    	缺点：执行效率不稳定，并且会产生内存碎片。</p>
-<h3 id="标记-复制算法"><a href="#标记-复制算法" class="headerlink" title="标记-复制算法"></a>标记-复制算法</h3><p>​    	最早的标记-复制算法采用“半区复制”，就是将内存空间分成两个大小相等的块，每次只是用一个，当一个满了，将活着的对象复制到另一个块，其余的回收。</p>
-<p>​    	不会产生内存碎片，但是代价是可用的内存空间变少了。</p>
-<p>​    	因此后来根据对象“朝生夕灭”的特性，提出了更优化的标记-复制算法，将新生代分为一个Eden区和两个Suivivor区，比例为8：1：1；</p>
-<p>​    	每次给对象分配内存，只是用Eden区和其中一个Suivivor区，垃圾回收时，将存活的对象复制到另一个Suivivor区，如果空间不足，就通过<strong>分配担保机制</strong>，直接进入老年代。</p>
-<h3 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h3><p>​    先标记，之后将存活对象向空间一端移动，然后清除掉边界外的空间。</p>
-<p>​    不会产生内存碎片，但是对象移动的效率慢，多用于老年代。</p>
-<h2 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h2><p>​    比如在新生代中，每次收集都会有大量对象死去，所以可以选择”标记-复制“算法，只需要付出少量对象的复制成本就可以完成每次垃圾收集。而老年代的对象存活几率是比较高的，而且没有额外的空间对它进行分配担保，所以我们必须选择“标记-清除”或“标记-整理”算法进行垃圾收集。</p>
-<p>​    年龄增大到15岁，将从新生代晋升到老年代。</p>
-<h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p>​    	如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</p>
-<p>​    	现代虚拟机采用的垃圾收集器多采用：</p>
-<p>​		新生代采用标记-复制算法，老年代采用标记-整理算法。</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Spring框架</title>
-    <url>/2022/12/24/7%E5%85%AB%E8%82%A1_Spring%E6%A1%86%E6%9E%B6/</url>
-    <content><![CDATA[<h1 id="Spring概念"><a href="#Spring概念" class="headerlink" title="Spring概念"></a>Spring概念</h1><p>Spring是一个轻量级Java开发框架，里面包含了许多模块，能够简化Java开发工作</p>
-<p>主要模块：</p>
-<p>Core Container: spring-core, spring-beans, spring-context, spring-expression</p>
-<span id="more"></span>
-
-<p>AOP</p>
-<p>Data Access&#x2F;Integration</p>
-<p> Spring Web: spring-web, spring-webmvc, spring-websocket</p>
-<p>Test</p>
-<h2 id="Spring-Spring-MVC-Spring-Boot-之间什么关系"><a href="#Spring-Spring-MVC-Spring-Boot-之间什么关系" class="headerlink" title="Spring,Spring MVC,Spring Boot 之间什么关系?"></a>Spring,Spring MVC,Spring Boot 之间什么关系?</h2><p>Spring框架有很多个模块，其中最核心的就是core模块提供的IoC功能，其他模块比如Spring MVC都要依赖于这个模块；</p>
-<p>Spring MVC模块主要实现了快速构建Web程序的能力，核心思想就是Model层，View层，Controller层分离，来组织代码。</p>
-<p>Spring开发时，许多配置要通过XML文件或者Java语句进行显式的配置，为了简化配置，SpringBoot 框架应运而生。</p>
-<h1 id="Spring-IoC"><a href="#Spring-IoC" class="headerlink" title="Spring IoC"></a>Spring IoC</h1><p><strong>IoC（Inversion of Control:控制反转）</strong> 是一种设计思想，将原来程序中创建对象的控制权交给Spring框架去操管理。</p>
-<p>好处是：我们创建一个对象的时候，可能依赖于很多其他对象，代码就会很繁琐。将对象的依赖关系交给Spring IoC容器去管理，并由IoC容器完成对象的注入。只需提前配置好，用的时候直接调用就可以了，能够大大简化开发。</p>
-<h2 id="什么是-Spring-Bean？"><a href="#什么是-Spring-Bean？" class="headerlink" title="什么是 Spring Bean？"></a>什么是 Spring Bean？</h2><p>Spring Bean就是由IoC容器进行管理的对象。可以通过XML文件，注解，java配置类等方式，告诉IoC容器要管理哪些对象。</p>
-<h2 id="将一个类声明为-Bean-的注解有哪些"><a href="#将一个类声明为-Bean-的注解有哪些" class="headerlink" title="将一个类声明为 Bean 的注解有哪些?"></a>将一个类声明为 Bean 的注解有哪些?</h2><ul>
-<li>@Component  通用注解，下边的注解都会间接引用该注解，如果不知道该类是哪个层，就用这个</li>
-<li>@Repository 对应持久层</li>
-<li>@Service 业务逻辑层</li>
-<li>@Controller 控制层</li>
-</ul>
-<h2 id="Component-和-Bean-的区别是什么？"><a href="#Component-和-Bean-的区别是什么？" class="headerlink" title="@Component 和 @Bean 的区别是什么？"></a>@Component 和 @Bean 的区别是什么？</h2><ul>
-<li>@Component 注解作用于类，而@Bean注解作用于方法。</li>
-<li>@Bean通常和@Component注解一起使用，@Component作用在类上，表示这个类作为配置类使用，相当于一个XML文件，而类中方法的@Bean注解，相当于配置信息，将方法的返回对象加入到IoC容器中。</li>
-</ul>
-<blockquote>
-<p>@Configuration注解注入的是将某类的代理类加入到IoC容器中，通常和@Bean一起使用，来作为配置类使用，代理xml的配置方式。</p>
-</blockquote>
-<h2 id="注入-Bean-的注解有哪些？"><a href="#注入-Bean-的注解有哪些？" class="headerlink" title="注入 Bean 的注解有哪些？"></a>注入 Bean 的注解有哪些？</h2><ul>
-<li>@Autowired 默认通过类型注入</li>
-<li>@Resource 默认通过名字注入</li>
-</ul>
-<h2 id="Bean-的作用域有哪些"><a href="#Bean-的作用域有哪些" class="headerlink" title="Bean 的作用域有哪些?"></a>Bean 的作用域有哪些?</h2><ul>
-<li>singleton ：Spring bean默认是单例的，单例模式的应用。</li>
-<li>prototype : 每次获取bean都会创建一个新的bean</li>
-<li>request ：每次HTTP请求，创建一个新的bean，（请求bean）</li>
-<li>session：每次有一个新的session传来HTTP请求，创建一个新的bean，（会话bean）</li>
-<li>application&#x2F;global-session：每个 Web 应用在启动时创建一个 Bean（应用 Bean）</li>
-<li>websocket <strong>：</strong>每一次 WebSocket 会话产生一个新的 bean</li>
-</ul>
-<h2 id="单例-Bean-的线程安全问题了解吗？"><a href="#单例-Bean-的线程安全问题了解吗？" class="headerlink" title="单例 Bean 的线程安全问题了解吗？"></a>单例 Bean 的线程安全问题了解吗？</h2><p>大多数bean都是无状态的（没有成员变量），都是用他的方法，比如dao,service，就线程安全的；</p>
-<p>如果用到涉及成员变量的bean,可以通过以下方式解决线程安全问题：</p>
-<ol>
-<li>在bean中尽量避免定义可变的成员变量；</li>
-<li>如果必须需要可变的成员变量，就定义一个ThreadLocal成员变量，保存在ThreadLocal中。</li>
-</ol>
-<h2 id="bean的生命周期"><a href="#bean的生命周期" class="headerlink" title="bean的生命周期"></a>bean的生命周期</h2><blockquote>
-<p>实例化 —&gt; 设置属性 —&gt; 自定义初始化方法 —&gt; bean的使用 —&gt; 自定义销毁方法</p>
-</blockquote>
-<blockquote>
-<p>实例化：通过反射，默认调用无参构造函数，实例化对象</p>
-<p>设置属性：通过反射，调用set方法设置属性参数</p>
-<p>自定义初始化方法init</p>
-<p>自定义的销毁方法destory</p>
-</blockquote>
-<h1 id="Spring-AOP"><a href="#Spring-AOP" class="headerlink" title="Spring AOP"></a>Spring AOP</h1><p>AOP(Aspect Oriented Programming)是一种面向切面的编程思想，将影响多个类的行为，集成到一个模块中去，减少代码的重复度，降低模块间的耦合。</p>
-<p>Spring AOP 就是基于动态代理的，有两种动态代理模式JDK动态代理和Cglib动态代理；如果被代理的对象实现了某个接口，则采用JDK动态代理，采用接口方式实现代理；如果被代理的对象没有接口，则采用Cglib动态代理，生成一个被代理类的子类，来作为代理。</p>
-<h2 id="Spring-AOP-和-AspectJ-AOP-有什么区别？"><a href="#Spring-AOP-和-AspectJ-AOP-有什么区别？" class="headerlink" title="Spring AOP 和 AspectJ AOP 有什么区别？"></a>Spring AOP 和 AspectJ AOP 有什么区别？</h2><p><strong>Spring AOP 属于运行时增强，而 AspectJ 是编译时增强。</strong> Spring AOP 基于代理(Proxying)，而 AspectJ 基于字节码操作(Bytecode Manipulation)。</p>
-<p>Spring AOP 已经集成了 AspectJ ，AspectJ 应该算的上是 Java 生态系统中最完整的 AOP 框架了。AspectJ 相比于 Spring AOP 功能更加强大，但是 Spring AOP 相对来说更简单。</p>
-<h2 id="AspectJ-定义的通知类型有哪些？"><a href="#AspectJ-定义的通知类型有哪些？" class="headerlink" title="AspectJ 定义的通知类型有哪些？"></a>AspectJ 定义的通知类型有哪些？</h2><ul>
-<li>Before 前置通知</li>
-<li>After 后置通知</li>
-<li>AfterReturning 返回通知</li>
-<li>AfterThrowing 抛异常通知</li>
-<li>Around 环绕通知</li>
-</ul>
-<h1 id="Spring-MVC"><a href="#Spring-MVC" class="headerlink" title="Spring MVC"></a>Spring MVC</h1><h2 id="SpringMCV工作原理"><a href="#SpringMCV工作原理" class="headerlink" title="SpringMCV工作原理"></a>SpringMCV工作原理</h2><p><img src="https://github.com/WayV5/imgs/blob/main/tomcat/p1.png?raw=true" alt="p1"></p>
+<h2 id="tomcat如何创建servlet的？"><a href="#tomcat如何创建servlet的？" class="headerlink" title="tomcat如何创建servlet的？"></a>tomcat如何创建servlet的？</h2><p>当tomcat容器启动的时候，会读取webapps文件目录下所有web应用的web.xml文件，读取servlet的注册信息。</p>
+<p>默认情况当servlet第一次被请求时，通过反射进行实例化，每个servlet是单例的。</p>
+<h2 id="SpringMCV中的Servlet"><a href="#SpringMCV中的Servlet" class="headerlink" title="SpringMCV中的Servlet"></a>SpringMCV中的Servlet</h2><p><img src="https://github.com/WayV5/imgs/blob/main/tomcat/p1.png?raw=true" alt="p1.png"></p>
 <p>1.客户端的请求先到DispatcherServlet，DispatcherServlet是Servlet接口的一个实现类；</p>
 <p>2.通过HandlerMapping，根据uri路径信息寻找Handler(Controller)，找到Handler之后生成适配器HandlerAdapter，DispatcherServlet就能通过适配器执行Handler的方法了；</p>
 <p>3.Handler执行完毕，将响应结果返回给DispatcherServlet，web容器再把他封装成response返回给客户端。</p>
-<h1 id="Spring框架用了哪些设计模式"><a href="#Spring框架用了哪些设计模式" class="headerlink" title="Spring框架用了哪些设计模式"></a>Spring框架用了哪些设计模式</h1><p>工厂设计模式：Spring bean对象是通过BeanFactory创建的(BeanFactory是接口，具体实现类是各种Application Context)</p>
-<p>代理模式：AOP的实现</p>
-<p>单例模式：Spring bean默认是单例模式</p>
-<p>适配器模式：spring MVC中DispatcherServlet通过适配器，适配各种Controller</p>
-<h1 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h1><p>Spring可以通过显示编程 或 注解方式开启事务</p>
-<ol>
-<li>通过 <code>TransactionTemplate</code>或者 <code>TransactionManager</code> 手动管理事务</li>
-<li>通过@Transactional注解（通过AOP实现）,可作用于类或方法，作用于类时类中所有public方法都开启事务。</li>
+<h2 id="Servlet线程池"><a href="#Servlet线程池" class="headerlink" title="Servlet线程池"></a>Servlet线程池</h2><h1 id="Nginx"><a href="#Nginx" class="headerlink" title="Nginx"></a>Nginx</h1><p>用处：1. 做静态服务器 2. 反向代理 3.负载均衡</p>
+<p><strong>Nginx</strong>特点是占有内存少， 并发能力强，且Nginx处理静态页面的效率远高于tomcat，分离部署就是通过nginx（或apache等）来处理用户端请求的静态资源，tomcat（或weblogic）处理动态资源，从而达到动静页面访问时由不同的容器来处理。</p>
+<h2 id="静态资源服务器"><a href="#静态资源服务器" class="headerlink" title="静态资源服务器"></a>静态资源服务器</h2><blockquote>
+<p>1.做静态web服务器，直接存储原始静态资源；记得使用gzip压缩静态资源，减少网络传输资源。</p>
+<p>2.做静态缓存服务器，反向代理原始服务器，缓存原始服务器的静态资源。</p>
+</blockquote>
+<h2 id="反向代理"><a href="#反向代理" class="headerlink" title="反向代理"></a>反向代理</h2><p>Nginx能做反向代理服务器。反向代理的“反向”指的是代理的是服务端，客户端传来的请求发送到代理服务器，由代理服务器转发，决定使用哪台原始服务器处理请求。</p>
+<p>反向代理向客户端隐藏了原始服务器，nginx配置反向代理，能够实现服务端的负载均衡。</p>
+<blockquote>
+<p>正向代理：代理的是客户端，一般通过VPN，由VPN代理客户端向服务端发送请求，服务端不知道原始客户端是谁。</p>
+</blockquote>
+<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>如果一台服务器，处理不过来客户端发来的请求，一个简单的解决办法就是增加服务器的数量做集群部署，这时需要某种和规则来向服务器集群，均匀的分配请求，这种规则就叫做<strong>负载均衡</strong>策略。</p>
+<p>nginx就具备这样一种功能，通过反向代理，实现负载均衡。</p>
+<blockquote>
+<p>除此之外，nginx还具备<strong>健康检查</strong>（服务器心跳检查）功能，定期向服务器集群的各服务器发送心跳检查请求，来检测是否有服务器处于异常状态。</p>
+</blockquote>
+<h3 id="Nginx为什么适合做负载均衡？"><a href="#Nginx为什么适合做负载均衡？" class="headerlink" title="Nginx为什么适合做负载均衡？"></a>Nginx为什么适合做负载均衡？</h3><blockquote>
+<p>1.nginx属于软件负载均衡，相比于硬件负载均衡，成本更低。一个低配置的服务器就能实现。</p>
+<p>2.占用内存低，对高并发友好。Nginx单机支持10万以上的并发连接。</p>
+<p>3.自带健康检查（心跳检查）功能</p>
+<p>4.支持热部署，可以在不间断服务情况下，升级nginx。</p>
+<p>5.支持多种负载均衡策略：轮询，IP哈希，最小连接数。</p>
+</blockquote>
+<h3 id="Nginx的负载均衡策略"><a href="#Nginx的负载均衡策略" class="headerlink" title="Nginx的负载均衡策略"></a>Nginx的负载均衡策略</h3><ol>
+<li><p>轮询（默认方式）</p>
+<blockquote>
+<p>按照请求的时间顺序向各个服务器分配请求，可以设置权重</p>
+</blockquote>
+</li>
+<li><p>ip哈希</p>
+<blockquote>
+<p>按照请求的客户端的ip地址进行哈希，来分配请求，可以设置权重;</p>
+<p>相同hash的客户端总是会请求到下相同服务器，在一定程度上解决了session不共享的问题。</p>
+</blockquote>
+</li>
+<li><p>最小连接数</p>
+<blockquote>
+<p>将新的请求分配给当前活跃连接数最少的服务器</p>
+</blockquote>
+</li>
 </ol>
-<h2 id="Spring事务的隔离级别"><a href="#Spring事务的隔离级别" class="headerlink" title="Spring事务的隔离级别"></a>Spring事务的隔离级别</h2><p>默认与数据库的隔离级别一致。一共有四种：RU,RC,RR,Serival</p>
-<h2 id="Transactional-rollbackFor-x3D-Exception-class-注解了解吗？"><a href="#Transactional-rollbackFor-x3D-Exception-class-注解了解吗？" class="headerlink" title="@Transactional(rollbackFor &#x3D; Exception.class)注解了解吗？"></a>@Transactional(rollbackFor &#x3D; Exception.class)注解了解吗？</h2><p>@Transactional注解的rollbackFor如果不配置，默认发生RuntimeException才发生回滚，配置成Exception.class，发生所有异常都会回滚。</p>
-<h1 id="Spring-Security"><a href="#Spring-Security" class="headerlink" title="Spring Security"></a>Spring Security</h1>]]></content>
+<h1 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h1><p>内容分发网络。要给DNS域名解析后台添加CDN解析记录，让用户根据域名解析到原服务器的Ip地址后，不是直接访问原服务器的Ip，而是先访问CDN负载均衡服务器，CDN能够根据请求IP地址来选择分发请求到哪个最近的CDN服务器，CDN服务器有着原服务器的缓存，如果查不到缓存，再一层层查询直到原服务器。</p>
+<h1 id="Netty"><a href="#Netty" class="headerlink" title="Netty"></a>Netty</h1><p>netty是对NIO网络模型的一种封装，并且对传统NIO模型进行了优化 ，支持多种通信协议（http,websocket）;</p>
+<p>netty相比于直接使用jdk自带的NIOapi更加方便，并且性能更好，便于实现多线程reactor模型，很多中间件都用到了netty（zookeeper,rocketMQ,Dubbo）；</p>
+<p>目的就是更好的解决提高服务端吞吐量问题，本质上和NIO是相同的；</p>
+]]></content>
       <categories>
-        <category>后端</category>
+        <category>服务器</category>
       </categories>
       <tags>
-        <tag>Spring</tag>
+        <tag>Tomcat</tag>
+        <tag>Servlet</tag>
+        <tag>Nginx</tag>
       </tags>
   </entry>
   <entry>
@@ -1729,94 +1493,240 @@
       </tags>
   </entry>
   <entry>
-    <title>服务器</title>
-    <url>/2022/12/14/8%E5%85%AB%E8%82%A1_Tomcat&amp;Nginx/</url>
-    <content><![CDATA[<h1 id="Tomcat"><a href="#Tomcat" class="headerlink" title="Tomcat"></a>Tomcat</h1><h2 id="什么是web容器？"><a href="#什么是web容器？" class="headerlink" title="什么是web容器？"></a>什么是web容器？</h2><p>早期的HTTP服务器主要用于返回静态资源，如Apache,Nginx服务器都是静态服务器，像浏览器返回静态html,浏览器负责解析html页面；</p>
-<p>servlet技术提供了HTTP服务器动态访问应用程序的能力，但是servlet不能独立运行，没有main方法，需要借助容器来运行，如tomcat,jetty等servlet容器，由容器管理servlet。</p>
-<p>tomcat就是一个常用的servlet容器，为了方便使用，他也同时具备了HTTP服务器的功能，因此叫做web容器。（tomcat就是一个java程序，servlet由这个java程序创建）</p>
+    <title>操作系统</title>
+    <url>/2022/11/12/2%E5%85%AB%E8%82%A1_%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</url>
+    <content><![CDATA[<h1 id="什么是操作系统？"><a href="#什么是操作系统？" class="headerlink" title="什么是操作系统？"></a>什么是操作系统？</h1><p>​    操作系统是在计算机上运行的最基本的软件程序，它位于计算机硬件资源和应用程序之间，能够管理计算机的硬件资源和应用程序，为应用程序提供服务。</p>
 <span id="more"></span>
 
-<p>简单来说，tomcat是一个http服务器+servlet容器：</p>
+<h1 id="系统调用？"><a href="#系统调用？" class="headerlink" title="系统调用？"></a>系统调用？</h1><p>​    首先要提到进程在操作系统上运行的两个等级  用户态和核心态，</p>
+<p>用户态只能直接读取用户程序的数据，特权较低，想要运行涉及到资源的相关操作，比如进程调度，文件管理，内存管理这些，必须通过操作系统执行内核代码去执行，操作系统为用户进程提供了使用接口，用户进程调用，转交给操作系统去执行这些特权指令，此时状态称为内核态，这个调用接口称作系统调用。</p>
+<p>​    这样做的好处是：具有用户态和内核态的区分，保证了计算机系统的</p>
+<p>​    <strong>安全性</strong>：如果用户能直接操控系统资源，有些指令是很危险的，安全性难以保证。</p>
+<p>​    <strong>性能</strong>：如果用户直接访问共享资源，势必会产生冲突，影响执行效率。</p>
+<p>​    系统调用会发生进程的用户态和核心态之间的转换，转换时需要保存现场，恢复现场，状态的保存和恢复都要在CPU寄存器，浪费CPU资源（空间资源、时间资源）。</p>
+<h1 id="进程"><a href="#进程" class="headerlink" title="进程?"></a>进程?</h1><p>​    进程实体由 PCB 程序段 数据段 三部分组成。</p>
+<p>   *<em>PCB</em>***：进程控制块，是操作系统跟踪、管理进程的一个数据结构。组成有：</p>
+<ul>
+<li>进程描述信息：PID UID</li>
+<li>进程控制和管理信息：如当前进程状态，进程优先级等</li>
+<li>资源分配清单：程序段指针，数据段指针，键盘，鼠标。。。</li>
+<li>CPU相关信息：保存当前CPU寄存器中的值，用于记录和恢复进程<strong>上下文切换</strong>时的状态。</li>
+</ul>
+<h2 id="进程有哪几种状态"><a href="#进程有哪几种状态" class="headerlink" title="进程有哪几种状态?"></a>进程有哪几种状态?</h2><ul>
+<li>创建状态(new) ：进程正在被创建，尚未到就绪状态。</li>
+<li>就绪状态(ready) ：进程获得了除了CPU之外的一切所需资源，一旦得到CPU时间片即可运行。</li>
+<li>运行状态(running) ：进程正在CPU上运行(单核 CPU 下任意时刻只有一个进程处于运行状态)。</li>
+<li>阻塞状态(waiting)：由于进程缺少某种资源或等待某件事情而进入的状态</li>
+<li>结束状态(terminated) ：进程正在从系统中消失。可能是进程正常结束或其他原因中断退出运行。</li>
+</ul>
+<p>阻塞态的进程占⽤着物理内存，在<strong>虚拟内存管理</strong>的操作系统中，通常会把阻塞态的进程的物理内存空间换出到硬盘，等需要再次运⾏的时候，再从硬盘换⼊到物理内存。</p>
+<p>挂起态：新的状态，描述进程没有占⽤实际的物理内存空间的情况，这个状态就是挂起状态</p>
+<p>阻塞挂起状态： 进程在外存（硬盘）并等待某个事件的出现</p>
+<p>就绪挂起状态： 进程在外存（硬盘），但只要进⼊内存，马上运行</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/p1.png?raw=true" alt="p1.png"></p>
+<h2 id="进程调度"><a href="#进程调度" class="headerlink" title="进程调度?"></a>进程调度?</h2><p>进程调度就是按照某种算法，为处于就绪队列中的进程分配CPU资源的方式。</p>
+<p>进程调度算法有以下几种：</p>
+<p>​    早期批处理系统：</p>
+<ol>
+<li><p><strong>先来先服务：非抢占式</strong>（进程主动放弃CPU，正常&#x2F;异常完成，或主动阻塞[请求IO]）。按照进程请求CPU的顺序。有利于长作业，不利于短作业。</p>
+</li>
+<li><p><strong>短作业优先：默认非抢占式（也有抢占式版本）</strong>。按照估计出的进程运行时间来排队，事件短的排在前边。如果一直有短作业请求，那么长作业会产生<strong>饥饿</strong>。</p>
+</li>
+<li><p><strong>高响应比优先：非抢占式</strong>。响应比&#x3D;（等待时间+进程作业时间）&#x2F;进程作业时间。响应比大的排在前边。</p>
+</li>
+</ol>
+<p>​    交互式系统：</p>
+<ol>
+<li><p><strong>时间片轮转：抢占式（定时中断）</strong>。为每个进程分配一个优先级，优先级高的优先进行调度。</p>
+</li>
+<li><p><strong>优先级调度算法：</strong>抢占、非抢占式都有。为每个进程分配⼀个优先级，按优先级进⾏调度。</p>
+</li>
+<li><p><strong>多级反馈队列：抢占式。</strong>设置多个队列，各级队列优先级从高到低，时间片长度从小到大。一个进程如果时间片用完了还没执行完，那么就会被分到下一个队列。【平衡优秀，但是可能会造成饥饿】</p>
+</li>
+</ol>
+<h2 id="进程通信？"><a href="#进程通信？" class="headerlink" title="进程通信？"></a>进程通信？</h2><p><strong>同一主机间进程通信</strong></p>
+<ol>
+<li><strong>管道&#x2F;匿名管道(Pipes)</strong> ：半双工，先进先出，位于内存中。只能用于具有亲缘关系的父子进程间或者兄弟进程之间的通信。</li>
+<li><strong>有名管道(Named Pipes)</strong> : 匿名管道由于没有名字，只能用于亲缘关系的进程间通信。为了克服这个缺点，提出了有名管道，可以实现本机<strong>任意</strong>两个进程通信。有名管道以<strong>磁盘文件</strong>的方式存在。</li>
+<li><strong>信号(Signal)</strong> ：信号是一种比较复杂的通信方式，用于通知接收进程某个事件已经发生；</li>
+<li><strong>消息队列(Message Queuing)</strong> ：<strong>消息队列存放在内核</strong>中，只有在内核重启(即，操作系统重启)或者显式地删除一个消息队列时，该消息队列才会被真正的删除。消息队列可以实现消息的随机查询,消息<strong>不一定要以先进先出</strong>的次序读取,也可以按消息的类型读取.比 FIFO 更有优势。<strong>消息队列克服了信号承载信息量少，管道只能承载无格式字节流以及缓冲区大小受限等缺点。</strong></li>
+<li><strong>信号量(Semaphores)</strong> ：信号量是解决<strong>进程同步</strong>的一种方式，能够解决并发进程对共享数据的访问问题。</li>
+<li><strong>共享内存(Shared memory)</strong> ：使得多个进程可以访问同一块内存空间，不同进程可以及时看到对方进程中对共享内存中数据的更新。这种方式需要依靠某种同步操作，如互斥锁和信号量等。可以说这是最有用的进程间通信方式。</li>
+</ol>
+<p><strong>不同主机间进程通信</strong></p>
+<ol>
+<li><strong>套接字(Sockets)</strong> : 此方法主要用于在客户端和服务器之间通过网络进行通信。套接字是支持 TCP&#x2F;IP 的网络通信的基本操作单元，可以看做是不同主机之间的进程进行双向通信的端点，简单的说就是通信的两方的一种约定，用套接字中的相关函数来完成通信过程。</li>
+</ol>
+<h2 id="进程同步？"><a href="#进程同步？" class="headerlink" title="进程同步？"></a>进程同步？</h2><p>并发执行的进程之间访问共享资源时，可能会发生冲突，那么如何协调并发执行的进程之间对资源的使用，就叫做进程同步。</p>
+<p>操作系统一般有下面三种线程同步的方式：</p>
+<ol>
+<li><strong>互斥量(Mutex)：又叫互斥锁，</strong>采用互斥对象机制，只有拥有互斥对象的线程才有访问公共资源的权限。因为互斥对象只有一个，所以可以保证公共资源不会被多个线程同时访问。比如 Java 中的 synchronized 关键词和各种 Lock 都是这种机制。</li>
+<li><strong>信号量(Semaphore)</strong> ：它允许同一时刻多个线程访问同一资源，信号量其实就是一个变量，能够表示系统中某种资源的数量，可根据操作信号量值的结果判断是否对公共资源具有访问的权限。</li>
+<li>**事件(Event) :**Wait&#x2F;Notify：通过通知操作的方式来保持多线程同步，还可以方便的实现多线程优先级的比较操作。</li>
+</ol>
+<h2 id="僵尸进程和孤儿进程？"><a href="#僵尸进程和孤儿进程？" class="headerlink" title="僵尸进程和孤儿进程？"></a>僵尸进程和孤儿进程？</h2><p>Linux 系统中，子进程通常是通过fork()系统调用创建的，该调用会创建一个新的进程，该进程是原有进程的一个副本。子进程和父进程的运行是相互独立的，它们各自拥有自己的 PCB，即使父进程结束了，子进程仍然可以继续运行。</p>
+<ul>
+<li><p>僵尸进程：任何⼀个⼦进程(init除外)在exit()之后，并⾮马上就消失掉，⽽是留下⼀个称为僵⼫进程 (Zombie)的数据结构，包含进程的PCB信息，以便父进程得到子进程的状态信息（mysql主从复制，从库起一个子线程来接收处理binlog），父进程使用wait()或waitpid()系统调用才能释放子进程的PCB。父进程长时间不使用wait()或waitpid()就会留下僵尸进程。</p>
+</li>
+<li><p>孤儿进程：父进程已经结束，子进程还在执行。孤儿进程通常是由于父进程意外终止或未及时调用 wait()或 waitpid()等系统调用来回收子进程导致的。解决方法为：操作系统有一个进程号为1的init进程，操作系统会把孤儿进程的父进程设置为init进程，由init进程来回收孤儿进程的资源。</p>
+</li>
+</ul>
+<h2 id="死锁？"><a href="#死锁？" class="headerlink" title="死锁？"></a>死锁？</h2><p>一个进程集合中的每一个进程，都在等待其他进程执行某件事情，而产生的同时被阻塞的现象。</p>
+<h3 id="死锁产生的四个必要条件"><a href="#死锁产生的四个必要条件" class="headerlink" title="死锁产生的四个必要条件"></a>死锁产生的四个必要条件</h3><ol>
+<li><p><strong>互斥</strong>：造成进程死锁的资源必须为互斥资源，在一个时刻只能被一个进程使用。资源必须处于非共享模式，即一次只有一个进程可以使用。如果另一进程申请该资源，那么必须等待直到该资源被释放为止。</p>
+</li>
+<li><p><strong>不可抢占</strong>：已经分配给⼀个进程的资源不能强制性地被抢占，它只能被占有它的进程显式地释放</p>
+</li>
+<li><p><strong>占有且等待</strong>：一个进程至少应该占有一个资源，并等待另一资源，而该资源被其他进程所占有。</p>
+</li>
+<li><p><strong>循环等待</strong>：有一组等待进程 {P0, P1,…, Pn}， P0 等待的资源被 P1 占有，P1 等待的资源被 P2 占有，……，Pn-1 等待的资源被 Pn 占有，Pn 等待的资源被 P0 占有。</p>
+</li>
+</ol>
+<h3 id="解决死锁的方法"><a href="#解决死锁的方法" class="headerlink" title="解决死锁的方法"></a>解决死锁的方法</h3><p>解决死锁的方法可以从多个角度去分析，一般的情况下，有<strong>预防死锁，避免死锁，死锁的检测和解除</strong>。</p>
+<ol>
+<li><p><strong>预防死锁</strong> ：想办法采用某种策略，能够使产生死锁的必要条件被破坏。</p>
+</li>
+<li><p><strong>避免死锁 ：银行家算法，****在系统分配资源之前，根据当前资源使用情况进行判断，看分配之后是否会进入不安全状态，来判断是否分配资源。</strong></p>
+</li>
+<li><p><strong>死锁的检测和解除</strong>：</p>
+</li>
+</ol>
 <blockquote>
-<p> http服务器：完成网络通信，处理http请求，并返回http响应。具体来说是处理socket连接（解析应用层协议，tcp&#x2F;udp），负责网络IO的字节流与request, response对象的转化。</p>
-<p>servlet容器：加载和管理servlet对象。http服务器将请求交给servlet处理，servlet容器将请求分发到具体的servlet，调用service()方法去执行业务代码。</p>
+<p>检测：有向图来记录资源分配，检测有向图中是否存在环，来判断是否死锁。</p>
+<p> 恢复: (1) 利用抢占恢复  ： 强行将某进程挂起</p>
+<p>（2）利用回滚恢复  ：将某一进程回滚到不发生死锁的状态</p>
+<p>（3）强行杀死某一进程</p>
 </blockquote>
+<h2 id="Java如何排查死锁"><a href="#Java如何排查死锁" class="headerlink" title="Java如何排查死锁"></a>Java如何排查死锁</h2><ol>
+<li><p>先看日志</p>
+</li>
+<li><p>再看堆栈信息：</p>
+<ol>
+<li><p>jps -l 查看全部线程信息</p>
+</li>
+<li><p>jstack + 线程号 ：查看堆栈信息</p>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="能写一个模拟产生死锁的代码吗？"><a href="#能写一个模拟产生死锁的代码吗？" class="headerlink" title="能写一个模拟产生死锁的代码吗？"></a>能写一个模拟产生死锁的代码吗？</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DeadLockDemo</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Object</span> <span class="variable">resource1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();<span class="comment">//资源 1</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Object</span> <span class="variable">resource2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();<span class="comment">//资源 2</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (resource1) &#123;</span><br><span class="line">                System.out.println(Thread.currentThread() + <span class="string">&quot;get resource1&quot;</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                System.out.println(Thread.currentThread() + <span class="string">&quot;waiting get resource2&quot;</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (resource2) &#123;</span><br><span class="line">                    System.out.println(Thread.currentThread() + <span class="string">&quot;get resource2&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="string">&quot;线程 1&quot;</span>).start();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (resource2) &#123;</span><br><span class="line">                System.out.println(Thread.currentThread() + <span class="string">&quot;get resource2&quot;</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                System.out.println(Thread.currentThread() + <span class="string">&quot;waiting get resource1&quot;</span>);</span><br><span class="line">                <span class="keyword">synchronized</span> (resource1) &#123;</span><br><span class="line">                    System.out.println(Thread.currentThread() + <span class="string">&quot;get resource1&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="string">&quot;线程 2&quot;</span>).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="线程"><a href="#线程" class="headerlink" title="线程?"></a>线程?</h2><h3 id="线程和进程的区别"><a href="#线程和进程的区别" class="headerlink" title="线程和进程的区别"></a>线程和进程的区别</h3><ul>
+<li><p>进程是操作系统进⾏<strong>资源</strong>调度和分配的基本单位，而线程是最小的执行单位。</p>
+</li>
+<li><p>一个进程在运行过程中可以产生多个线程，线程更加轻量化：</p>
+</li>
+</ul>
 <blockquote>
-<p>一个web容器可以放多个web程序，将程序放在webapps目录下即可；对于一个springmvc项目有一个DispatchServlet，一个web容器中放多个web程序就会有多个servlet。</p>
+<p>线程共享进程的资源（内存空间、网络连接、文件句柄），因此<strong>创建和终止</strong>的时间更快；</p>
+<p>线程的切换仅涉及到少量的寄存器和栈区，因此线程<strong>上下文切换</strong>的速度更快；</p>
+<p>线程天生共享了进程的大多数资源，因此<strong>线程间通信</strong>效率更高。</p>
 </blockquote>
-<h1 id="Servlet"><a href="#Servlet" class="headerlink" title="Servlet"></a>Servlet</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>Servlet指的是任何实现了Servlet接口的类，由servlet容器创建并管理，用于处理客户端传来的http请求，执行具体的业务代码，再返回响应。最主要的方式是service()方法，具体的业务代码逻辑在service()方法中实现。</p>
-<blockquote>
-<p>Servlet是一个Java接口，是实现Web技术的核心。我们平时说的Tomcat容器中的servlet是一个实例，由Tomcat容器创建，servlet的核心执行方法是service()，客户端传来的Http请求，会被Tomcat封装成ServletRequest对象，servlet的响应则被封装到ServletResponse对象中，通过这种请求&#x2F;响应模型，来实现客户端与服务端的交互。</p>
-</blockquote>
-<blockquote>
-<p>HttpServlet是一个抽象类，它实现了Servlet接口，对Servlet功能进行了扩展。</p>
-</blockquote>
-<p>servlet是单例的，在第一次访问的时候被tomcat创建，会出现并发问题，如何解决？</p>
+<h3 id="多线程的好处？"><a href="#多线程的好处？" class="headerlink" title="多线程的好处？"></a>多线程的好处？</h3><p>​    线程比进程的开销小，创建和终止的速度快，上下文切换的速度也快，有些应用从功能上要同时发生多个活动，分解成多个线程执行，可以简化模型，加快执行效率；</p>
+<h1 id="内存？"><a href="#内存？" class="headerlink" title="内存？"></a>内存？</h1><h2 id="用户代码到内存中的流程"><a href="#用户代码到内存中的流程" class="headerlink" title="用户代码到内存中的流程"></a>用户代码到内存中的流程</h2><p>程序代码编写 -&gt; 编译 -&gt; 链接 -&gt;装入</p>
+<p>链接：编译出的机器代码都有各自独立的逻辑地址，链接就是整合他们的逻辑地址，形成一个具有统一逻辑地址的可执行文件。</p>
 <blockquote>
 <ol>
-<li>尽量避免使用静态变量和成员变量</li>
-<li>如果必须要用，要对静态变量和成员变量线程不安全方法声明锁。</li>
+<li>静态链接</li>
+<li>装入时动态链接</li>
+<li>运行时动态链接</li>
 </ol>
 </blockquote>
-<h2 id="tomcat如何创建servlet的？"><a href="#tomcat如何创建servlet的？" class="headerlink" title="tomcat如何创建servlet的？"></a>tomcat如何创建servlet的？</h2><p>当tomcat容器启动的时候，会读取webapps文件目录下所有web应用的web.xml文件，读取servlet的注册信息。</p>
-<p>默认情况当servlet第一次被请求时，通过反射进行实例化，每个servlet是单例的。</p>
-<h2 id="SpringMCV中的Servlet"><a href="#SpringMCV中的Servlet" class="headerlink" title="SpringMCV中的Servlet"></a>SpringMCV中的Servlet</h2><p><img src="https://github.com/WayV5/imgs/blob/main/tomcat/p1.png?raw=true" alt="p1.png"></p>
-<p>1.客户端的请求先到DispatcherServlet，DispatcherServlet是Servlet接口的一个实现类；</p>
-<p>2.通过HandlerMapping，根据uri路径信息寻找Handler(Controller)，找到Handler之后生成适配器HandlerAdapter，DispatcherServlet就能通过适配器执行Handler的方法了；</p>
-<p>3.Handler执行完毕，将响应结果返回给DispatcherServlet，web容器再把他封装成response返回给客户端。</p>
-<h2 id="Servlet线程池"><a href="#Servlet线程池" class="headerlink" title="Servlet线程池"></a>Servlet线程池</h2><h1 id="Nginx"><a href="#Nginx" class="headerlink" title="Nginx"></a>Nginx</h1><p>用处：1. 做静态服务器 2. 反向代理 3.负载均衡</p>
-<p><strong>Nginx</strong>特点是占有内存少， 并发能力强，且Nginx处理静态页面的效率远高于tomcat，分离部署就是通过nginx（或apache等）来处理用户端请求的静态资源，tomcat（或weblogic）处理动态资源，从而达到动静页面访问时由不同的容器来处理。</p>
-<h2 id="静态资源服务器"><a href="#静态资源服务器" class="headerlink" title="静态资源服务器"></a>静态资源服务器</h2><blockquote>
-<p>1.做静态web服务器，直接存储原始静态资源；记得使用gzip压缩静态资源，减少网络传输资源。</p>
-<p>2.做静态缓存服务器，反向代理原始服务器，缓存原始服务器的静态资源。</p>
-</blockquote>
-<h2 id="反向代理"><a href="#反向代理" class="headerlink" title="反向代理"></a>反向代理</h2><p>Nginx能做反向代理服务器。反向代理的“反向”指的是代理的是服务端，客户端传来的请求发送到代理服务器，由代理服务器转发，决定使用哪台原始服务器处理请求。</p>
-<p>反向代理向客户端隐藏了原始服务器，nginx配置反向代理，能够实现服务端的负载均衡。</p>
+<p>装入：将可执行文件放入内存</p>
 <blockquote>
-<p>正向代理：代理的是客户端，一般通过VPN，由VPN代理客户端向服务端发送请求，服务端不知道原始客户端是谁。</p>
+<ol>
+<li>绝对装入</li>
+<li>静态重定位装入</li>
+<li>动态运行时装入：重定位寄存器</li>
+</ol>
 </blockquote>
-<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>如果一台服务器，处理不过来客户端发来的请求，一个简单的解决办法就是增加服务器的数量做集群部署，这时需要某种和规则来向服务器集群，均匀的分配请求，这种规则就叫做<strong>负载均衡</strong>策略。</p>
-<p>nginx就具备这样一种功能，通过反向代理，实现负载均衡。</p>
-<blockquote>
-<p>除此之外，nginx还具备<strong>健康检查</strong>（服务器心跳检查）功能，定期向服务器集群的各服务器发送心跳检查请求，来检测是否有服务器处于异常状态。</p>
-</blockquote>
-<h3 id="Nginx为什么适合做负载均衡？"><a href="#Nginx为什么适合做负载均衡？" class="headerlink" title="Nginx为什么适合做负载均衡？"></a>Nginx为什么适合做负载均衡？</h3><blockquote>
-<p>1.nginx属于软件负载均衡，相比于硬件负载均衡，成本更低。一个低配置的服务器就能实现。</p>
-<p>2.占用内存低，对高并发友好。Nginx单机支持10万以上的并发连接。</p>
-<p>3.自带健康检查（心跳检查）功能</p>
-<p>4.支持热部署，可以在不间断服务情况下，升级nginx。</p>
-<p>5.支持多种负载均衡策略：轮询，IP哈希，最小连接数。</p>
-</blockquote>
-<h3 id="Nginx的负载均衡策略"><a href="#Nginx的负载均衡策略" class="headerlink" title="Nginx的负载均衡策略"></a>Nginx的负载均衡策略</h3><ol>
-<li><p>轮询（默认方式）</p>
-<blockquote>
-<p>按照请求的时间顺序向各个服务器分配请求，可以设置权重</p>
-</blockquote>
+<h2 id="局部性原理？"><a href="#局部性原理？" class="headerlink" title="局部性原理？"></a>局部性原理？</h2><p>​    局部性原理是计算机程序运行所呈现出的一种局部性规律，分为时间局部性和空间局部性。</p>
+<ul>
+<li><p>时间局部性：执行了一条指令，那么这条指令很可能很快会被再次被执行；某个数据被访问过，这个数据很可能很快被再次被访问（由于存在大量循环）</p>
 </li>
-<li><p>ip哈希</p>
-<blockquote>
-<p>按照请求的客户端的ip地址进行哈希，来分配请求，可以设置权重;</p>
-<p>相同hash的客户端总是会请求到下相同服务器，在一定程度上解决了session不共享的问题。</p>
-</blockquote>
+<li><p>空间局部性：一个程序访问了一个存储单元，在不久时间内，附近的存储单元很可能被访问。（因为数据存放形式大多是连续的）</p>
 </li>
-<li><p>最小连接数</p>
-<blockquote>
-<p>将新的请求分配给当前活跃连接数最少的服务器</p>
+</ul>
+<h2 id="内存管理主要做什么"><a href="#内存管理主要做什么" class="headerlink" title="内存管理主要做什么"></a>内存管理主要做什么</h2><ul>
+<li><strong>内存空间的分配与回收</strong></li>
+<li><em>地址转换*<em>：装入时完成逻辑地址到物理地址的转换</em></em></li>
+<li>内存空间的扩展<strong>：覆盖、交换、虚拟内存</strong></li>
+<li>存储保护**：每个用户进程只能访问各自的内存地址</li>
+</ul>
+<h2 id="内存空间的分配与回收"><a href="#内存空间的分配与回收" class="headerlink" title="内存空间的分配与回收?"></a>内存空间的分配与回收?</h2><blockquote>
+<p>内存管理分为<strong>连续分配</strong>管理方式和<strong>非连续</strong>分配管理方式，连续分配管理方式是指为一个用户程序分配一个连续的内存空间。</p>
 </blockquote>
+<h3 id="连续分配管理方式"><a href="#连续分配管理方式" class="headerlink" title="连续分配管理方式"></a><strong>连续分配</strong>管理方式</h3><p>又有固定分区分配和动态分区分配:</p>
+<ol>
+<li><p>固定分区分配：是将用户内存空间分为若干个固定大小的分区，每个分区只能运行一个用户程序，会产生<strong>内部碎片，</strong>导致内存利用率低。</p>
+</li>
+<li><p>动态分区分配：在用户进程装入内存时，根据进程的大小动态分配内存空间。回收再分配时，会产生<strong>外部碎片</strong>，可用”紧凑”的技术来解决，但是“紧凑”的<strong>时间代价</strong>很高。</p>
 </li>
 </ol>
-<h1 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h1><p>内容分发网络。要给DNS域名解析后台添加CDN解析记录，让用户根据域名解析到原服务器的Ip地址后，不是直接访问原服务器的Ip，而是先访问CDN负载均衡服务器，CDN能够根据请求IP地址来选择分发请求到哪个最近的CDN服务器，CDN服务器有着原服务器的缓存，如果查不到缓存，再一层层查询直到原服务器。</p>
-<h1 id="Netty"><a href="#Netty" class="headerlink" title="Netty"></a>Netty</h1><p>netty是对NIO网络模型的一种封装，并且对传统NIO模型进行了优化 ，支持多种通信协议（http,websocket）;</p>
-<p>netty相比于直接使用jdk自带的NIOapi更加方便，并且性能更好，便于实现多线程reactor模型，很多中间件都用到了netty（zookeeper,rocketMQ,Dubbo）；</p>
-<p>目的就是更好的解决提高服务端吞吐量问题，本质上和NIO是相同的；</p>
+<h3 id="非连续分配管理方式"><a href="#非连续分配管理方式" class="headerlink" title="非连续分配管理方式"></a><strong>非连续分配</strong>管理方式</h3><p>分为页式分配、段式分配、段页式分配。</p>
+<h4 id="页式分配管理"><a href="#页式分配管理" class="headerlink" title="页式分配管理"></a>页式分配管理</h4><ul>
+<li><p>将内存采用固定分区分配的方式进行分配，不过每个分区空间更小，称为<strong>页框。</strong></p>
+</li>
+<li><p>将进程分成多个部分，每个部分大小与页框相等，称为<strong>页&#x2F;页面</strong>。</p>
+</li>
+<li><p>那么只有最后一个页有可能产生很小的内部碎片。</p>
+</li>
+</ul>
+<h5 id="页式分配如何得到物理地址？"><a href="#页式分配如何得到物理地址？" class="headerlink" title="页式分配如何得到物理地址？"></a><strong>页式分配如何得到物理地址？</strong></h5><p>将程序页放入内存页框时可以采用离散的方式存放，因此难点在于逻辑地址到物理地址的转换。</p>
+<p>​		<em>页号</em>* &#x3D; 逻辑地址&#x2F;页面大小  <strong>页内偏移量</strong> &#x3D; 逻辑地址%页面大小</p>
+<p>​		<strong>页表</strong>记录了页号与页面地址的对应关系，通过页号查询得到页面地址，再结合页内偏移量就能得到实际的物理地址。页表存储地址的信息存放在PCB中。</p>
+<p>当然这是基本的分页管理方式，如果采用的是虚拟内存技术，那么在地址转换过程要更加复杂，页表还要记录页面在外存中的状态，判断页面是否在内存中，（也就是判断是否缺页），进行页面置换，页表项也要动态更新。</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/p2.png?raw=true" alt="p2.png"></p>
+<p>​		页表中的页号字段其实是隐含的，因为每个页表项（每条记录）是等长的，看多少位能把所有的业内偏移量表示，就用了多少位。</p>
+<h5 id="快表"><a href="#快表" class="headerlink" title="快表"></a>快表</h5><p>​		快表是为了解决页式管理时，逻辑地址到物理地址转换时，查询页表速度较慢的问题。</p>
+<p>​		快表是页表的<strong>高速缓存存储器</strong>，当需要查询页表时，先查询快表中的缓存，缓存命中直接返回页面地址，未命中则去查询页表，然后缓存到快表中。</p>
+<p>​		由于局部性原理，我们访问了一个内存单元，那么这个内存单元附近的内存单元很可能在短时间内被访问，因此很可能查询到的页号是相同的，所以这种缓存机制命中率是很高的，能够很好的提高地址转换效率。</p>
+<p>​    	这种操作系统的设计思想在我们开发系统时也经常用到。</p>
+<h5 id="多级页表"><a href="#多级页表" class="headerlink" title="多级页表"></a>多级页表</h5><p>​    	多级页表是为了避免，由于页表是连续存放的，把全部页表一直放在内存中占用过多内存空间。由于局部性原理，在一段时间内，程序只需要访问某些特定的存储空间就可以了，那些不需要的页表就不需要保留在内存中，我们通过将页表分块来解决。多级页表属于时间换空间的典型场景。</p>
+<h4 id="段式分配管理"><a href="#段式分配管理" class="headerlink" title="段式分配管理"></a>段式分配管理</h4><p>​    	分段的实际意义是：将用户程序按照逻辑关系，分成多个段（如MAIN段, 子程序段，数据段等）,以段为单元离散存放在物理内存中。</p>
+<p>​    	地址转换方式：段表记录了每个段的段号，段长，以及在物理内存中的基址，然后根据段号+段内偏移量，实现逻辑地址到物理地址的转换。</p>
+<p>段式管理和页式管理的区别和共同点：</p>
+<ul>
+<li>两者的<strong>相同点</strong>是：</li>
+</ul>
+<p>​		在完成逻辑地址到物理地址转换时，都通过一定映射关系来完成，分页有页表，分段有段表，通过页号段号+偏移量来实现，只不过由于分段长度不是固定的，段表需要额外维护一个段长的字段。（段长对于寻址没有帮助，作用在做越界检查，看段内地址是否大于段长）</p>
+<ul>
+<li>两者的<strong>主要区别</strong>是：</li>
+</ul>
+<p>​    	分页是以系统为基准的，系统将内存固定分成了等长的页框，那用户程序就要基于这个标准，被分成一个个页面装入内存；</p>
+<p>​    	分段是以用户程序为基准的，根据用户程序的逻辑模块，分成一个个段，长度是不固定的，然后以段为单元分配在系统内存中；这种分段做法的好处是方便进行资源的保护和共享，缺点就是内存利用率低，会产生外部碎片（和连续内存分配中的动态分区分配很像）。</p>
+<p>​    	在现代使用虚拟技术的计算机系统上，多采用分页管理。</p>
+<h4 id="段页式分配管理"><a href="#段页式分配管理" class="headerlink" title="段页式分配管理"></a>段页式分配管理</h4><p>​    	段页式管理综合分页和分段两种方式，先按照用户程序的逻辑模块分段，然后再将每段分成固定长度的页面，页长由系统决定。</p>
+<p>​    	不会产生外部碎片，每段分成最后一页会有较小的内部碎片。</p>
+<p>​    	<strong>地址转换</strong>：维护两个表</p>
+<p>​		段表记录  段号-段内页数-起始页号</p>
+<p>​		页表记录  页号-页基址 </p>
+<p>​       根据段号和段内偏移量可算出页号和页内偏移量，根据页号和业内偏移量可知物理地址。</p>
+<p>​			a)    段号查表得到起始页号；<br>​			b)   页号 &#x3D; 起始页号 + 段内偏移量&#x2F;页长；<br>​			c)    页内偏移量 &#x3D; 段内偏移量 % 页长；</p>
+<h2 id="内存空间的扩充？"><a href="#内存空间的扩充？" class="headerlink" title="内存空间的扩充？"></a>内存空间的扩充？</h2><h3 id="覆盖技术"><a href="#覆盖技术" class="headerlink" title="覆盖技术"></a>覆盖技术</h3><p>​    早期计算机使用，将内存分为<strong>固定区</strong>和<strong>覆盖区</strong>，固定区存放需要常驻内存的程序模块，对于不会同时装入内存的程序模块，共享某一段覆盖区。实现了内存空间的扩展。</p>
+<p>​    缺点：哪些程序段是常驻内存的，哪些可以共享覆盖区的，需要程序员声明，增加了编程负担。</p>
+<h3 id="交换技术"><a href="#交换技术" class="headerlink" title="交换技术"></a>交换技术</h3><p>​    当内存紧张时，将暂时不具备运行条件的进程换到外存，比如处于阻塞态、就绪态的进程，可以给它换到外存，此时状态叫他挂起态，然后具备运行条件再换入内存。</p>
+<p>​    外存的磁盘空间分为<strong>对换区</strong>和<strong>文件区</strong>：</p>
+<p>​    <strong>文件区</strong>：用于存放文件，追求存储空间的利用率，离散分布，随机读写；</p>
+<p>​    <strong>对换区</strong>：用于存放被换出的进程数据，追究的是换入换出的速度，采用顺序读写的方式，IO速度更快。</p>
+<p>​    交换技术以进程为单位，而虚拟内存是针对进程内的页面的。</p>
+<h3 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h3><h4 id="什么是虚拟内存？"><a href="#什么是虚拟内存？" class="headerlink" title="什么是虚拟内存？"></a>什么是虚拟内存？</h4><p>​    虚拟内存通过一种“数据交换”的方式，将暂时用不到的程序模块放在外存中，在逻辑上扩展了系统的内存空间，是局部性原理的一个重要应用。</p>
+<p>​    请求分页管理方式：基本分页管理+虚拟内存。</p>
+<h4 id="页缺失是什么意思？"><a href="#页缺失是什么意思？" class="headerlink" title="页缺失是什么意思？"></a>页缺失是什么意思？</h4><p>需要访问的程序页不在内存中，被置换到了外存当中。</p>
+<h4 id="页面置换算法有哪些？"><a href="#页面置换算法有哪些？" class="headerlink" title="页面置换算法有哪些？"></a>页面置换算法有哪些？</h4><p>​    页面置换算法是在请求分页管理方式中，当内存块都被占满的情况下，有新的页面要从外存中请求调入时，淘汰当前内存中页面的规则。</p>
+<p>页面置换算法性能指标是缺页率。</p>
+<p>a)    <strong>最佳置换算法OPT</strong>：每次选择淘汰以后永不访问，或最长时间不被访问的页面。这种算法是最理想的算法，但是由于这个衡量标准只能在上帝视角才知道，因此无法实现。但是可以作为衡量其他算法的一个标准</p>
+<p>b)   <strong>先入先出置换算法FIFO</strong>：维护一个<strong>先进先出队列</strong>，最先进入内存的页面被淘汰。</p>
+<p>算法实现简单，但是当为进程分配的内存页增加时，缺页率反而会上升，称为Belady异常。</p>
+<p>c)    <strong>最近最久页面置换算法LRU</strong>：淘汰最近最久没有被使用的页面。页表中记录分配一个字段，记录这个页面没被使用的时间。Mysql里边，当buffer pool满了的时候，淘汰页面用的就是这个算法。</p>
+<p>d)   <strong>时钟页面置换算法：</strong>可以认为是一种最近未使用算法，即逐出的页面都是最近没有使用的那个。</p>
 ]]></content>
       <categories>
-        <category>服务器</category>
+        <category>操作系统</category>
       </categories>
       <tags>
-        <tag>Tomcat</tag>
-        <tag>Servlet</tag>
-        <tag>Nginx</tag>
+        <tag>操作系统</tag>
       </tags>
   </entry>
   <entry>
@@ -2070,7 +1980,7 @@
 <h3 id="最左匹配"><a href="#最左匹配" class="headerlink" title="最左匹配"></a>最左匹配</h3><p>在使用联合索引时，<strong>MySQL</strong> 会根据联合索引中的字段顺序，从左到右依次到查询条件中去匹配。匹配完成或者遇到范围查询（如&gt; &lt; between）无法继续匹配时，匹配结束。</p>
 <h3 id="索引下推"><a href="#索引下推" class="headerlink" title="索引下推"></a>索引下推</h3><p>如果是联合索引，遇到无法继续匹配的情况了，比如范围查找，那么其他查询条件如果在索引中能找到，会先做判断，不满足的就不用回表了，减少回表次数。</p>
 <h2 id="怎么给字符串字段加索引？"><a href="#怎么给字符串字段加索引？" class="headerlink" title="怎么给字符串字段加索引？"></a>怎么给字符串字段加索引？</h2><p>场景1：邮箱登录；</p>
-<p>给邮箱字段加索引。 <a href="mailto:&#x7a;&#x68;&#97;&#110;&#103;&#x73;&#x73;&#120;&#x79;&#x7a;&#x40;&#x78;&#120;&#120;&#46;&#99;&#x6f;&#x6d;">&#x7a;&#x68;&#97;&#110;&#103;&#x73;&#x73;&#120;&#x79;&#x7a;&#x40;&#x78;&#120;&#120;&#46;&#99;&#x6f;&#x6d;</a>；问题：字段太长，占据空间太大</p>
+<p>给邮箱字段加索引。 <a href="mailto:&#122;&#104;&#x61;&#110;&#x67;&#115;&#x73;&#120;&#121;&#x7a;&#64;&#x78;&#120;&#x78;&#46;&#99;&#111;&#x6d;">&#122;&#104;&#x61;&#110;&#x67;&#115;&#x73;&#120;&#121;&#x7a;&#64;&#x78;&#120;&#x78;&#46;&#99;&#111;&#x6d;</a>；问题：字段太长，占据空间太大</p>
 <p><strong>前缀索引</strong>，取前几个字符做索引，最左匹配原则。使用前缀索引，定义好长度，就可以做到既节省空间，又不用额外增加太多的查询成本。</p>
 <p>前缀索引的问题是会增加一些扫描行数，牺牲了一些匹配精确度。并且前缀索引依赖于区分度。</p>
 <p>场景2：身份证号</p>
@@ -2123,6 +2033,98 @@
       </categories>
       <tags>
         <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spring框架</title>
+    <url>/2022/12/24/7%E5%85%AB%E8%82%A1_Spring%E6%A1%86%E6%9E%B6/</url>
+    <content><![CDATA[<h1 id="Spring概念"><a href="#Spring概念" class="headerlink" title="Spring概念"></a>Spring概念</h1><p>Spring是一个轻量级Java开发框架，里面包含了许多模块，能够简化Java开发工作</p>
+<p>主要模块：</p>
+<p>Core Container: spring-core, spring-beans, spring-context, spring-expression</p>
+<span id="more"></span>
+
+<p>AOP</p>
+<p>Data Access&#x2F;Integration</p>
+<p> Spring Web: spring-web, spring-webmvc, spring-websocket</p>
+<p>Test</p>
+<h2 id="Spring-Spring-MVC-Spring-Boot-之间什么关系"><a href="#Spring-Spring-MVC-Spring-Boot-之间什么关系" class="headerlink" title="Spring,Spring MVC,Spring Boot 之间什么关系?"></a>Spring,Spring MVC,Spring Boot 之间什么关系?</h2><p>Spring框架有很多个模块，其中最核心的就是core模块提供的IoC功能，其他模块比如Spring MVC都要依赖于这个模块；</p>
+<p>Spring MVC模块主要实现了快速构建Web程序的能力，核心思想就是Model层，View层，Controller层分离，来组织代码。</p>
+<p>Spring开发时，许多配置要通过XML文件或者Java语句进行显式的配置，为了简化配置，SpringBoot 框架应运而生。</p>
+<h1 id="Spring-IoC"><a href="#Spring-IoC" class="headerlink" title="Spring IoC"></a>Spring IoC</h1><p><strong>IoC（Inversion of Control:控制反转）</strong> 是一种设计思想，将原来程序中创建对象的控制权交给Spring框架去操管理。</p>
+<p>好处是：我们创建一个对象的时候，可能依赖于很多其他对象，代码就会很繁琐。将对象的依赖关系交给Spring IoC容器去管理，并由IoC容器完成对象的注入。只需提前配置好，用的时候直接调用就可以了，能够大大简化开发。</p>
+<h2 id="什么是-Spring-Bean？"><a href="#什么是-Spring-Bean？" class="headerlink" title="什么是 Spring Bean？"></a>什么是 Spring Bean？</h2><p>Spring Bean就是由IoC容器进行管理的对象。可以通过XML文件，注解，java配置类等方式，告诉IoC容器要管理哪些对象。</p>
+<h2 id="将一个类声明为-Bean-的注解有哪些"><a href="#将一个类声明为-Bean-的注解有哪些" class="headerlink" title="将一个类声明为 Bean 的注解有哪些?"></a>将一个类声明为 Bean 的注解有哪些?</h2><ul>
+<li>@Component  通用注解，下边的注解都会间接引用该注解，如果不知道该类是哪个层，就用这个</li>
+<li>@Repository 对应持久层</li>
+<li>@Service 业务逻辑层</li>
+<li>@Controller 控制层</li>
+</ul>
+<h2 id="Component-和-Bean-的区别是什么？"><a href="#Component-和-Bean-的区别是什么？" class="headerlink" title="@Component 和 @Bean 的区别是什么？"></a>@Component 和 @Bean 的区别是什么？</h2><ul>
+<li>@Component 注解作用于类，而@Bean注解作用于方法。</li>
+<li>@Bean通常和@Component注解一起使用，@Component作用在类上，表示这个类作为配置类使用，相当于一个XML文件，而类中方法的@Bean注解，相当于配置信息，将方法的返回对象加入到IoC容器中。</li>
+</ul>
+<blockquote>
+<p>@Configuration注解注入的是将某类的代理类加入到IoC容器中，通常和@Bean一起使用，来作为配置类使用，代理xml的配置方式。</p>
+</blockquote>
+<h2 id="注入-Bean-的注解有哪些？"><a href="#注入-Bean-的注解有哪些？" class="headerlink" title="注入 Bean 的注解有哪些？"></a>注入 Bean 的注解有哪些？</h2><ul>
+<li>@Autowired 默认通过类型注入</li>
+<li>@Resource 默认通过名字注入</li>
+</ul>
+<h2 id="Bean-的作用域有哪些"><a href="#Bean-的作用域有哪些" class="headerlink" title="Bean 的作用域有哪些?"></a>Bean 的作用域有哪些?</h2><ul>
+<li>singleton ：Spring bean默认是单例的，单例模式的应用。</li>
+<li>prototype : 每次获取bean都会创建一个新的bean</li>
+<li>request ：每次HTTP请求，创建一个新的bean，（请求bean）</li>
+<li>session：每次有一个新的session传来HTTP请求，创建一个新的bean，（会话bean）</li>
+<li>application&#x2F;global-session：每个 Web 应用在启动时创建一个 Bean（应用 Bean）</li>
+<li>websocket <strong>：</strong>每一次 WebSocket 会话产生一个新的 bean</li>
+</ul>
+<h2 id="单例-Bean-的线程安全问题了解吗？"><a href="#单例-Bean-的线程安全问题了解吗？" class="headerlink" title="单例 Bean 的线程安全问题了解吗？"></a>单例 Bean 的线程安全问题了解吗？</h2><p>大多数bean都是无状态的（没有成员变量），都是用他的方法，比如dao,service，就线程安全的；</p>
+<p>如果用到涉及成员变量的bean,可以通过以下方式解决线程安全问题：</p>
+<ol>
+<li>在bean中尽量避免定义可变的成员变量；</li>
+<li>如果必须需要可变的成员变量，就定义一个ThreadLocal成员变量，保存在ThreadLocal中。</li>
+</ol>
+<h2 id="bean的生命周期"><a href="#bean的生命周期" class="headerlink" title="bean的生命周期"></a>bean的生命周期</h2><blockquote>
+<p>实例化 —&gt; 设置属性 —&gt; 自定义初始化方法 —&gt; bean的使用 —&gt; 自定义销毁方法</p>
+</blockquote>
+<blockquote>
+<p>实例化：通过反射，默认调用无参构造函数，实例化对象</p>
+<p>设置属性：通过反射，调用set方法设置属性参数</p>
+<p>自定义初始化方法init</p>
+<p>自定义的销毁方法destory</p>
+</blockquote>
+<h1 id="Spring-AOP"><a href="#Spring-AOP" class="headerlink" title="Spring AOP"></a>Spring AOP</h1><p>AOP(Aspect Oriented Programming)是一种面向切面的编程思想，将影响多个类的行为，集成到一个模块中去，减少代码的重复度，降低模块间的耦合。</p>
+<p>Spring AOP 就是基于动态代理的，有两种动态代理模式JDK动态代理和Cglib动态代理；如果被代理的对象实现了某个接口，则采用JDK动态代理，采用接口方式实现代理；如果被代理的对象没有接口，则采用Cglib动态代理，生成一个被代理类的子类，来作为代理。</p>
+<h2 id="Spring-AOP-和-AspectJ-AOP-有什么区别？"><a href="#Spring-AOP-和-AspectJ-AOP-有什么区别？" class="headerlink" title="Spring AOP 和 AspectJ AOP 有什么区别？"></a>Spring AOP 和 AspectJ AOP 有什么区别？</h2><p><strong>Spring AOP 属于运行时增强，而 AspectJ 是编译时增强。</strong> Spring AOP 基于代理(Proxying)，而 AspectJ 基于字节码操作(Bytecode Manipulation)。</p>
+<p>Spring AOP 已经集成了 AspectJ ，AspectJ 应该算的上是 Java 生态系统中最完整的 AOP 框架了。AspectJ 相比于 Spring AOP 功能更加强大，但是 Spring AOP 相对来说更简单。</p>
+<h2 id="AspectJ-定义的通知类型有哪些？"><a href="#AspectJ-定义的通知类型有哪些？" class="headerlink" title="AspectJ 定义的通知类型有哪些？"></a>AspectJ 定义的通知类型有哪些？</h2><ul>
+<li>Before 前置通知</li>
+<li>After 后置通知</li>
+<li>AfterReturning 返回通知</li>
+<li>AfterThrowing 抛异常通知</li>
+<li>Around 环绕通知</li>
+</ul>
+<h1 id="Spring-MVC"><a href="#Spring-MVC" class="headerlink" title="Spring MVC"></a>Spring MVC</h1><h2 id="SpringMCV工作原理"><a href="#SpringMCV工作原理" class="headerlink" title="SpringMCV工作原理"></a>SpringMCV工作原理</h2><p><img src="https://github.com/WayV5/imgs/blob/main/tomcat/p1.png?raw=true" alt="p1"></p>
+<p>1.客户端的请求先到DispatcherServlet，DispatcherServlet是Servlet接口的一个实现类；</p>
+<p>2.通过HandlerMapping，根据uri路径信息寻找Handler(Controller)，找到Handler之后生成适配器HandlerAdapter，DispatcherServlet就能通过适配器执行Handler的方法了；</p>
+<p>3.Handler执行完毕，将响应结果返回给DispatcherServlet，web容器再把他封装成response返回给客户端。</p>
+<h1 id="Spring框架用了哪些设计模式"><a href="#Spring框架用了哪些设计模式" class="headerlink" title="Spring框架用了哪些设计模式"></a>Spring框架用了哪些设计模式</h1><p>工厂设计模式：Spring bean对象是通过BeanFactory创建的(BeanFactory是接口，具体实现类是各种Application Context)</p>
+<p>代理模式：AOP的实现</p>
+<p>单例模式：Spring bean默认是单例模式</p>
+<p>适配器模式：spring MVC中DispatcherServlet通过适配器，适配各种Controller</p>
+<h1 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h1><p>Spring可以通过显示编程 或 注解方式开启事务</p>
+<ol>
+<li>通过 <code>TransactionTemplate</code>或者 <code>TransactionManager</code> 手动管理事务</li>
+<li>通过@Transactional注解（通过AOP实现）,可作用于类或方法，作用于类时类中所有public方法都开启事务。</li>
+</ol>
+<h2 id="Spring事务的隔离级别"><a href="#Spring事务的隔离级别" class="headerlink" title="Spring事务的隔离级别"></a>Spring事务的隔离级别</h2><p>默认与数据库的隔离级别一致。一共有四种：RU,RC,RR,Serival</p>
+<h2 id="Transactional-rollbackFor-x3D-Exception-class-注解了解吗？"><a href="#Transactional-rollbackFor-x3D-Exception-class-注解了解吗？" class="headerlink" title="@Transactional(rollbackFor &#x3D; Exception.class)注解了解吗？"></a>@Transactional(rollbackFor &#x3D; Exception.class)注解了解吗？</h2><p>@Transactional注解的rollbackFor如果不配置，默认发生RuntimeException才发生回滚，配置成Exception.class，发生所有异常都会回滚。</p>
+<h1 id="Spring-Security"><a href="#Spring-Security" class="headerlink" title="Spring Security"></a>Spring Security</h1>]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
