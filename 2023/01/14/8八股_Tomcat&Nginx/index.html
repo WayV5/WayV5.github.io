@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Tomcat什么是web容器？早期的HTTP服务器主要用于返回静态资源，如Apache,Nginx服务器都是静态服务器，像浏览器返回静态html,浏览器负责解析html页面； servlet技术提供了HTTP服务器动态访问应用程序的能力，但是servlet不能独立运行，没有main方法，需要借助容器来运行，如tomcat,jetty等servlet容器，由容器管理servlet。 tomcat就是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="服务器">
+<meta property="og:url" content="http://example.com/2023/01/14/8%E5%85%AB%E8%82%A1_Tomcat&Nginx/index.html">
+<meta property="og:site_name" content="Wei&#39;s Blog">
+<meta property="og:description" content="Tomcat什么是web容器？早期的HTTP服务器主要用于返回静态资源，如Apache,Nginx服务器都是静态服务器，像浏览器返回静态html,浏览器负责解析html页面； servlet技术提供了HTTP服务器动态访问应用程序的能力，但是servlet不能独立运行，没有main方法，需要借助容器来运行，如tomcat,jetty等servlet容器，由容器管理servlet。 tomcat就是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/tomcat/p1.png?raw=true">
+<meta property="article:published_time" content="2023-01-14T07:19:00.000Z">
+<meta property="article:modified_time" content="2023-06-07T07:34:09.922Z">
+<meta property="article:author" content="Wei">
+<meta property="article:tag" content="Tomcat">
+<meta property="article:tag" content="Servlet">
+<meta property="article:tag" content="Nginx">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/WayV5/imgs/blob/main/tomcat/p1.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/01/14/8%E5%85%AB%E8%82%A1_Tomcat&Nginx/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>服务器 | Wei's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Wei's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/01/14/8%E5%85%AB%E8%82%A1_Tomcat&Nginx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/naruto.jpg">
+      <meta itemprop="name" content="Wei">
+      <meta itemprop="description" content="张弛有度，沉浮于心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          服务器
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-01-14 15:19:00" itemprop="dateCreated datePublished" datetime="2023-01-14T15:19:00+08:00">2023-01-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-06-07 15:34:09" itemprop="dateModified" datetime="2023-06-07T15:34:09+08:00">2023-06-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">服务器</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Tomcat"><a href="#Tomcat" class="headerlink" title="Tomcat"></a>Tomcat</h1><h2 id="什么是web容器？"><a href="#什么是web容器？" class="headerlink" title="什么是web容器？"></a>什么是web容器？</h2><p>早期的HTTP服务器主要用于返回静态资源，如Apache,Nginx服务器都是静态服务器，像浏览器返回静态html,浏览器负责解析html页面；</p>
+<p>servlet技术提供了HTTP服务器动态访问应用程序的能力，但是servlet不能独立运行，没有main方法，需要借助容器来运行，如tomcat,jetty等servlet容器，由容器管理servlet。</p>
+<p>tomcat就是一个常用的servlet容器，为了方便使用，他也同时具备了HTTP服务器的功能，因此叫做web容器。（tomcat就是一个java程序，servlet由这个java程序创建）</p>
+<span id="more"></span>
+
+<p>简单来说，tomcat是一个http服务器+servlet容器：</p>
+<blockquote>
+<p> http服务器：完成网络通信，处理http请求，并返回http响应。具体来说是处理socket连接（解析应用层协议，tcp&#x2F;udp），负责网络IO的字节流与request, response对象的转化。</p>
+<p>servlet容器：加载和管理servlet对象。http服务器将请求交给servlet处理，servlet容器将请求分发到具体的servlet，调用service()方法去执行业务代码。</p>
+</blockquote>
+<blockquote>
+<p>一个web容器可以放多个web程序，将程序放在webapps目录下即可；对于一个springmvc项目有一个DispatchServlet，一个web容器中放多个web程序就会有多个servlet。</p>
+</blockquote>
+<h1 id="Servlet"><a href="#Servlet" class="headerlink" title="Servlet"></a>Servlet</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>Servlet指的是任何实现了Servlet接口的类，由servlet容器创建并管理，用于处理客户端传来的http请求，执行具体的业务代码，再返回响应。最主要的方式是service()方法，具体的业务代码逻辑在service()方法中实现。</p>
+<blockquote>
+<p>Servlet是一个Java接口，是实现Web技术的核心。我们平时说的Tomcat容器中的servlet是一个实例，由Tomcat容器创建，servlet的核心执行方法是service()，客户端传来的Http请求，会被Tomcat封装成ServletRequest对象，servlet的响应则被封装到ServletResponse对象中，通过这种请求&#x2F;响应模型，来实现客户端与服务端的交互。</p>
+</blockquote>
+<blockquote>
+<p>HttpServlet是一个抽象类，它实现了Servlet接口，对Servlet功能进行了扩展。</p>
+</blockquote>
+<p>servlet是单例的，在第一次访问的时候被tomcat创建，会出现并发问题，如何解决？</p>
+<blockquote>
+<ol>
+<li>尽量避免使用静态变量和成员变量</li>
+<li>如果必须要用，要对静态变量和成员变量线程不安全方法声明锁。</li>
+</ol>
+</blockquote>
+<h2 id="tomcat如何创建servlet的？"><a href="#tomcat如何创建servlet的？" class="headerlink" title="tomcat如何创建servlet的？"></a>tomcat如何创建servlet的？</h2><p>当tomcat容器启动的时候，会读取webapps文件目录下所有web应用的web.xml文件，读取servlet的注册信息。</p>
+<p>默认情况当servlet第一次被请求时，通过反射进行实例化，每个servlet是单例的。</p>
+<h2 id="SpringMCV中的Servlet"><a href="#SpringMCV中的Servlet" class="headerlink" title="SpringMCV中的Servlet"></a>SpringMCV中的Servlet</h2><p><img src="https://github.com/WayV5/imgs/blob/main/tomcat/p1.png?raw=true" alt="p1.png"></p>
+<p>1.客户端的请求先到DispatcherServlet，DispatcherServlet是Servlet接口的一个实现类；</p>
+<p>2.通过HandlerMapping，根据uri路径信息寻找Handler(Controller)，找到Handler之后生成适配器HandlerAdapter，DispatcherServlet就能通过适配器执行Handler的方法了；</p>
+<p>3.Handler执行完毕，将响应结果返回给DispatcherServlet，web容器再把他封装成response返回给客户端。</p>
+<h2 id="Servlet线程池"><a href="#Servlet线程池" class="headerlink" title="Servlet线程池"></a>Servlet线程池</h2><h1 id="Nginx"><a href="#Nginx" class="headerlink" title="Nginx"></a>Nginx</h1><p>用处：1. 做静态服务器 2. 反向代理 3.负载均衡</p>
+<p><strong>Nginx</strong>特点是占有内存少， 并发能力强，且Nginx处理静态页面的效率远高于tomcat，分离部署就是通过nginx（或apache等）来处理用户端请求的静态资源，tomcat（或weblogic）处理动态资源，从而达到动静页面访问时由不同的容器来处理。</p>
+<h2 id="静态资源服务器"><a href="#静态资源服务器" class="headerlink" title="静态资源服务器"></a>静态资源服务器</h2><blockquote>
+<p>1.做静态web服务器，直接存储原始静态资源；记得使用gzip压缩静态资源，减少网络传输资源。</p>
+<p>2.做静态缓存服务器，反向代理原始服务器，缓存原始服务器的静态资源。</p>
+</blockquote>
+<h2 id="反向代理"><a href="#反向代理" class="headerlink" title="反向代理"></a>反向代理</h2><p>Nginx能做反向代理服务器。反向代理的“反向”指的是代理的是服务端，客户端传来的请求发送到代理服务器，由代理服务器转发，决定使用哪台原始服务器处理请求。</p>
+<p>反向代理向客户端隐藏了原始服务器，nginx配置反向代理，能够实现服务端的负载均衡。</p>
+<blockquote>
+<p>正向代理：代理的是客户端，一般通过VPN，由VPN代理客户端向服务端发送请求，服务端不知道原始客户端是谁。</p>
+</blockquote>
+<h2 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h2><p>如果一台服务器，处理不过来客户端发来的请求，一个简单的解决办法就是增加服务器的数量做集群部署，这时需要某种和规则来向服务器集群，均匀的分配请求，这种规则就叫做<strong>负载均衡</strong>策略。</p>
+<p>nginx就具备这样一种功能，通过反向代理，实现负载均衡。</p>
+<blockquote>
+<p>除此之外，nginx还具备<strong>健康检查</strong>（服务器心跳检查）功能，定期向服务器集群的各服务器发送心跳检查请求，来检测是否有服务器处于异常状态。</p>
+</blockquote>
+<h3 id="Nginx为什么适合做负载均衡？"><a href="#Nginx为什么适合做负载均衡？" class="headerlink" title="Nginx为什么适合做负载均衡？"></a>Nginx为什么适合做负载均衡？</h3><blockquote>
+<p>1.nginx属于软件负载均衡，相比于硬件负载均衡，成本更低。一个低配置的服务器就能实现。</p>
+<p>2.占用内存低，对高并发友好。Nginx单机支持10万以上的并发连接。</p>
+<p>3.自带健康检查（心跳检查）功能</p>
+<p>4.支持热部署，可以在不间断服务情况下，升级nginx。</p>
+<p>5.支持多种负载均衡策略：轮询，IP哈希，最小连接数。</p>
+</blockquote>
+<h3 id="Nginx的负载均衡策略"><a href="#Nginx的负载均衡策略" class="headerlink" title="Nginx的负载均衡策略"></a>Nginx的负载均衡策略</h3><ol>
+<li><p>轮询（默认方式）</p>
+<blockquote>
+<p>按照请求的时间顺序向各个服务器分配请求，可以设置权重</p>
+</blockquote>
+</li>
+<li><p>ip哈希</p>
+<blockquote>
+<p>按照请求的客户端的ip地址进行哈希，来分配请求，可以设置权重;</p>
+<p>相同hash的客户端总是会请求到下相同服务器，在一定程度上解决了session不共享的问题。</p>
+</blockquote>
+</li>
+<li><p>最小连接数</p>
+<blockquote>
+<p>将新的请求分配给当前活跃连接数最少的服务器</p>
+</blockquote>
+</li>
+</ol>
+<h1 id="CDN"><a href="#CDN" class="headerlink" title="CDN"></a>CDN</h1><p>内容分发网络。要给DNS域名解析后台添加CDN解析记录，让用户根据域名解析到原服务器的Ip地址后，不是直接访问原服务器的Ip，而是先访问CDN负载均衡服务器，CDN能够根据请求IP地址来选择分发请求到哪个最近的CDN服务器，CDN服务器有着原服务器的缓存，如果查不到缓存，再一层层查询直到原服务器。</p>
+<h1 id="Netty"><a href="#Netty" class="headerlink" title="Netty"></a>Netty</h1><p>netty是对NIO网络模型的一种封装，并且对传统NIO模型进行了优化 ，支持多种通信协议（http,websocket）;</p>
+<p>netty相比于直接使用jdk自带的NIOapi更加方便，并且性能更好，便于实现多线程reactor模型，很多中间件都用到了netty（zookeeper,rocketMQ,Dubbo）；</p>
+<p>目的就是更好的解决提高服务端吞吐量问题，本质上和NIO是相同的；</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Tomcat/" rel="tag"># Tomcat</a>
+              <a href="/tags/Servlet/" rel="tag"># Servlet</a>
+              <a href="/tags/Nginx/" rel="tag"># Nginx</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/01/06/7%E5%85%AB%E8%82%A1_Spring%E6%A1%86%E6%9E%B6/" rel="prev" title="Spring框架">
+      <i class="fa fa-chevron-left"></i> Spring框架
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/02/03/9%E5%85%AB%E8%82%A1_SptringBoot/" rel="next" title="SpringBoot">
+      SpringBoot <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Tomcat"><span class="nav-number">1.</span> <span class="nav-text">Tomcat</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFweb%E5%AE%B9%E5%99%A8%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">什么是web容器？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Servlet"><span class="nav-number">2.</span> <span class="nav-text">Servlet</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">2.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tomcat%E5%A6%82%E4%BD%95%E5%88%9B%E5%BB%BAservlet%E7%9A%84%EF%BC%9F"><span class="nav-number">2.2.</span> <span class="nav-text">tomcat如何创建servlet的？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SpringMCV%E4%B8%AD%E7%9A%84Servlet"><span class="nav-number">2.3.</span> <span class="nav-text">SpringMCV中的Servlet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Servlet%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="nav-number">2.4.</span> <span class="nav-text">Servlet线程池</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Nginx"><span class="nav-number">3.</span> <span class="nav-text">Nginx</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">3.1.</span> <span class="nav-text">静态资源服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86"><span class="nav-number">3.2.</span> <span class="nav-text">反向代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1"><span class="nav-number">3.3.</span> <span class="nav-text">负载均衡</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Nginx%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%82%E5%90%88%E5%81%9A%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%EF%BC%9F"><span class="nav-number">3.3.1.</span> <span class="nav-text">Nginx为什么适合做负载均衡？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Nginx%E7%9A%84%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AD%96%E7%95%A5"><span class="nav-number">3.3.2.</span> <span class="nav-text">Nginx的负载均衡策略</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CDN"><span class="nav-number">4.</span> <span class="nav-text">CDN</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Netty"><span class="nav-number">5.</span> <span class="nav-text">Netty</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wei"
+      src="/images/naruto.jpg">
+  <p class="site-author-name" itemprop="name">Wei</p>
+  <div class="site-description" itemprop="description">张弛有度，沉浮于心</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/WayV5" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;WayV5" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/19946254539@163.com" title="E-Mail → 19946254539@163.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+<div>
+<iframe frameborder="no" border="0" marginwidth="10" marginheight="10" width=281 height=300 src="https://music.163.com/outchain/player?type=0&id=8456542318&auto=1&height=430"></iframe>
+</div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wei</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">76k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:09</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '7ea6ec0be4737f3a243a',
+      clientSecret: '9903476d1463334b299f767fded53e6299c3a4bf',
+      repo        : 'gitalk-comment',
+      owner       : 'WayV5',
+      admin       : [''],
+      id          : '38decd2856ead7a35e028993ea00511e',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

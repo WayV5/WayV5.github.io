@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="内存区域​    JVM管理的内存区域称为运行时数据区，包括以下几个部分： ​    线程共享的：  堆 方法区（JDK8之后变为本地内存中的元空间）  ​    线程私有的：  虚拟机栈  本地方法栈  程序计数器">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM">
+<meta property="og:url" content="http://example.com/2023/02/16/3%E5%85%AB%E8%82%A1_JVM/index.html">
+<meta property="og:site_name" content="Wei&#39;s Blog">
+<meta property="og:description" content="内存区域​    JVM管理的内存区域称为运行时数据区，包括以下几个部分： ​    线程共享的：  堆 方法区（JDK8之后变为本地内存中的元空间）  ​    线程私有的：  虚拟机栈  本地方法栈  程序计数器">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true">
+<meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/JVM/p2.png?raw=true">
+<meta property="article:published_time" content="2023-02-16T06:39:00.000Z">
+<meta property="article:modified_time" content="2023-06-07T07:31:40.280Z">
+<meta property="article:author" content="Wei">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true">
+
+<link rel="canonical" href="http://example.com/2023/02/16/3%E5%85%AB%E8%82%A1_JVM/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>JVM | Wei's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Wei's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/02/16/3%E5%85%AB%E8%82%A1_JVM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/naruto.jpg">
+      <meta itemprop="name" content="Wei">
+      <meta itemprop="description" content="张弛有度，沉浮于心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JVM
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-02-16 14:39:00" itemprop="dateCreated datePublished" datetime="2023-02-16T14:39:00+08:00">2023-02-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-06-07 15:31:40" itemprop="dateModified" datetime="2023-06-07T15:31:40+08:00">2023-06-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%90%8E%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">后端</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="内存区域"><a href="#内存区域" class="headerlink" title="内存区域"></a>内存区域</h1><p>​    JVM管理的内存区域称为运行时数据区，包括以下几个部分：</p>
+<p>​    <strong>线程共享的：</strong></p>
+<ol>
+<li>堆</li>
+<li>方法区（JDK8之后变为本地内存中的元空间）</li>
+</ol>
+<p>​    <strong>线程私有的：</strong></p>
+<ol>
+<li><p>虚拟机栈</p>
+</li>
+<li><p>本地方法栈</p>
+</li>
+<li><p>程序计数器</p>
+</li>
+</ol>
+<span id="more"></span>
+
+<h2 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h2><p>​    可以看作当前进行线程所执行字节码的行号指示器。</p>
+<p>​    作用：</p>
+<ol>
+<li>代码执行中的跳转、循环等流程依赖于程序计数器。</li>
+<li>线程切换程序计数器保存、恢复线程的执行到哪一步</li>
+</ol>
+<p>唯一一个不会出现OOM情况内存区域</p>
+<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p>​    每个方法被执行都会创建一个栈帧，方法被调用到执行完毕的过程，对应着栈帧在虚拟机栈中从入栈到出栈的过程。</p>
+<p>​    栈帧包含：局部变量表，操作数栈，动态链接，方法出口</p>
+<h3 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h3><p>​    主要存放了编译期可知的各种数据类型（boolean、byte、char、short、int、float、long、double）、对象引用（reference 类型，它不同于对象本身，可能是一个指向对象起始地址的引用指针，也可能是指向一个代表对象的句柄或其他与此对象相关的位置）。</p>
+<h3 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h3><p>​    如果一个方法调用其他方法，那么就要使用运行时常量池的该方法的符号引用，将符号引用转化为内存中实际地址的直接引用的过程，叫做动态链接。</p>
+<p>​    有些符号引用在类加载阶段或第一次使用时完成饿了转换，称为静态解析；</p>
+<p>​    另外一部分在每次运行期间被转换，称为动态链接。</p>
+<p>如果线程请求的栈深度大于虚拟机请求所允许的深度，将抛出stackoverflowError,</p>
+<p>如果虚拟机栈容量空一动态扩展，则当扩展时无法申请到足够内存空间时，会抛OOM错误。</p>
+<h2 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h2><p>​    与虚拟机栈相似，只不过是运行本地方法（Native方法）</p>
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><p>​    线程共享，几乎所有对象实例都在这里分配内存。</p>
+<p>​    新生代 老年代 永久代，都是因为大部分都是基于分代垃圾回收器而得名的，只是一个设计风格，而并非java虚拟机固定的布局。</p>
+<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p>​    存储已被JVM加载的类型信息、常量、静态变量、等</p>
+<p>​    方法区的具体实现并不是固定的，JDK8之前是永久代实现，JDK8之后就变成本地内存中的元空间了。</p>
+<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>​    位于方法区，编译期生成的各种字面量、<strong>符号引用</strong>，在类加载之后存放到方法区的运行时常量池。</p>
+<p>​    一般情况下，类加载后，由符号引用翻译出来的直接引用也存储在运行时常量池。</p>
+<p>​    符号引用：在一个类中（当然不仅是类，还包括类的其他部分，比如方法，字段等），用到其他类（或其他类的方法、字段等），编译时并不知道其具体内存地址，要等类加载之后才知道，因此先用一个符号引用来表示。</p>
+<p>​    在Java中，一个java类将会编译成一个class文件。在编译时，java类并不知道所引用的类的实际地址，因此只能使用符号引用来代替</p>
+<h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>​    位于本地内存。</p>
+<h2 id="一个对象的创建过程"><a href="#一个对象的创建过程" class="headerlink" title="一个对象的创建过程"></a>一个对象的创建过程</h2><p><strong>1.</strong>    <strong>类加载检查</strong></p>
+<p>​    当虚拟机遇到一个new 指令时，首先检查能否在常量池定位到对应的类的符号引用，再检查该类是否被加载过，如果没有必须先执行类加载过程。</p>
+<ol start="2">
+<li><strong>分配内存</strong></li>
+</ol>
+<p>​    对象所需的内存大小在类加载完成后便可确定，分配内存就是在堆空间划出一块固定内存给新建的对象。有两种方式，1. “指针碰撞”：内存空间是规整的； 2. “空闲列表”:内存空间不规整； 能否规整看垃圾收集器是否有空间压缩整理功能。</p>
+<ol start="3">
+<li><strong>初始化零值</strong></li>
+</ol>
+<p>··   将对象的内存空间（不包括对象头）都初始化为0，保证Java对象不用赋初值就能直接使用。</p>
+<ol start="4">
+<li><strong>设置对象头</strong></li>
+</ol>
+<p>​    对象头包扩：对象的类型指针，hashCode, 线程的锁信息，对应的元数据信息等。</p>
+<ol start="5">
+<li><strong>执行 init 方法</strong></li>
+</ol>
+<p>​    按照程序员设置的参数，执行初始化方法。</p>
+<h1 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h1><h2 id="一个类的生命周期"><a href="#一个类的生命周期" class="headerlink" title="一个类的生命周期"></a>一个类的生命周期</h2><p>加载 验证 准备 解析 初始化 使用 卸载</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true" alt="p1.png"></p>
+<p>类加载过程包括：加载-&gt;连接-&gt;初始化 ， 连接过程包括：验证、准备、解析。</p>
+<h2 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h2><p><strong>加载：</strong></p>
+<p>​    通过<strong>类加载器</strong>完成，具体用哪个加载器，通过双亲委派模型选取。</p>
+<ol>
+<li>虚拟机获得类的二进制字节流Class文件</li>
+</ol>
+<p>​       获取方式多样：源程序.java编译得来，压缩包jar、网络传输Web Applet 、运行时动态生成：动态代理</p>
+<ol start="2">
+<li>将字节流代表的静态存储结构，转化为方法区内的运行时数据结构。</li>
+<li>在内存中生成代表这个类的java.lang.Class对象，作为方法区这个类数据的访问接口<strong>。</strong></li>
+</ol>
+<p><strong>验证：</strong></p>
+<p>​    保证Class文件中的信息是否正确，且不会危害虚拟机安全：</p>
+<p>​    Class文件格式是否正确，字节码语义是否符合逻辑，符号引用的验证</p>
+<p><strong>准备</strong>：</p>
+<p>​    为静态变量(类变量，static修饰)分配内存，并设置初值为0；</p>
+<p>​    在JDK8之前，Class对象与静态变量存储在方法区（JDK8之前方法区由永久代实现）；</p>
+<p>JDK8之后，Class对象与静态变量放在Java堆里了。</p>
+<p>​    Public static int value &#x3D; 123;</p>
+<p>​    准备阶段后，value为0，而不是123，赋值为123要等到类的初始化，通过<code>&lt;clinit&gt;()</code>方法；</p>
+<p>​    而如果final修饰静态变量，在准备阶段就会直接被赋值。</p>
+<p><strong>解析</strong>：</p>
+<p>​    将符号引用（类的，方法，字段，等）转化为直接引用</p>
+<p><strong>初始化</strong>:</p>
+<p>​    根据程序员的代码，主观初始化静态变量和其他资源。这个阶段就是执行类构造器的<clinit>()方法的过程，这个方法是Javac编译器的自动生成物。</p>
+<p>​    <clinit>()收集静态变量的赋值行为和静态语句块static{}</p>
+<p>​    即  public static int value &#x3D; 123;</p>
+<p>​       static { value &#x3D; 456;}</p>
+<p>​    按照他们在源文件中出现的顺序进行。</p>
+<h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><p>​    类加载器是一个负责加载类的对象，用于实现类加载过程中的加载这一步。</p>
+<p>每个 Java 类都有一个引用指向加载它的 ClassLoader。</p>
+<p>数组类不是通过 ClassLoader 创建的（数组类没有对应的二进制字节流），是由 JVM 直接生成的。</p>
+<p><strong>类加载器的主要作用就是加载</strong> <strong>Java</strong> <strong>类的字节码（</strong><code>.class</code><strong>文件）到</strong> <strong>JVM</strong> <strong>中（在内存中生成一个代表该类的</strong><code>Class</code><strong>对象）</strong></p>
+<p>JVM 启动的时候，并不会一次性加载所有的类，而是根据需要去动态加载。也就是说，大部分类在具体用到的时候才会去加载，这样对内存更加友好。</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p2.png?raw=true" alt="p2.png"></p>
+<h2 id="双亲委派模型："><a href="#双亲委派模型：" class="headerlink" title="双亲委派模型："></a>双亲委派模型：</h2><p>​		先判断这个类有没有被加载过，如果加载过直接返回，没加载过就走加载流程。</p>
+<p>​		一个类加载器收到加载请求，要先把请求委派给父类加载器，这个请求会一直传递到最顶层类加载器；</p>
+<p>​		只有父类加载器反馈加载不了（它的搜索范围内找不到class文件），子加载器才能加载。</p>
+<p>​		这种父子关系不是通过<strong>继承</strong>实现的，而是使用<strong>组合</strong>关系来复用父加载器的代码</p>
+<p>​		好处：双亲委派模型主要是为了类加载的稳定性，可以避免加载相同名字的类造成混乱，比如Object类存放在rt.jar，由启动类加载器加载，如果用户自己编了一个Object类，类加载请求最终会传递到最顶层的启动类加载器，判断Object类加载过了，就不会加载用户的Object类了。</p>
+<h1 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h1><h2 id="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"><a href="#为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？" class="headerlink" title="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"></a>为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？</h2><p>​		因为虚拟机栈、本地方法栈、程序计数器是线程私有的，随线程生，随线程灭，且每一个栈帧所需的大小在编译期即可确定，不受程序运行期变量数据的影响，因此内存的分配和回收都具有确定性，因此不需要过多考虑如何回收。</p>
+<p>​		而堆和方法区中的内存分配受不同运行情况影响，比如一个接口的多个实现类所需内存不同，一个方法执行不同条件分支所需内存也可能不一样，因此只有处于运行期间才能指导会创建哪些对象，创建多少对象。</p>
+<h2 id="Java引用分类"><a href="#Java引用分类" class="headerlink" title="Java引用分类"></a>Java引用分类</h2><ol>
+<li><p>强引用</p>
+<blockquote>
+<p>程序代码中最常见的引用方式，只要强引用关系还在，被引用对象永远不能被回收。</p>
+</blockquote>
+</li>
+<li><p>软引用</p>
+<blockquote>
+<p>用来描述一些还有用，但非必须的对象。被软引用关联的对象，在系统将要发生内存溢出异常前，会将这些对象列入回收范围，进行第二次回收。</p>
+</blockquote>
+</li>
+<li><p>弱引用</p>
+<blockquote>
+<p>用来描述非必须对象。弱引用关联的对象只能生存到下一次垃圾收集发生。</p>
+</blockquote>
+</li>
+<li><p>虚引用</p>
+<blockquote>
+<p>不影响对象生存时间，也无法通过虚引用获取对象实例。为对象设置虚引用的唯一目的就是：为了在这个对象被回收时收到一个系统通知。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="死亡对象的判定方法"><a href="#死亡对象的判定方法" class="headerlink" title="死亡对象的判定方法"></a>死亡对象的判定方法</h2><blockquote>
+<p>对象死亡即不存在对该对象的引用。</p>
+</blockquote>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>​    	给对象中添加一个引用计数器：每当有一个地方引用它，计数器就加 1；当引用失效，计数器就减 1；任何时候计数器为 0 的对象就是不可能再被使用的。</p>
+<p>​    	这个方法简单，效率高，但是无法解决两个对象循环引用的现象，因此现代虚拟机不采用这种方式。</p>
+<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><p>​    	通过一系列称为”GC roots”对象为根节点，通过引用关系向下查找，如果一个对象不和任何一个GC roots的调用链相连，则说明该对象不可达，将被判定为回收对象。</p>
+<p>​    	可作为GC roots的对象包括以下几种：</p>
+<ol>
+<li>虚拟机栈中引用的对象。</li>
+<li>方法区类静态变量引用的对象。</li>
+<li>被同步锁synchronized关键字持有的对象</li>
+<li>方法去常量池引用的对象等</li>
+</ol>
+<h2 id="可达性分析出对象可以被回收，就代表一定会被回收吗？"><a href="#可达性分析出对象可以被回收，就代表一定会被回收吗？" class="headerlink" title="可达性分析出对象可以被回收，就代表一定会被回收吗？"></a>可达性分析出对象可以被回收，就代表一定会被回收吗？</h2><p>不一定。</p>
+<p>当对象通过可达性分析，判定为不可用对象后，会被第一次标记，之后将对象放入一个名叫F-Queue的队列里，再进行一次筛选，判断有没有必要执行该对象的finalize（）方法，【如果该对象没有重写finalize()方法，或者finalize()方法已经被调用过一次了，就判定为没必要执行finalize()方法。】</p>
+<p>Finalize方法是对象逃脱死亡的最后一次机会，如果对象重新与引用链上的任何一个对象建立关联，即使是把自己this赋给某个类变量或者对象的成员变量也行，那么对象就会逃脱回收。</p>
+<p>所以说Object类的finalize方法设计的比较糟糕，它是Java诞生时对C C++程序员容易接受的一项妥协，运行代价昂贵，不确定性大，JDK9之后就开始逐渐弃用了。</p>
+<h2 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h2><p>​    	主要针对分代收集理论，“分代收集”的几个假说</p>
+<ul>
+<li><p>弱分代假说：绝大多数对象都是朝生夕灭的（新生代有98%熬不过第一轮垃圾回收）</p>
+</li>
+<li><p>强分代假说: 熬过越多次垃圾回收的对象就越难以消亡</p>
+</li>
+<li><p>跨代引用假说：跨代引用相对于同代引用来说仅占少数;</p>
+</li>
+</ul>
+<p>部分收集Partial GC:</p>
+<ul>
+<li>新生代收集Minor GC&#x2F;Young GC</li>
+<li>老年代收集 Major GC&#x2F;Old GC</li>
+<li>混合收集 Mixed GC</li>
+</ul>
+<p>整堆收集Full GC:</p>
+<ul>
+<li>收集整个Java堆和方法区的垃圾收集</li>
+</ul>
+<h3 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h3><p>​    	最基础的垃圾收集算法，通过垃圾判定，对对象进行标记，标记之后统一回收所标记的对象。</p>
+<p>​    	缺点：执行效率不稳定，并且会产生内存碎片。</p>
+<h3 id="标记-复制算法"><a href="#标记-复制算法" class="headerlink" title="标记-复制算法"></a>标记-复制算法</h3><p>​    	最早的标记-复制算法采用“半区复制”，就是将内存空间分成两个大小相等的块，每次只是用一个，当一个满了，将活着的对象复制到另一个块，其余的回收。</p>
+<p>​    	不会产生内存碎片，但是代价是可用的内存空间变少了。</p>
+<p>​    	因此后来根据对象“朝生夕灭”的特性，提出了更优化的标记-复制算法，将新生代分为一个Eden区和两个Suivivor区，比例为8：1：1；</p>
+<p>​    	每次给对象分配内存，只是用Eden区和其中一个Suivivor区，垃圾回收时，将存活的对象复制到另一个Suivivor区，如果空间不足，就通过<strong>分配担保机制</strong>，直接进入老年代。</p>
+<h3 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h3><p>​    先标记，之后将存活对象向空间一端移动，然后清除掉边界外的空间。</p>
+<p>​    不会产生内存碎片，但是对象移动的效率慢，多用于老年代。</p>
+<h2 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h2><p>​    比如在新生代中，每次收集都会有大量对象死去，所以可以选择”标记-复制“算法，只需要付出少量对象的复制成本就可以完成每次垃圾收集。而老年代的对象存活几率是比较高的，而且没有额外的空间对它进行分配担保，所以我们必须选择“标记-清除”或“标记-整理”算法进行垃圾收集。</p>
+<p>​    年龄增大到15岁，将从新生代晋升到老年代。</p>
+<h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p>​    	如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</p>
+<p>​    	现代虚拟机采用的垃圾收集器多采用：</p>
+<p>​		新生代采用标记-复制算法，老年代采用标记-整理算法。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/02/15/15%E5%85%AB%E8%82%A1_MyBatis/" rel="prev" title="MyBatis在SpringBoot中的使用">
+      <i class="fa fa-chevron-left"></i> MyBatis在SpringBoot中的使用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/02/28/4%E5%85%AB%E8%82%A1_JUC/" rel="next" title="JUC">
+      JUC <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F"><span class="nav-number">1.</span> <span class="nav-text">内存区域</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="nav-number">1.1.</span> <span class="nav-text">程序计数器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88"><span class="nav-number">1.2.</span> <span class="nav-text">虚拟机栈</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%E8%A1%A8"><span class="nav-number">1.2.1.</span> <span class="nav-text">局部变量表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5"><span class="nav-number">1.2.2.</span> <span class="nav-text">动态链接</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88"><span class="nav-number">1.3.</span> <span class="nav-text">本地方法栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A0%86"><span class="nav-number">1.4.</span> <span class="nav-text">堆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E5%8C%BA"><span class="nav-number">1.5.</span> <span class="nav-text">方法区</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">1.5.1.</span> <span class="nav-text">运行时常量池</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E5%86%85%E5%AD%98"><span class="nav-number">1.6.</span> <span class="nav-text">直接内存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E8%BF%87%E7%A8%8B"><span class="nav-number">1.7.</span> <span class="nav-text">一个对象的创建过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6"><span class="nav-number">2.</span> <span class="nav-text">类加载机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E7%B1%BB%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">2.1.</span> <span class="nav-text">一个类的生命周期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B"><span class="nav-number">2.2.</span> <span class="nav-text">类加载过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-number">2.3.</span> <span class="nav-text">类加载器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B%EF%BC%9A"><span class="nav-number">2.4.</span> <span class="nav-text">双亲委派模型：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="nav-number">3.</span> <span class="nav-text">垃圾回收</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E4%B8%BB%E8%A6%81%E9%92%88%E5%AF%B9%E5%A0%86%E5%92%8C%E6%96%B9%E6%B3%95%E5%8C%BA%EF%BC%8C%E8%80%8C%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88%EF%BC%8C%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88%EF%BC%8C%E7%A8%8B%E5%BA%8F%E8%AE%A1%E6%95%B0%E5%99%A8%E4%B8%8D%E9%9C%80%E8%A6%81%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java%E5%BC%95%E7%94%A8%E5%88%86%E7%B1%BB"><span class="nav-number">3.2.</span> <span class="nav-text">Java引用分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%BB%E4%BA%A1%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%A4%E5%AE%9A%E6%96%B9%E6%B3%95"><span class="nav-number">3.3.</span> <span class="nav-text">死亡对象的判定方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E6%B3%95"><span class="nav-number">3.3.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E7%AE%97%E6%B3%95"><span class="nav-number">3.3.2.</span> <span class="nav-text">可达性分析算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E5%87%BA%E5%AF%B9%E8%B1%A1%E5%8F%AF%E4%BB%A5%E8%A2%AB%E5%9B%9E%E6%94%B6%EF%BC%8C%E5%B0%B1%E4%BB%A3%E8%A1%A8%E4%B8%80%E5%AE%9A%E4%BC%9A%E8%A2%AB%E5%9B%9E%E6%94%B6%E5%90%97%EF%BC%9F"><span class="nav-number">3.4.</span> <span class="nav-text">可达性分析出对象可以被回收，就代表一定会被回收吗？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95"><span class="nav-number">3.5.</span> <span class="nav-text">垃圾回收算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95"><span class="nav-number">3.5.1.</span> <span class="nav-text">标记-清除算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95"><span class="nav-number">3.5.2.</span> <span class="nav-text">标记-复制算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95"><span class="nav-number">3.5.3.</span> <span class="nav-text">标记-整理算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="nav-number">3.6.</span> <span class="nav-text">分代收集算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-number">3.7.</span> <span class="nav-text">垃圾收集器</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wei"
+      src="/images/naruto.jpg">
+  <p class="site-author-name" itemprop="name">Wei</p>
+  <div class="site-description" itemprop="description">张弛有度，沉浮于心</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/WayV5" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;WayV5" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/19946254539@163.com" title="E-Mail → 19946254539@163.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+<div>
+<iframe frameborder="no" border="0" marginwidth="10" marginheight="10" width=281 height=300 src="https://music.163.com/outchain/player?type=0&id=8456542318&auto=1&height=430"></iframe>
+</div>
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wei</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">76k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">1:09</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '7ea6ec0be4737f3a243a',
+      clientSecret: '9903476d1463334b299f767fded53e6299c3a4bf',
+      repo        : 'gitalk-comment',
+      owner       : 'WayV5',
+      admin       : [''],
+      id          : 'bc00996bd28aace52f9621f708af0cf3',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
