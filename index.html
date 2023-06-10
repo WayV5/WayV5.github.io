@@ -190,6 +190,150 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/08/17%E5%85%AB%E8%82%A1_docekr/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/naruto.jpg">
+      <meta itemprop="name" content="Wei">
+      <meta itemprop="description" content="张弛有度，沉浮于心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/06/08/17%E5%85%AB%E8%82%A1_docekr/" class="post-title-link" itemprop="url">Java基础</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-06-08 14:46:00" itemprop="dateCreated datePublished" datetime="2023-06-08T14:46:00+08:00">2023-06-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-06-09 20:49:29" itemprop="dateModified" datetime="2023-06-09T20:49:29+08:00">2023-06-09</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="docker概念"><a href="#docker概念" class="headerlink" title="docker概念"></a>docker概念</h1><h2 id="镜像image"><a href="#镜像image" class="headerlink" title="镜像image"></a>镜像image</h2><ul>
+<li>镜像是一种特殊的文件系统，提供了容器运行时所需的资源（程序、库、配置等），不包含动态数据。</li>
+</ul>
+<h2 id="容器container"><a href="#容器container" class="headerlink" title="容器container"></a>容器container</h2><ul>
+<li><p>镜像运行时的实体。（image — container  相当于 类 — 实例 的关系）</p>
+</li>
+<li><blockquote>
+<p>容器的存储层不应写入任何数据，存储层要保持无状态化；</p>
+<p>所有文件的写入操作，应该用   <strong>数据卷</strong>  或者  <strong>绑定宿主机目录</strong>； 这样容器删除，重启后，数据不会消失；</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="仓库repository"><a href="#仓库repository" class="headerlink" title="仓库repository"></a>仓库repository</h2><ul>
+<li>仓库是主机存放镜像的地方。</li>
+<li>一个linux主机可以有多个仓库，每个仓库的不同标签tag代表不同版本的镜像；</li>
+<li>&lt;仓库名&gt;:&lt;标签&gt;表示一个具体的image；如果不指出标签，默认用latest作为标签tag</li>
+</ul>
+<h1 id="docker的好处"><a href="#docker的好处" class="headerlink" title="docker的好处"></a>docker的好处</h1><ul>
+<li>可以将不同项目打包运行在各自的容器中，隔绝环境；</li>
+<li>镜像可以让项目在任何地方的运行环境是一致的；</li>
+<li>相比于传统虚拟机，docker容器直接使用宿主机的内核，启动速度更快；</li>
+</ul>
+<h1 id="Docker-命令"><a href="#Docker-命令" class="headerlink" title="Docker 命令"></a>Docker 命令</h1><h2 id="镜像操作"><a href="#镜像操作" class="headerlink" title="镜像操作"></a>镜像操作</h2><h3 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h3><p>docker pull &lt;镜像名称&gt;：&lt;版本&gt;</p>
+<h3 id="查看dockerhub远程仓库中镜像"><a href="#查看dockerhub远程仓库中镜像" class="headerlink" title="查看dockerhub远程仓库中镜像"></a>查看dockerhub远程仓库中镜像</h3><p>Docker search &lt;镜像名称&gt;</p>
+<h3 id="查看本地已有镜像"><a href="#查看本地已有镜像" class="headerlink" title="查看本地已有镜像"></a>查看本地已有镜像</h3><p>docker images</p>
+<h3 id="删除镜像"><a href="#删除镜像" class="headerlink" title="删除镜像"></a>删除镜像</h3><p>docker rmi &lt;镜像名&gt;</p>
+<h3 id="创建镜像"><a href="#创建镜像" class="headerlink" title="创建镜像"></a>创建镜像</h3><pre><code>当我们从 docker 镜像仓库中下载的镜像不能满足我们的需求时，我们可以通过以下两种方式对镜像进行更改。
+</code></pre>
+<ol>
+<li>从已经创建的容器中更新镜像，并且提交这个镜像</li>
+<li>使用 Dockerfile 指令来创建一个新的镜像</li>
+</ol>
+<h4 id="更新镜像"><a href="#更新镜像" class="headerlink" title="更新镜像"></a><strong>更新镜像</strong></h4><pre><code>更新镜像之前，我们需要使用镜像来创建一个容器。
+
+To be continued
+</code></pre>
+<h2 id="容器操作"><a href="#容器操作" class="headerlink" title="容器操作"></a>容器操作</h2><h3 id="创建一个新的容器并启动该容器"><a href="#创建一个新的容器并启动该容器" class="headerlink" title="创建一个新的容器并启动该容器"></a>创建一个新的容器并启动该容器</h3><p>docker run -itd &lt;Image名称&gt;</p>
+<p>我们通过 docker 的两个参数 -i -t，让 docker 运行的容器实现**”对话”**的能力：</p>
+<ul>
+<li>-t: 在新容器内指定一个伪终端或终端。</li>
+<li>-i: 允许你对容器内的标准输入 (STDIN) 进行交互</li>
+<li>-d: 后台启动</li>
+</ul>
+<p>docker run -itd –name &lt;给容器起个名字&gt; &lt;Image名称&gt;</p>
+<h3 id="停止容器"><a href="#停止容器" class="headerlink" title="停止容器"></a>停止容器</h3><p>docker stop &lt;容器ID&gt;</p>
+<h3 id="进入容器"><a href="#进入容器" class="headerlink" title="进入容器"></a>进入容器</h3><p>在使用 <strong>-d</strong> 参数时，容器启动后会进入后台。此时想要进入容器，可以通过以下指令进入：</p>
+<ul>
+<li><strong>docker attach</strong></li>
+<li><strong>docker exec</strong>：推荐大家使用 docker exec 命令，因为此命令会退出容器终端，但不会导致容器的停止。</li>
+</ul>
+<h3 id="查看容器信息"><a href="#查看容器信息" class="headerlink" title="查看容器信息"></a>查看容器信息</h3><p>docker ps -a</p>
+<h3 id="查看容器日志"><a href="#查看容器日志" class="headerlink" title="查看容器日志"></a>查看容器日志</h3><p>docker logs &lt;容器ID&gt;</p>
+<h3 id="删除容器"><a href="#删除容器" class="headerlink" title="删除容器"></a><strong>删除容器</strong></h3><p><code>docker rm -f &lt;容器ID&gt;</code> 清理某一容器</p>
+<p><code>docker container prune</code>  清理掉所有处于终止状态的容器</p>
+<h3 id="运行一个-web-应用"><a href="#运行一个-web-应用" class="headerlink" title="运行一个 web 应用"></a>运行一个 web 应用</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -P training/webapp python app.py</span><br><span class="line">docker run -d -p 5000:5000 training/webapp python app.py</span><br><span class="line">Docker run -d -p hostPort:containerPort training/webapp python app.py</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>-P :<strong>是容器内部端口</strong>随机</strong>映射到主机的端口。</li>
+<li><strong>-p :</strong> 是容器内部端口绑定到<strong>指定</strong>的主机端口。 《主机端口：容器端口》</li>
+</ul>
+<h3 id="网络端口的快捷方式"><a href="#网络端口的快捷方式" class="headerlink" title="网络端口的快捷方式"></a>网络端口的快捷方式</h3><p>docker port &lt;容器ID或名字&gt;</p>
+<h3 id="查看-WEB-应用程序日志"><a href="#查看-WEB-应用程序日志" class="headerlink" title="查看 WEB 应用程序日志"></a>查看 WEB 应用程序日志</h3><p>docker logs [ID或者名字]</p>
+<h3 id="查看WEB应用程序容器的进程"><a href="#查看WEB应用程序容器的进程" class="headerlink" title="查看WEB应用程序容器的进程"></a>查看WEB应用程序容器的进程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker top </span><br></pre></td></tr></table></figure>
+
+<h3 id="检查-WEB-应用程序"><a href="#检查-WEB-应用程序" class="headerlink" title="检查 WEB 应用程序"></a>检查 WEB 应用程序</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker inspect</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/02/16%E5%85%AB%E8%82%A1_git/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1056,101 +1200,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/02/03/9%E5%85%AB%E8%82%A1_SptringBoot/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/naruto.jpg">
-      <meta itemprop="name" content="Wei">
-      <meta itemprop="description" content="张弛有度，沉浮于心">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Wei's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2023/02/03/9%E5%85%AB%E8%82%A1_SptringBoot/" class="post-title-link" itemprop="url">SpringBoot</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2023-02-03 11:00:00" itemprop="dateCreated datePublished" datetime="2023-02-03T11:00:00+08:00">2023-02-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-07 15:34:21" itemprop="dateModified" datetime="2023-06-07T15:34:21+08:00">2023-06-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%90%8E%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">后端</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="为什么要有SpringBoot？"><a href="#为什么要有SpringBoot？" class="headerlink" title="为什么要有SpringBoot？"></a>为什么要有SpringBoot？</h1><p>SpringBoot旨在减少配置文件，方便Spring框架开发。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/02/03/9%E5%85%AB%E8%82%A1_SptringBoot/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1222,7 +1271,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1235,7 +1284,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-count">18</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1282,13 +1331,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">76k</span>
+    <span title="站点总字数">77k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">1:09</span>
+    <span title="站点阅读时长">1:10</span>
 </div>
 
         
