@@ -190,6 +190,339 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/12/12%E5%85%AB%E8%82%A1_emos%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/naruto.jpg">
+      <meta itemprop="name" content="Wei">
+      <meta itemprop="description" content="张弛有度，沉浮于心">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Wei's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/06/12/12%E5%85%AB%E8%82%A1_emos%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" class="post-title-link" itemprop="url">未命名</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-06-12 11:58:49" itemprop="dateCreated datePublished" datetime="2023-06-12T11:58:49+08:00">2023-06-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-06-10 21:31:59" itemprop="dateModified" datetime="2023-06-10T21:31:59+08:00">2023-06-10</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h1><h2 id="接口文档生成"><a href="#接口文档生成" class="headerlink" title="接口文档生成"></a>接口文档生成</h2><p>用SpringDoc代替Swagger，配置更加简单。</p>
+<h2 id="权限框架"><a href="#权限框架" class="headerlink" title="权限框架"></a>权限框架</h2><p>Sa-Token 上手简单，配置容易，适用于前后端分离架构</p>
+<ul>
+<li><p>登陆验证</p>
+</li>
+<li><p>权限验证</p>
+</li>
+<li><p>角色验证</p>
+</li>
+</ul>
+<h2 id="通用功能"><a href="#通用功能" class="headerlink" title="通用功能"></a>通用功能</h2><h3 id="统一返回对象R类"><a href="#统一返回对象R类" class="headerlink" title="统一返回对象R类"></a>统一返回对象R类</h3><p>继承了HashMap类，封装了静态方法，最基础字段就是状态码code+信息msg，还能往里添加其他返回体信息。</p>
+<h3 id="后端验证"><a href="#后端验证" class="headerlink" title="后端验证"></a>后端验证</h3><ul>
+<li><p>虽然前端验证已经限制了用户请求中提交数据的规范性，但是为了防止有人通过http工具postman等，绕过浏览器直接发起http请求，后端验证还是必要的。</p>
+</li>
+<li><p>项目中需要验证的requstbody形式的请求，封装好请求的表单form类，通过注解（javax.validation中的）对字段进行约束。</p>
+</li>
+</ul>
+<h3 id="统一异常处理怎么做的？"><a href="#统一异常处理怎么做的？" class="headerlink" title="统一异常处理怎么做的？"></a>统一异常处理怎么做的？</h3><ul>
+<li><p>创建一个全局异常处理的配置类，用@RestControllerAdvice（@ControllerAdvice + @ResponseBody）注解修饰这个类，相当于给所有Controller类织入了一个AfterThrowing抛异常通知;</p>
+</li>
+<li><p>然后这个异常处理类中的handler方法加@ExceptionHandler注解，对不同的异常类型，进行相应的异常处理。</p>
+</li>
+</ul>
+<h3 id="前后端分离的跨域请求CORS"><a href="#前后端分离的跨域请求CORS" class="headerlink" title="前后端分离的跨域请求CORS"></a>前后端分离的跨域请求CORS</h3><p>配置CORS，开启跨域请求。因为项目时前后端分离的，涉及到跨域</p>
+<blockquote>
+<p>跨域：http协议 + 域名 + 端口号 完全一致才算同域</p>
+</blockquote>
+<h3 id="抵御XSS脚本注入攻击"><a href="#抵御XSS脚本注入攻击" class="headerlink" title="抵御XSS脚本注入攻击"></a>抵御XSS脚本注入攻击</h3><h3 id="允许跨域请求"><a href="#允许跨域请求" class="headerlink" title="允许跨域请求"></a>允许跨域请求</h3><h2 id="websocket"><a href="#websocket" class="headerlink" title="websocket"></a>websocket</h2><p>第三方服务</p>
+<h1 id="用户模块"><a href="#用户模块" class="headerlink" title="用户模块"></a>用户模块</h1><h2 id="登录"><a href="#登录" class="headerlink" title="登录"></a>登录</h2><h3 id="密码加密"><a href="#密码加密" class="headerlink" title="密码加密"></a>密码加密</h3><ul>
+<li>采用AES加密，这是一种对称加密方式，对每个用户的密码加密时，密钥选择用户的用户名;</li>
+<li>即：以username为密钥给password加密，同样能解密；</li>
+<li>sql有AES加解密的对应函数，操作方便</li>
+</ul>
+<h3 id="login"><a href="#login" class="headerlink" title="login"></a>login</h3><ul>
+<li><p>先根据username和password去数据库查询userId，如果查询是Null，表示用户不存在，返回登录失败信息；</p>
+</li>
+<li><p>如果查询到了，用权限框架StpUtil.setLoginId(userId)，生成token保存在redis，token是key，value是userId；</p>
+</li>
+<li><p>然后将token返回给前端，因为cookie被禁用了，所以不能通过set-cookie的方式传递token，这里是放在了响应体里，前端解析出来放在localStorage&#x2F;sessionStorage中，之后每次发起请求时带上token。</p>
+</li>
+</ul>
+<h3 id="logout"><a href="#logout" class="headerlink" title="logout"></a>logout</h3><p>后端：删除redis中的token，调用权限框架的方法就可以了;<br>前端：踢下线 -&gt; 删除localStorage中的token和permissions，控制页面跳转（js代码）;</p>
+<h2 id="CRUD"><a href="#CRUD" class="headerlink" title="CRUD"></a>CRUD</h2><ol>
+<li><p>分页查询</p>
+<blockquote>
+<ul>
+<li>分页工具类：数据列表list，总页数，当前页面序号，页面大小（每页显示多少条记录）;</li>
+<li>sql：查询分页数据 [limit (idx-1)*pageSize, pageSize]; 再写个查询总记录数量的sql语句；</li>
+<li>service层调用mapper查询分页，封装到page类，返回给controller；</li>
+<li>controller拿到前端查询条件，作为参数调用service方法，拿到page类，再封装到统一返回类R，返回给前端;</li>
+</ul>
+</blockquote>
+</li>
+<li><p>insert</p>
+<p>paramterType用的是pojo;</p>
+<p>用的insert方言，方便处理多个参数；</p>
+<blockquote>
+<p>传统 insert into user(a , b , c) values(1, 2 ,3)</p>
+<p>方言 insert into user set a &#x3D; 1, b &#x3D; 2, c &#x3D; 3;</p>
+</blockquote>
+</li>
+<li><p>update</p>
+<p>paramterType用的是map;</p>
+</li>
+<li><p>delete</p>
+<p>注意如果要删除许多行数据，传入的是ids集合，用sql中的foreach标签；</p>
+<p>判断是否有关联，有关联的数据不能删除；</p>
+</li>
+</ol>
+<h1 id="角色、权限、部门、会议室管理"><a href="#角色、权限、部门、会议室管理" class="headerlink" title="角色、权限、部门、会议室管理"></a>角色、权限、部门、会议室管理</h1><h2 id="CRUD-1"><a href="#CRUD-1" class="headerlink" title="CRUD"></a>CRUD</h2><h1 id="会议管理"><a href="#会议管理" class="headerlink" title="会议管理"></a>会议管理</h1><p>会议包括线上会议和线下会议：线下的显示方式包括甘特图和周日历；线上会议用表格显示。</p>
+<h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><p>用甘特图显示各个会议室的会议数据，所以要把一个会议室下的多条会议记录都合并起来；</p>
+<ol>
+<li>把每条会议记录的各个字段，合并成jsonObject形式；</li>
+<li>然后对同一个会议室place中的每个记录用group_concat合并起来；</li>
+<li>最后还要将会议信息和会议室信息关联起来，再表关联一下。</li>
+<li>其中还要涉及条件筛选，timestampdiff, concat等函数</li>
+</ol>
+<h2 id="新增（用到了异步线程）"><a href="#新增（用到了异步线程）" class="headerlink" title="新增（用到了异步线程）"></a>新增（用到了异步线程）</h2><ol>
+<li><p>业务逻辑层先在数据库中插入一条会议的数据，然后开启一个新的线程，异步调用工作流项目的方法，工作流项目会为这个会议创建一个工作流实例，并且返回instanceId，异步线程拿到返回值之后，再调用持久层方法，将instanceId字段更新到数据库中的会议记录中;</p>
+</li>
+<li><p>调用hutool包下的工具类提供的方法，发起http请求;<br>post方法，请求方法的url ，把请求数据封在json里，转化成字符串传进请求体，然后execute(); </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">HttpResponse</span> <span class="variable">resp</span> <span class="operator">=</span> HttpRequest.post(url).header(<span class="string">&quot;Content-Type&quot;</span>, <span class="string">&quot;application/json&quot;</span>)</span><br><span class="line">        .body(json.toString()).execute();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>得到resp，先判断以下响应码，然后拿出响应体，再执行业务逻辑。</p>
+</li>
+</ol>
+<blockquote>
+<p>为什么要异步？因为调用工作流项目的方法创建实例，工作流方法所需要的参数还要几个sql查询出来，再加上方法执行时间，如果同步调用客户端会等的时间比较久；并且这个业务客户端只要看见自己的请求成功了就行。</p>
+</blockquote>
+<h2 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h2><p>​			先删除数据库中的记录，然后用异步线程调用工作流项目的方法，删除会议对应的工作流实例</p>
+<h1 id="会议审批"><a href="#会议审批" class="headerlink" title="会议审批"></a>会议审批</h1><h2 id="查询待审批任务"><a href="#查询待审批任务" class="headerlink" title="查询待审批任务"></a>查询待审批任务</h2><p>​		前端 –&gt;controller  –&gt; service  [发起http请求，调用workflow方法] – &gt;workflow</p>
+<p>​		前端 &lt;–controller  &lt;– service   [工作流项目返回数据]&lt;– workflow</p>
+<h2 id="查询bpmn流程图"><a href="#查询bpmn流程图" class="headerlink" title="查询bpmn流程图"></a>查询bpmn流程图</h2><p>​		前端 –&gt; controller [发起http请求] –&gt; workflow </p>
+<p>​		前端 &lt;– controller  &lt;– workflow【IO流对拷】 </p>
+<p>controller层发起http请求，用IO流拷贝，直接将workflow返回的响应拷贝到controller方法的响应体中;</p>
+<p>可以免得在emos-api项目上保存bpmn图片;</p>
+<h2 id="执行审批"><a href="#执行审批" class="headerlink" title="执行审批"></a>执行审批</h2><p>调用workflow项目的方法就可以了；</p>
+<p>具体流程：1. 先看申请者是不是总经理，是总经理就不用审批了，直接通过；</p>
+<p>​				2.不是总经理，先要部门经历审批；</p>
+<p>​			3.部门经理审批过后，总经理再审批。</p>
+<blockquote>
+<p>申请创建的时候，工作流项目会开启一个定时器，如果会议开始的时候申请还没通过，就自动关闭工作流实例</p>
+</blockquote>
+<h1 id="在线视频会议"><a href="#在线视频会议" class="headerlink" title="在线视频会议"></a>在线视频会议</h1><p>使用的是腾讯云的TRTC服务，用TRTC提供的appid和密钥来使用这个服务；</p>
+<p>后端主要代码主要是:</p>
+<ol>
+<li>生成用户签名：前端创建trtc_client对象，需要appid, userId和签名，签名根据appid,userId和密钥生成，密钥必须保存在后端，因此后端生成签名，传给前端，前端好生成TrtcClient对象；</li>
+</ol>
+<blockquote>
+<p>签名生成算法，Trtc服务有官方文档，提供了工具类。</p>
+</blockquote>
+<ol start="2">
+<li>查询redis中的roomId（线上会议号）：前端创建好了trtcClient对象，需要roomId来，才能进入相关会议室；roomId由workflow项目在会议开始前20分钟生成，并缓存到redis；</li>
+<li>查询参会人信息</li>
+<li>执行签到</li>
+</ol>
+<p>订阅远端视频流，推送本地视频流，这些代码主要是在前端。</p>
+<h1 id="罚款模块"><a href="#罚款模块" class="headerlink" title="罚款模块"></a>罚款模块</h1><h2 id="查询罚款分页"><a href="#查询罚款分页" class="headerlink" title="查询罚款分页"></a>查询罚款分页</h2><p>​		分页查询，默认只能查询自己的；有相关权限可以查看所有的；</p>
+<p>​	怎么实现？写动态sql，如果有权限，where中的userId就不传入；没权限就传入UserId，userId在redis中，拿出来就好了；</p>
+<h2 id="新增罚款记录"><a href="#新增罚款记录" class="headerlink" title="新增罚款记录"></a>新增罚款记录</h2><p>罚款记录来源：1.如果会议没有及时签到，在会议结束的时候，工作流项目就会自动生成罚款记录，添加到数据库；</p>
+<p>​					2.可以手动添加罚款记录</p>
+<h2 id="修改罚款记录"><a href="#修改罚款记录" class="headerlink" title="修改罚款记录"></a>修改罚款记录</h2><h2 id="删除罚款记录"><a href="#删除罚款记录" class="headerlink" title="删除罚款记录"></a>删除罚款记录</h2><h2 id="微信支付"><a href="#微信支付" class="headerlink" title="微信支付"></a>微信支付</h2><blockquote>
+<p>商品订单（罚款单）：需要一个全局唯一的id，这里用的uuid；</p>
+<p>支付订单：后端项目向微信平台请求得到的支付订单，也有一个全局唯一的Id</p>
+</blockquote>
+<h3 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h3><ol>
+<li>生成支付订单；</li>
+<li>用户拿手机扫码支付；</li>
+<li>接收付款通知；（后端、支付的用户手机）</li>
+<li>后端向前端推送付款消息；</li>
+<li>提供主动查询付款状态的功能</li>
+</ol>
+<h3 id="支付订单生成"><a href="#支付订单生成" class="headerlink" title="支付订单生成"></a>支付订单生成</h3><ul>
+<li><p>前端项目ajax请求后端项目，  后端项目拿着<strong>罚款单</strong>，向微信支付平台发起http请求创建<strong>支付订单</strong>，后端拿到支付订单，生成QRcode，返回给前端。</p>
+</li>
+<li><p>由于微信支付平台不信任前端（用户），因为不能识别用户信息，不能让用户随意创建支付订单；</p>
+</li>
+<li><p>而后端项目请求支付订单，要携带者商家信息，做违法乱纪的事能查到。</p>
+</li>
+</ul>
+<blockquote>
+<p>后端系统调用微信支付api创建订单，需要验证企业商户身份，要上传工商登记证明；亲戚借的。。。</p>
+<p>调用微信支付api，需要密钥和数字证书</p>
+</blockquote>
+<h4 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h4><ol>
+<li>使用微信支付官方提供的工具类，创建支付订单；</li>
+<li>拿出响应中的codeUrl，生成二维码，然后用base64进行编码，返回给前端；</li>
+</ol>
+<h3 id="用户支付"><a href="#用户支付" class="headerlink" title="用户支付"></a>用户支付</h3><ul>
+<li><p>用户，后端系统（商家系统）和支付平台，三方互相不信任；</p>
+</li>
+<li><p>用户，看到了浏览器上的支付订单二维码，扫描，支付之前要向微信平台发起请求，查询订单信息，看一下金额，订单信息，防止后端系统申请支付订单时更改了支付金额；</p>
+</li>
+<li><p>用户核对确认之后，就可以输入密码，扣款了；</p>
+</li>
+<li><p>微信平台扣款之后，将通知发送给 后端系统（商户系统） 和 用户（扫二维码的手机）</p>
+</li>
+</ul>
+<h3 id="后端接收付款结果"><a href="#后端接收付款结果" class="headerlink" title="后端接收付款结果"></a>后端接收付款结果</h3><ol>
+<li>编写回调方法，用于微信平台通知付款结果；</li>
+<li>微信平台付款通知的request中是XML格式的数据，通过字符流Reader读，是String格式的XML；通过工具类，将XML转换成map，便于提取数据；</li>
+<li>通过工具类，验证一下数字证书的有效性，再验证一下通信状态码和业务状态码，没问题后更新数据库中的支付状态；</li>
+<li>通过websocket<strong>向浏览器推送</strong>支付成功的消息；</li>
+<li>后端还要在response中返回确认消息，表示后端接收到了支付成功通知；response通过writer字符流写入XML格式数据。</li>
+</ol>
+<h3 id="后端推送付款结果给前端"><a href="#后端推送付款结果给前端" class="headerlink" title="后端推送付款结果给前端"></a>后端推送付款结果给前端</h3><ol>
+<li><p>前端通过定时器，轮询的发起ajax请求，查询后端中订单是否支付成功，如果支付成功，则返回支付成功的响应，就隐藏支付二维码，弹出支付成功的提示消息。</p>
+<blockquote>
+<p>缺点就是给后端系统和数据库的负载增大。</p>
+</blockquote>
+</li>
+<li><p>使用websocket长连接，服务端将websocket连接缓存起来，服务端可以主动给浏览器推送消息。websocket设置过期时间，防止长时间占用网络带宽。</p>
+</li>
+</ol>
+<h4 id="SpringBoot整合websocket"><a href="#SpringBoot整合websocket" class="headerlink" title="SpringBoot整合websocket"></a>SpringBoot整合websocket</h4><ul>
+<li><p>websocket是长连接协议，它发送请求是不能携带cookie或者LocalSession，前端要字节写代码，发送userId；</p>
+</li>
+<li><p>后端也不能通过SaToken直接从redis拿出userId，要自己拿出userId；</p>
+</li>
+<li><p>springboot配置websocket：</p>
+<ol>
+<li><p>写配置类，开启websocket；</p>
+</li>
+<li><p>声明websocket的生命周期函数，特别是onMessage()，接收前端消息的函数，要先判断消息类型，如果是”ping”操作，表示是一个心跳检测，用于维持websocket连接；如果是其他业务操作，则执行响应的业务操作。</p>
+</li>
+<li><p>前端发起websocket的请求时，后端会创建相应的session对象，后端要将session缓存起来，等想推送消息的时候，拿出来用；项目中用一个全局的静态Map来缓存session对象，由于是全局的，所以涉及到线程安全问题，因此采用的是ConcurrentHashMap。key是userId，value是session对象。</p>
+</li>
+<li><p>onClose()方法，在连接关闭的时候，清除session的缓存。</p>
+</li>
+<li><p>websocket连接有过期时间60s，过期自动销毁；要想保持连接，前端要定时发送心跳检测，以保持连接。</p>
+</li>
+</ol>
+</li>
+</ul>
+<h3 id="主动查询付款结果"><a href="#主动查询付款结果" class="headerlink" title="主动查询付款结果"></a>主动查询付款结果</h3><p>  ​		如果微信支付平台扣款成功了，但是可能网络原因，后端系统和用户手机都没收到通知，怎么办？</p>
+<pre><code>  这里用一个方法，浏览器点击查询支付状态按钮，发起ajax请求，后端系统主动向支付平台查询支付状态，如果支付成功了，支付平台就再发送一次通知；并且后端如果收到通知后，会刷新页面，用户就能看到支付结果了。
+</code></pre>
+<blockquote>
+<p>如果用户手机没弹出支付成功消息，但是后端系统收到了消息，并且已经在浏览器弹出了提醒，那么手机上也没必要再收到消息了。</p>
+</blockquote>
+<h1 id="请假模块"><a href="#请假模块" class="headerlink" title="请假模块"></a>请假模块</h1><ol>
+<li><p>查询</p>
+</li>
+<li><p>新增（异步调用工作流，生成对应工作流实例）</p>
+</li>
+<li><p>修改：请假申请没有修改，不想要直接删除</p>
+</li>
+<li><p>删除：删除数据库记录，然后异步调用删除工作流实例</p>
+</li>
+</ol>
+<ul>
+<li>生成请假单：后端查询数据，前端表格排版，保存成pdf；用户打印pdf，找老板签字；</li>
+<li>请假单签好字给HR，归档，调用腾讯云存储cos给的api，上传照片</li>
+</ul>
+<h1 id="报销模块"><a href="#报销模块" class="headerlink" title="报销模块"></a>报销模块</h1><ol>
+<li>查询</li>
+<li>新增：（异步调用工作流，生成对应工作流实例）</li>
+<li>修改：没有修改，不想要直接删除</li>
+<li>删除：删除数据库记录，然后删除工作流实例</li>
+</ol>
+<ul>
+<li><p>生成报销单：后端查询数据，前端表格排版，保存成pdf；用户打印pdf，找老板签字；</p>
+</li>
+<li><p>报销单</p>
+</li>
+</ul>
+<h1 id="审批模块"><a href="#审批模块" class="headerlink" title="审批模块"></a>审批模块</h1><ul>
+<li>调用工作流项目接口，实现会议申请、请假申请、报销申请的流程状态查询及审批</li>
+<li>查询：1分页查询；2每条记录的内容查询；3.bpmn查询：调用workflow接口获取bpmn图形，IO流拷贝到前端</li>
+<li>审批：调用workflow接口</li>
+</ul>
+<h1 id="项目部署"><a href="#项目部署" class="headerlink" title="项目部署"></a>项目部署</h1><h2 id="云主机与域名"><a href="#云主机与域名" class="headerlink" title="云主机与域名"></a>云主机与域名</h2><h2 id="docker"><a href="#docker" class="headerlink" title="docker"></a>docker</h2><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h2 id="项目部署-1"><a href="#项目部署-1" class="headerlink" title="项目部署"></a>项目部署</h2><h3 id="开放端口"><a href="#开放端口" class="headerlink" title="开放端口"></a>开放端口</h3><p>不仅要在腾讯云工作台的防火墙开放端口，还要在linux主机firewalld自己配置开放端口。</p>
+<h2 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h2><ul>
+<li>文件目录映射到宿主机，保证数据持久化</li>
+</ul>
+<h3 id="前端"><a href="#前端" class="headerlink" title="前端"></a>前端</h3><ul>
+<li>npm run build 打包前端项目</li>
+<li>运行nginx镜像 文件目录映射到宿主机</li>
+<li>把前端项目放到nginx root目录，解压缩</li>
+</ul>
+<h3 id="后端"><a href="#后端" class="headerlink" title="后端"></a>后端</h3><ul>
+<li>运行jdk镜像，-itd交互式</li>
+<li>映射主机目录，上传jar包</li>
+<li>进入容器 命令行模式</li>
+<li>然后运行java项目  java -jar</li>
+<li>输出日志</li>
+</ul>
+<h1 id="最难的一个SQL？"><a href="#最难的一个SQL？" class="headerlink" title="最难的一个SQL？"></a>最难的一个SQL？</h1><p>查询会议分页数据</p>
+<p>有一个业务是，用甘特图显示各个会议室的会议数据，所以要把一个会议室下的多条会议记录都合并起来；</p>
+<ol>
+<li>把每条会议记录的各个字段，合并成jsonObject形式；</li>
+<li>然后对同一个会议室place中的每个记录用group_concat合并起来；</li>
+<li>最后还要将会议信息和会议室信息关联起来，再表关联一下；</li>
+<li>其中还要涉及条件筛选，timestampdiff, concat等函数。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/08/17%E5%85%AB%E8%82%A1_Docker/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -406,7 +739,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-07 15:31:02" itemprop="dateModified" datetime="2023-06-07T15:31:02+08:00">2023-06-07</time>
+                <time title="修改时间：2023-06-11 14:03:20" itemprop="dateModified" datetime="2023-06-11T14:03:20+08:00">2023-06-11</time>
               </span>
 
           <br>
@@ -415,14 +748,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.7k</span>
+              <span>4.1k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
+              <span>4 分钟</span>
             </span>
 
         </div>
@@ -682,7 +1015,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-07 15:29:37" itemprop="dateModified" datetime="2023-06-07T15:29:37+08:00">2023-06-07</time>
+                <time title="修改时间：2023-06-12 11:57:49" itemprop="dateModified" datetime="2023-06-12T11:57:49+08:00">2023-06-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -700,14 +1033,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.5k</span>
+              <span>2.8k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
+              <span>3 分钟</span>
             </span>
 
         </div>
@@ -1047,105 +1380,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/02/08/13%E5%85%AB%E8%82%A1_Redis_mongoDB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/naruto.jpg">
-      <meta itemprop="name" content="Wei">
-      <meta itemprop="description" content="张弛有度，沉浮于心">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Wei's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2023/02/08/13%E5%85%AB%E8%82%A1_Redis_mongoDB/" class="post-title-link" itemprop="url">Redis</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2023-02-08 09:01:05" itemprop="dateCreated datePublished" datetime="2023-02-08T09:01:05+08:00">2023-02-08</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-07 15:29:55" itemprop="dateModified" datetime="2023-06-07T15:29:55+08:00">2023-06-07</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Redis基础概念"><a href="#Redis基础概念" class="headerlink" title="Redis基础概念"></a>Redis基础概念</h1><p>Redis是一种基于内存的数据库，读写速度快，常用于缓存；他是非关系型数据库nosql，数据采用键值对关系存储。</p>
-<p>采用NIO的IO多路复用模型。默认一共有16个库。redis服务进程是单线程的。</p>
-<blockquote>
-<p>关系型数据库:像mysql数据库，表中的每条记录都有字段关系的约束。</p>
-</blockquote>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/02/08/13%E5%85%AB%E8%82%A1_Redis_mongoDB/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1217,7 +1451,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-count">18</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1277,13 +1511,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">77k</span>
+    <span title="站点总字数">85k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">1:10</span>
+    <span title="站点阅读时长">1:18</span>
 </div>
 
         
