@@ -114,120 +114,6 @@
       </tags>
   </entry>
   <entry>
-    <title>IO模型</title>
-    <url>/2023/03/02/10%E5%85%AB%E8%82%A1_IO/</url>
-    <content><![CDATA[<h1 id="IO概念"><a href="#IO概念" class="headerlink" title="IO概念"></a>IO概念</h1><p>I&#x2F;O就是输入输出，指的是计算机内存空间与外部设备之间的通信过程。</p>
-<p>常见的IO通信：磁盘IO[内存与磁盘],   网络IO[内存与网卡]</p>
-<p>操作系统的内存空间分为：内核空间和用户空间。内核空间独立于用户进程，为操作系统内核所属。</p>
-<p>涉及到资源有关的操作（如内存管理，文件管理，进程调度等）要在内核空间执行，用户进程无法访问内核空间，因此用户程序要想IO操作时，需要发起IO操作的系统调用，由操作系统内核来执行具体的IO操作。</p>
-<span id="more"></span>
-
-<img src="https://github.com/WayV5/imgs/blob/main/IO/p2.png?raw=true" alt="p2.png" style="zoom: 50%;" />
-
-<h1 id="IO-模型"><a href="#IO-模型" class="headerlink" title="IO 模型"></a>IO 模型</h1><p>UNIX 系统下， IO 模型一共有 5 种：<strong>同步阻塞 I&#x2F;O</strong>、<strong>同步非阻塞 I&#x2F;O</strong>、<strong>I&#x2F;O 多路复用</strong>、<strong>信号驱动 I&#x2F;O</strong> 和<strong>异步 I&#x2F;O</strong>。</p>
-<blockquote>
-<p>同步&#x2F;异步：在操作系统角度看，是看数据在系统内核在准备就绪之后，往用户空间拷贝的时候，用户进行是否要等待。</p>
-<p>阻塞&#x2F;非阻塞：看用户进程发起系统调用后，是否需要一直阻塞等待到数据传输完成。</p>
-</blockquote>
-<p>用户进程进行网络IO需要经过以下步骤：</p>
-<ol>
-<li>用户进程向操作系统发起IO系统调用；</li>
-<li>操作系统内核将网卡数据读取到内核缓冲区；</li>
-<li>内核缓冲区的数据拷贝到用户缓冲区。</li>
-</ol>
-<img src="https://mmbiz.qpic.cn/mmbiz_png/bdCFacfMslh5ztLkXZ5fVqN6amgPdVfFibGEyfeWKsQz0PnouU1YTdKpVoUMVVSoIC7a7r3xKsYB2XgAPZgZ2QA/640?wx_fmt=png&wxfrom=13&tp=wxpic" alt="图片" style="zoom:67%;" />
-图片来源：微信公众号“阿斌Java之路”
-
-
-
-<h2 id="两种套接字Socket"><a href="#两种套接字Socket" class="headerlink" title="两种套接字Socket"></a>两种套接字Socket</h2><ul>
-<li>监听套接字：用于监听客户端发起TCP连接，并在三次握手成功后，生成一个连接套接字；</li>
-<li>连接(通讯)套接字：用于TCP连接成功后的通讯；</li>
-</ul>
-<h2 id="TCP连接过程"><a href="#TCP连接过程" class="headerlink" title="TCP连接过程"></a>TCP连接过程</h2><ul>
-<li><p>用户程序中的监听线程调用socket()函数（这里提到的函数都是系统调用）创建一个监听套接字，bind()函数为其绑定 &lt;地址+端口&gt;（如本机的80端口），listen()函数监听该套接字，是其成为处理tcp连接的窗口；</p>
-</li>
-<li><p>客户端通过connect()发起tcp连接，connect()之前自己也要socket()创建一个监听套接字</p>
-</li>
-<li><p>当三次握手成功，连接会进入连接已完成队列；监听线程通过accept()函数从连接已完成队列取数据，生成通讯socket，并生成fd进行绑定，工作者进程用来进行通讯。BIO的accept()是阻塞的，连接已完成队列有数据才会返回，tcp连接这个过程是在操作系统内核进行的，阻塞的也是操作系统内核。</p>
-<p><img src="https://github.com/WayV5/imgs/blob/main/IO/p4.png?raw=true" alt="p4.png"></p>
-<p>感谢大佬 : <a href="https://www.cnblogs.com/f-ck-need-u/p/7623252.html">https://www.cnblogs.com/f-ck-need-u/p/7623252.html</a></p>
-</li>
-</ul>
-<h1 id="BIO-Blocking-I-x2F-O-同步阻塞I-x2F-O"><a href="#BIO-Blocking-I-x2F-O-同步阻塞I-x2F-O" class="headerlink" title="BIO (Blocking I&#x2F;O) 同步阻塞I&#x2F;O"></a>BIO (Blocking I&#x2F;O) 同步阻塞I&#x2F;O</h1><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6a9e704af49b4380bb686f0c96d33b81~tplv-k3u1fbpfcp-watermark.image" alt="图源：《深入拆解Tomcat & Jetty》" style="zoom: 67%;" />
-
-<ul>
-<li>监视线程调用”监听socket”的accept()来阻塞的监听tcp连接，当有tcp连接时，accept()返回生成一个通讯socket；</li>
-<li>这时立刻由一个用户工作线程对其发起recv系统调用（也可能监视线程也是工作线程），去请求recv()读取数据，即使内核区数据没准备好也会一直阻塞，直到内核将数据拷贝到用户空间才返回。</li>
-</ul>
-<p>此时用户线程阻塞，一个线程只能处理一个请求；因此每监听到一个用户连接，就要生成一个新的工作线程去执行。</p>
-<p>所以一个服务端线程只能同时处理一个请求，面对大量连接时，只能创建多个线程，开销很大。</p>
-<blockquote>
-<p>优点：当数据没准备好，用户线程让出CPU，进入休眠；等到数据拷贝好了，再通过中断唤醒用户线程。</p>
-</blockquote>
-<blockquote>
-<p>缺点：对于单个线程，面对多个请求时，前面的阻塞，后面的也会阻塞，效率低，适合并发量低的场景。</p>
-</blockquote>
-<h1 id="同步非阻塞IO"><a href="#同步非阻塞IO" class="headerlink" title="同步非阻塞IO"></a>同步非阻塞IO</h1><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bb174e22dbe04bb79fe3fc126aed0c61~tplv-k3u1fbpfcp-watermark.image" alt="图源：《深入拆解Tomcat & Jetty》" style="zoom: 67%;" />
-
-<ul>
-<li>通过CPU忙轮询方式来实现非阻塞，每次轮询做两件事情：</li>
-</ul>
-<ol>
-<li>非阻塞的调用 “监听socket” 的accept()方法 ,如果accept()方法返回了结果，就是有新的连接，那就将accept()返回的通讯socket加入到集合中去；在操作系统层面就是将fd加入到fds；</li>
-<li>遍历通讯socket集合，对每个连接都执行一次recv系统调用，内核区准备好数据就直接拷贝（阻塞），没准备好就返回一个错误状态信息；</li>
-</ol>
-<blockquote>
-<p>优点：避免用户线程阻塞，一个线程能同时处理多个请求；</p>
-</blockquote>
-<blockquote>
-<p>缺点：每次都轮询所有的fd，即使没有发生IO，也会进行recv系统调用，发生多次用户态到核心态的转换，十分浪费CPU资源。</p>
-</blockquote>
-<h1 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h1><blockquote>
-<p>java中的NIO(Non-blocking&#x2F;New I&#x2F;O) 是IO多路复用模型</p>
-</blockquote>
-<img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/88ff862764024c3b8567367df11df6ab~tplv-k3u1fbpfcp-watermark.image" alt="img" style="zoom:67%;" />
-
-<ul>
-<li><p>使用单个线程作为selector监听多个客户端连接，当有一个新的tcp连接过来，就会将对应的socket注册，绑定在一个socketChannel上；在操作系统层面，会生成一个文件描述符fd，并加入到fds中；</p>
-</li>
-<li><p>selector线程发起select&#x2F;poll&#x2F;epoll系统调用，会进入阻塞，让操作系统内核去检查fds中是否有某个连接想要的数据在内核准备就绪了，如果有会返回，然后再调用recv去拷贝相应fd对应的内核数据到用户空间；</p>
-</li>
-<li><p>IO多路复用模型中，selector不仅可以监听’通讯socket’, 还可以监听 ‘监听socket’, 它能够注册多种事件（connect, accept, send, recv）；</p>
-</li>
-<li><p>检查到监听socket的Channel有ACCEPT事件，可以accept()出通讯socket了，同时注册到一个新的socketChannel上，并注册READ事件；这样客户端发送数据，就可以出发read事件了，同时在selector上注册该socketChannel的WRITE事件，实现服务器往客户端写数据。</p>
-</li>
-</ul>
-<h2 id="select-x2F-poll-x2F-epoll的区别"><a href="#select-x2F-poll-x2F-epoll的区别" class="headerlink" title="select&#x2F;poll&#x2F;epoll的区别"></a>select&#x2F;poll&#x2F;epoll的区别</h2><ul>
-<li><p>select的文件描述符集合fds是通过数组方式实现的，数组大小默认1024，有上限；</p>
-</li>
-<li><p>1先将fds从用户空间拷贝到内核空间；2内核去遍历判断是否有socket数据准备就绪，更改状态；3将fds从内核空间拷贝到用户空间；4用户线程遍历fds状态。   要两次拷贝，两次遍历。</p>
-</li>
-<li><p>poll和select的区别就是poll的文件描述符集合fds是通过链表实现的，没有上限，当然会受制于操作系统文件描述符上限；select和poll都需要线性遍历，时间复杂度O（n）;</p>
-</li>
-</ul>
-<blockquote>
-<p>select和poll都是通过系统内核轮询检查的，但是只进行一次系统调用；但是同步阻塞IO是用户空间轮询的，多次系统调用，多次用户态和内核态之间的转换，浪费CPU资源；</p>
-</blockquote>
-<ul>
-<li><p>epoll内核会创建红黑树存储事件，通过事件和回调机制，只会返回有事件发生的文件描述符，</p>
-</li>
-<li><p>时间复杂度O（1）；epoll通过内核和 ⽤户空间共享⼀块内存来实现的，无需select的两次拷贝。</p>
-</li>
-<li><p>epoll是Linux特有的，而select是所有操作系统都有的。</p>
-</li>
-</ul>
-<h1 id="AIO-Asynchronous-I-x2F-O"><a href="#AIO-Asynchronous-I-x2F-O" class="headerlink" title="AIO (Asynchronous I&#x2F;O)"></a>AIO (Asynchronous I&#x2F;O)</h1><p>异步IO基于事件和回调机制，应用进程发起系统调用后，会直接得到返回结果，等系统内核从内核空间向用户空间拷贝好之后，再通知用户进程。</p>
-<p>目前来说 AIO 的应用还不是很广泛。Netty 之前也尝试使用过 AIO，不过又放弃了。这是因为，Netty 使用了 AIO 之后，在 Linux 系统上的性能并没有多少提升。</p>
-]]></content>
-      <categories>
-        <category>IO</category>
-      </categories>
-      <tags>
-        <tag>IO模型</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>排序算法</title>
     <url>/2023/03/06/11%E5%85%AB%E8%82%A1_%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</url>
     <content><![CDATA[<h1 id="经典排序算法的性能"><a href="#经典排序算法的性能" class="headerlink" title="经典排序算法的性能"></a>经典排序算法的性能</h1><p><img src="https://github.com/WayV5/imgs/blob/main/%E6%8E%92%E5%BA%8F/p1.png?raw=true" alt="十大排序算法"></p>
@@ -284,217 +170,115 @@
       </tags>
   </entry>
   <entry>
-    <title>Java集合</title>
-    <url>/2022/12/30/14%E5%85%AB%E8%82%A1_%E9%9B%86%E5%90%88/</url>
-    <content><![CDATA[<h1 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a>ArrayList</h1><p>ArrayList基于动态数组实现，当使用无参构造函数创建一个ArrayList对象时，初始化一个空数组，当第一次往里面add值得时候，数组扩容为10，之后每次当容量满的时候，扩容为原来的1.5倍。扩容时先创建一个新容量的数组，然后将原数据拷贝过去。</p>
+    <title>IO模型</title>
+    <url>/2023/03/02/10%E5%85%AB%E8%82%A1_IO/</url>
+    <content><![CDATA[<h1 id="IO概念"><a href="#IO概念" class="headerlink" title="IO概念"></a>IO概念</h1><p>I&#x2F;O就是输入输出，指的是计算机内存空间与外部设备之间的通信过程。</p>
+<p>常见的IO通信：磁盘IO[内存与磁盘],   网络IO[内存与网卡]</p>
+<p>操作系统的内存空间分为：内核空间和用户空间。内核空间独立于用户进程，为操作系统内核所属。</p>
+<p>涉及到资源有关的操作（如内存管理，文件管理，进程调度等）要在内核空间执行，用户进程无法访问内核空间，因此用户程序要想IO操作时，需要发起IO操作的系统调用，由操作系统内核来执行具体的IO操作。</p>
 <span id="more"></span>
 
-<h1 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h1><p>在JDK1.8之前，基于<strong>数组</strong>+<strong>链表</strong>实现，JDK1.8之后，基于<strong>数组</strong>+链表+<strong>红黑树</strong>；</p>
-<h2 id="寻址算法"><a href="#寻址算法" class="headerlink" title="寻址算法"></a>寻址算法</h2><p>HashMap时根据key对象的hashCode进行散列的，首先要对key对象的hashCode进行一个扰动函数处理，扰动函数的目的是散列效果更好，减小哈希冲突。</p>
+<img src="https://github.com/WayV5/imgs/blob/main/IO/p2.png?raw=true" alt="p2.png" style="zoom: 50%;" />
+
+<h1 id="IO-模型"><a href="#IO-模型" class="headerlink" title="IO 模型"></a>IO 模型</h1><p>UNIX 系统下， IO 模型一共有 5 种：<strong>同步阻塞 I&#x2F;O</strong>、<strong>同步非阻塞 I&#x2F;O</strong>、<strong>I&#x2F;O 多路复用</strong>、<strong>信号驱动 I&#x2F;O</strong> 和<strong>异步 I&#x2F;O</strong>。</p>
 <blockquote>
-<p>JDK1.8的扰动函数hash()      (h &#x3D; key.hashCode()) ^ (h &gt;&gt;&gt; 16)</p>
-<p>将hashCode有符号右移16位，然后和原来的hashCode异或，得到哈希值</p>
+<p>同步&#x2F;异步：在操作系统角度看，是看数据在系统内核在准备就绪之后，往用户空间拷贝的时候，用户进行是否要等待。</p>
+<p>阻塞&#x2F;非阻塞：看用户进程发起系统调用后，是否需要一直阻塞等待到数据传输完成。</p>
 </blockquote>
-<p>寻址： hash &amp; (n - 1)  n位数组长度</p>
-<h2 id="为什么HashMap的数组长度要是2的整数次方？"><a href="#为什么HashMap的数组长度要是2的整数次方？" class="headerlink" title="为什么HashMap的数组长度要是2的整数次方？"></a>为什么HashMap的数组长度要是2的整数次方？</h2><p>这要从HashMap的寻址算法说起了，寻址的思想就是对key的哈希值对数组长度进行取模运算，但是计算机取模运算速度比较慢，因此HashMap用与运算来代替取模，采用hash &amp; (n - 1)的方式进行寻址，提高计算速度。</p>
-<p> 这样计算的原理是：n是2的次方，那么n-1的二进制表示就都是1，和哈希值相与的话，比n大的二进制位就都变成了0，其效果和取模运算是相同的；如果数组长度不是2的整数次方，还使用这种寻址方式的话，那么n-1低位就不都是1了，与运算得到的散列效果就不会连续的了，哈希冲突概率提高。</p>
-<h2 id="HashMap如何解决哈希冲突"><a href="#HashMap如何解决哈希冲突" class="headerlink" title="HashMap如何解决哈希冲突"></a>HashMap如何解决哈希冲突</h2><p>HashMap通过拉链法解决哈希冲突，如果有key寻址到数组的相同位置，那么就通过链表的方式存储后添加进来的元素。JDK1.8之前采用头插法，之后采用尾插法。</p>
-<p>当链表长度大于转换阈值（默认是8）的时候，如果数组长度＞64，会优先进行扩容，如果数组长度≥64，链表会转化成红黑树；如果红黑树的节点数≤6，红黑树会退化成链表。</p>
-<h2 id="HashMap的扩容机制"><a href="#HashMap的扩容机制" class="headerlink" title="HashMap的扩容机制"></a>HashMap的扩容机制</h2><p>通过无参构造函数new一个HashMap对象时，会创建一个空的数组，第一次put值的时候，初始化一个长度为16的数组。</p>
-<p>当HashMap中的<strong>节点数量</strong>（k-v数量）＞数组长度<em>负载因子（默认为0.75）时（初始为16</em> x 0.75 &#x3D; 12），数组容量扩容为原来的2倍，并进行resize()，扩容时会创建新的数组，并对原有的链表和红黑树结构的元素数据进行重新哈希分配rehash</p>
-<h2 id="为什么链表到红黑树的转化因子是8？"><a href="#为什么链表到红黑树的转化因子是8？" class="headerlink" title="为什么链表到红黑树的转化因子是8？"></a>为什么链表到红黑树的转化因子是8？</h2><p>在理想条件下，使用随机hashCode进行寻址，每个节点在桶中出现的概率是遵循泊松分布的，当我们的负载因子选用0.75时，一个桶中出现链表长度大于8的概率不超过千万分之一。</p>
-<h2 id="为什么要引入红黑树"><a href="#为什么要引入红黑树" class="headerlink" title="为什么要引入红黑树"></a>为什么要引入红黑树</h2><p>因为链表的搜索时间复杂度时O（n），当链表长度过长时，搜索效率大大降低；红黑树是log(n)，但是红黑树的空间占用大（链表的2倍）；因此在节点数较少时，红黑树的搜索时间复杂度并不比链表高多少，采用链表，当节点数多时才转换成红黑树。</p>
-<blockquote>
-<p>红黑树：自动平衡，自动排序。</p>
-</blockquote>
-<h2 id="HashMap的遍历方式"><a href="#HashMap的遍历方式" class="headerlink" title="HashMap的遍历方式"></a>HashMap的遍历方式</h2><h3 id="Iterator迭代器—EntrySet"><a href="#Iterator迭代器—EntrySet" class="headerlink" title="Iterator迭代器—EntrySet"></a>Iterator迭代器—EntrySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Iterator&lt;Map.Entry&lt;Integer, Integer&gt;&gt; it = map.entrySet().iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">	Map.Entry&lt;Integer, Integer&gt; entry = it.next();</span><br><span class="line">	<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> entry.getKey();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Iterator迭代器—KeySet"><a href="#Iterator迭代器—KeySet" class="headerlink" title="Iterator迭代器—KeySet"></a>Iterator迭代器—KeySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Iterator&lt;Integer&gt; it = map.keySet().iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">	<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> it.next();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> map.get(k);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Foreach—EntrySet"><a href="#Foreach—EntrySet" class="headerlink" title="Foreach—EntrySet"></a>Foreach—EntrySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (Map.Entry&lt;Integer, Integer&gt; entry : map.entrySet()) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> entry.getKey();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Foreach—KeySet"><a href="#Foreach—KeySet" class="headerlink" title="Foreach—KeySet"></a>Foreach—KeySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (Integer key : map.keySet()) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> map.get(key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Lambda"><a href="#Lambda" class="headerlink" title="Lambda"></a>Lambda</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.forEach((k, v) -&gt; &#123;</span><br><span class="line">    System.out.println(k);</span><br><span class="line">    System.out.println(v);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Streams-API-单线程"><a href="#Streams-API-单线程" class="headerlink" title="Streams API 单线程"></a>Streams API 单线程</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.entrySet().stream().forEach((entry) -&gt; &#123;</span><br><span class="line">    System.out.println(entry.getKey());</span><br><span class="line">    System.out.println(entry.getValue());</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="Streams-API-多线程"><a href="#Streams-API-多线程" class="headerlink" title="Streams API 多线程"></a>Streams API 多线程</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.entrySet().parallelStream().forEach((entry) -&gt; &#123;</span><br><span class="line">    System.out.println(entry.getKey());</span><br><span class="line">    System.out.println(entry.getValue());</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="速度比较"><a href="#速度比较" class="headerlink" title="速度比较"></a>速度比较</h3><p>1.迭代器EntrySet 2.foreach EntrySet 3.foreach KeySey 4. 迭代器KeySet 5.Lambda 6.Streams API</p>
-<p><strong><code>entrySet</code> 的性能比 <code>keySet</code> 的性能高出了一倍之多，因此我们应该尽量使用 <code>entrySet</code> 来实现 Map 集合的遍历</strong>。</p>
-<h3 id="安全性问题"><a href="#安全性问题" class="headerlink" title="安全性问题"></a>安全性问题</h3><p>不能在遍历map时，通过map.remove()方法来删除元素，这是不安全的操作；但是可以用迭代器，通过迭代器的iterator.remove()来安全的删除元素。</p>
-<p>同样的我们也可以使用 Lambda 中的 <code>removeIf</code> 来提前删除数据，或者是使用 Stream 中的 <code>filter</code> 过滤掉要删除的数据进行循环，这样都是安全的，当然我们也可以在 <code>for</code> 循环前删除数据在遍历也是线程安全的。</p>
-<h1 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h1><p>JDK1.7之前，采用Segment数组 + Entry数组 + 链表实现，segment数组中的一个位置对应一组哈希桶，Segment数组默认容量16，不可扩容，也就是最多支持16个线程并发；</p>
-<blockquote>
-<p>JDK1.7之前，对一组哈希桶；</p>
-</blockquote>
-<p>JDK1.8之后，采用Node数组 + 链表 + 红黑树的方式，对Node数组的node加锁。</p>
-<blockquote>
-<p>JDK1.8之后，锁的粒度更细了，对每个单独的哈希桶加锁，并发量更大。</p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>后端</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Git的一些基本使用命令</title>
-    <url>/2023/06/02/16%E5%85%AB%E8%82%A1_git/</url>
-    <content><![CDATA[<h1 id="第一次-从远端拉取代码"><a href="#第一次-从远端拉取代码" class="headerlink" title="第一次 从远端拉取代码"></a>第一次 从远端拉取代码</h1><p>git clone  远端地址</p>
-<span id="more"></span>
-
-<h1 id="上班改代码之前第一件事情-先拉取代码（更新）"><a href="#上班改代码之前第一件事情-先拉取代码（更新）" class="headerlink" title="上班改代码之前第一件事情 先拉取代码（更新）"></a>上班改代码之前第一件事情 先拉取代码（更新）</h1><p>git pull</p>
-<h1 id="修改自己代码"><a href="#修改自己代码" class="headerlink" title="修改自己代码"></a>修改自己代码</h1><p>  自己改代码，此时项目在本地的文件系统中有变化了。</p>
-<h1 id="提交过程"><a href="#提交过程" class="headerlink" title="提交过程"></a>提交过程</h1><h2 id="查看修改了什么"><a href="#查看修改了什么" class="headerlink" title="查看修改了什么"></a>查看修改了什么</h2><p>git diff</p>
-<h2 id="对修改-x2F-添加了的文件，在git版本库中进行更改"><a href="#对修改-x2F-添加了的文件，在git版本库中进行更改" class="headerlink" title="对修改&#x2F;添加了的文件，在git版本库中进行更改"></a>对修改&#x2F;添加了的文件，在git版本库中进行更改</h2><p>git add .  #点表示所有文件</p>
-<p>git add abc.txt</p>
-<h2 id="对删除了的文件，在git版本库中进行处理"><a href="#对删除了的文件，在git版本库中进行处理" class="headerlink" title="对删除了的文件，在git版本库中进行处理"></a>对删除了的文件，在git版本库中进行处理</h2><p>git rm efg.txt</p>
-<h2 id="创建一个提交"><a href="#创建一个提交" class="headerlink" title="创建一个提交"></a>创建一个提交</h2><p>git commit -m    ‘name’      #”起个commit名字”</p>
-<h2 id="再一次pull"><a href="#再一次pull" class="headerlink" title="再一次pull"></a>再一次pull</h2><p>git pull</p>
-<h2 id="push到远端"><a href="#push到远端" class="headerlink" title="push到远端"></a>push到远端</h2><p>git push -u origin main</p>
-<blockquote>
-<p>一次push能处理多个commit</p>
-</blockquote>
-<h2 id="回滚commit"><a href="#回滚commit" class="headerlink" title="回滚commit"></a>回滚commit</h2><p>git reset </p>
-]]></content>
-      <categories>
-        <category>开发工具</category>
-      </categories>
-      <tags>
-        <tag>Git</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MyBatis在SpringBoot中的使用</title>
-    <url>/2023/02/15/15%E5%85%AB%E8%82%A1_MyBatis/</url>
-    <content><![CDATA[<h1 id="MyBatis"><a href="#MyBatis" class="headerlink" title="MyBatis"></a>MyBatis</h1><p>优秀的持久层框架，对象关系映射，将持久层数据库中的记录的属性，映射到Java的对象上,称为ORM对象关系映射。</p>
-<p>ORM的实现:复杂的多表查询用XML，简单的可以用注解的方式，或者MyBatisPlus</p>
-<span id="more"></span>
-
-<h2 id="XML方式，整个使用流程"><a href="#XML方式，整个使用流程" class="headerlink" title="XML方式，整个使用流程"></a>XML方式，整个使用流程</h2><ol>
-<li><p>一般同一个模块的业务写在一个mapper.xml文件中，xml文件中namespace指定映射的mapper接口，xml文件中每个sql标签的id对应mapper接口的方法;</p>
-</li>
-<li><p>xml文件路径要配置在application.yml文件中，每个mapper接口要中@Mapper注解，表示接口的实现类交给Spring Ioc容器管理，或者在启动类用@MapperScan指定所有mapper接口的路径，就不用每个都写@mapper注解了;</p>
-</li>
-<li><p>然后service层调用mapper接口的方法，就能和持久层交互了;</p>
-</li>
-</ol>
-<h2 id="多条件查询（sql传入参数）"><a href="#多条件查询（sql传入参数）" class="headerlink" title="多条件查询（sql传入参数）"></a>多条件查询（sql传入参数）</h2><p>xml中sql传入的每个参数用#{ } 或者${ }符号传递;</p>
-<blockquote>
-<p>#{ } 是把传入的参数当作字符串处理;</p>
-<p>${ }是通过sql拼接的方式，传入的什么就原封不动的拼接在sql中，所以要注意<strong>sql注入</strong>问题；</p>
-<p>所以：</p>
+<p>用户进程进行网络IO需要经过以下步骤：</p>
 <ol>
-<li>如果传入的<strong>变量的值</strong>，最好用#;</li>
-<li>对于一些特殊的业务，可能要传入一些非变量的部分，比如传入<strong>数据库名</strong>，<strong>表名</strong>之类的，这时候用#不行，因为给表明加引号sql语法就不对了，这时候就要用$符号了。</li>
+<li>用户进程向操作系统发起IO系统调用；</li>
+<li>操作系统内核将网卡数据读取到内核缓冲区；</li>
+<li>内核缓冲区的数据拷贝到用户缓冲区。</li>
 </ol>
-</blockquote>
-<p>三种方式：</p>
-<ol>
-<li>mapper接口方法用@Param标记多个参数名（对应sql中的#{ }）</li>
-<li>用Map传递参数</li>
-<li>用pojo类传递参数</li>
-</ol>
-<p>动态sql：</p>
-<p>一个sql语句不用每次都写的所有参数都要传进来，根据实际传进来的参数，动态变换sql语句。</p>
-<p>常用标签： if, where , foreach</p>
-<h2 id="结果处理（sql返回结果）"><a href="#结果处理（sql返回结果）" class="headerlink" title="结果处理（sql返回结果）"></a>结果处理（sql返回结果）</h2><p>返回的每条记录的接收类型：（xml中的resultType）</p>
-<ol>
-<li><p>用pojo类接收结果</p>
-</li>
-<li><p>用HashMap接收结果</p>
-</li>
-</ol>
-<blockquote>
-<p>a. 对于pojo接收，可以定义一个resultMap，把pojo的属性名和数据库字段名对应；</p>
-<p>b. 用sql中的 as把返回数据规定好属性名规定好</p>
-<p>c.啥也没定义就默认用返回的数据数据的字段首字母小写作为返回数据的属性名。</p>
-</blockquote>
-<p>多条返回记录，mapper接口中的方法返回值类型写  <code>List&lt;HashMap&gt; </code>或者<code>List&lt;Entity&gt;</code></p>
-<p>List<HashMap> getUserByName(String name)</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-      </categories>
-      <tags>
-        <tag>MyBatis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Docker</title>
-    <url>/2023/06/08/17%E5%85%AB%E8%82%A1_Docker/</url>
-    <content><![CDATA[<h1 id="docker概念"><a href="#docker概念" class="headerlink" title="docker概念"></a>docker概念</h1><h2 id="镜像image"><a href="#镜像image" class="headerlink" title="镜像image"></a>镜像image</h2><ul>
-<li>镜像是一种特殊的文件系统，提供了容器运行时所需的资源（程序、库、配置等），不包含动态数据。</li>
-</ul>
-<h2 id="容器container"><a href="#容器container" class="headerlink" title="容器container"></a>容器container</h2><ul>
-<li>镜像运行时的实体。（image — container  相当于 类 — 实例 的关系）<span id="more"></span></li>
-<li><blockquote>
-<p>容器的存储层不应写入任何数据，存储层要保持无状态化；</p>
-<p>所有文件的写入操作，应该用   <strong>数据卷</strong>  或者  <strong>绑定宿主机目录</strong>； 这样容器删除，重启后，数据不会消失；</p>
-</blockquote>
-</li>
-</ul>
-<h2 id="仓库repository"><a href="#仓库repository" class="headerlink" title="仓库repository"></a>仓库repository</h2><ul>
-<li>仓库是主机存放镜像的地方。</li>
-<li>一个linux主机可以有多个仓库，每个仓库的不同标签tag代表不同版本的镜像；</li>
-<li>&lt;仓库名&gt;:&lt;标签&gt;表示一个具体的image；如果不指出标签，默认用latest作为标签tag</li>
-</ul>
-<h1 id="docker的好处"><a href="#docker的好处" class="headerlink" title="docker的好处"></a>docker的好处</h1><ul>
-<li>可以将不同项目打包运行在各自的容器中，隔绝环境；</li>
-<li>镜像可以让项目在任何地方的运行环境是一致的；</li>
-<li>相比于传统虚拟机，docker容器直接使用宿主机的内核，启动速度更快；</li>
-</ul>
-<h1 id="Docker-命令"><a href="#Docker-命令" class="headerlink" title="Docker 命令"></a>Docker 命令</h1><h2 id="镜像操作"><a href="#镜像操作" class="headerlink" title="镜像操作"></a>镜像操作</h2><h3 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h3><p>docker pull &lt;镜像名称&gt;：&lt;版本&gt;</p>
-<h3 id="查看dockerhub远程仓库中镜像"><a href="#查看dockerhub远程仓库中镜像" class="headerlink" title="查看dockerhub远程仓库中镜像"></a>查看dockerhub远程仓库中镜像</h3><p>Docker search &lt;镜像名称&gt;</p>
-<h3 id="查看本地已有镜像"><a href="#查看本地已有镜像" class="headerlink" title="查看本地已有镜像"></a>查看本地已有镜像</h3><p>docker images</p>
-<h3 id="删除镜像"><a href="#删除镜像" class="headerlink" title="删除镜像"></a>删除镜像</h3><p>docker rmi &lt;镜像名&gt;</p>
-<h3 id="创建镜像"><a href="#创建镜像" class="headerlink" title="创建镜像"></a>创建镜像</h3><pre><code>当我们从 docker 镜像仓库中下载的镜像不能满足我们的需求时，我们可以通过以下两种方式对镜像进行更改。
-</code></pre>
-<ol>
-<li>从已经创建的容器中更新镜像，并且提交这个镜像</li>
-<li>使用 Dockerfile 指令来创建一个新的镜像</li>
-</ol>
-<h4 id="更新镜像"><a href="#更新镜像" class="headerlink" title="更新镜像"></a><strong>更新镜像</strong></h4><pre><code>更新镜像之前，我们需要使用镜像来创建一个容器。
+<img src="https://github.com/WayV5/imgs/blob/main/IO/p1.png?raw=true" alt="p1.png" style="zoom:67%;"/>
 
-To be continued
-</code></pre>
-<h2 id="容器操作"><a href="#容器操作" class="headerlink" title="容器操作"></a>容器操作</h2><h3 id="创建一个新的容器并启动该容器"><a href="#创建一个新的容器并启动该容器" class="headerlink" title="创建一个新的容器并启动该容器"></a>创建一个新的容器并启动该容器</h3><p>docker run -itd &lt;Image名称&gt;</p>
-<p>我们通过 docker 的两个参数 -i -t，让 docker 运行的容器实现**”对话”**的能力：</p>
-<ul>
-<li>-t: 在新容器内指定一个伪终端或终端。</li>
-<li>-i: 允许你对容器内的标准输入 (STDIN) 进行交互</li>
-<li>-d: 后台启动</li>
+<p>图片来源：微信公众号“阿斌Java之路”</p>
+<h2 id="两种套接字Socket"><a href="#两种套接字Socket" class="headerlink" title="两种套接字Socket"></a>两种套接字Socket</h2><ul>
+<li>监听套接字：用于监听客户端发起TCP连接，并在三次握手成功后，生成一个连接套接字；</li>
+<li>连接(通讯)套接字：用于TCP连接成功后的通讯；</li>
 </ul>
-<p>docker run -itd –name &lt;给容器起个名字&gt; &lt;Image名称&gt;</p>
-<h3 id="停止容器"><a href="#停止容器" class="headerlink" title="停止容器"></a>停止容器</h3><p>docker stop &lt;容器ID&gt;</p>
-<h3 id="进入容器"><a href="#进入容器" class="headerlink" title="进入容器"></a>进入容器</h3><p>在使用 <strong>-d</strong> 参数时，容器启动后会进入后台。此时想要进入容器，可以通过以下指令进入：</p>
-<ul>
-<li><strong>docker attach</strong></li>
-<li><strong>docker exec</strong>：推荐大家使用 docker exec 命令，因为此命令会退出容器终端，但不会导致容器的停止。</li>
+<h2 id="TCP连接过程"><a href="#TCP连接过程" class="headerlink" title="TCP连接过程"></a>TCP连接过程</h2><ul>
+<li><p>用户程序中的监听线程调用socket()函数（这里提到的函数都是系统调用）创建一个监听套接字，bind()函数为其绑定 &lt;地址+端口&gt;（如本机的80端口），listen()函数监听该套接字，是其成为处理tcp连接的窗口；</p>
+</li>
+<li><p>客户端通过connect()发起tcp连接，connect()之前自己也要socket()创建一个监听套接字</p>
+</li>
+<li><p>当三次握手成功，连接会进入连接已完成队列；监听线程通过accept()函数从连接已完成队列取数据，生成通讯socket，并生成fd进行绑定，工作者进程用来进行通讯。BIO的accept()是阻塞的，连接已完成队列有数据才会返回，tcp连接这个过程是在操作系统内核进行的，阻塞的也是操作系统内核。</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/IO/p4.png?raw=true" alt="p4.png"></p>
+<p>感谢大佬 : <a href="https://www.cnblogs.com/f-ck-need-u/p/7623252.html">https://www.cnblogs.com/f-ck-need-u/p/7623252.html</a></p>
+</li>
 </ul>
-<h3 id="查看容器信息"><a href="#查看容器信息" class="headerlink" title="查看容器信息"></a>查看容器信息</h3><p>docker ps -a</p>
-<h3 id="查看容器日志"><a href="#查看容器日志" class="headerlink" title="查看容器日志"></a>查看容器日志</h3><p>docker logs &lt;容器ID&gt;</p>
-<h3 id="删除容器"><a href="#删除容器" class="headerlink" title="删除容器"></a><strong>删除容器</strong></h3><p><code>docker rm -f &lt;容器ID&gt;</code> 清理某一容器</p>
-<p><code>docker container prune</code>  清理掉所有处于终止状态的容器</p>
-<h3 id="运行一个-web-应用"><a href="#运行一个-web-应用" class="headerlink" title="运行一个 web 应用"></a>运行一个 web 应用</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d -P training/webapp python app.py</span><br><span class="line">docker run -d -p 5000:5000 training/webapp python app.py</span><br><span class="line">Docker run -d -p hostPort:containerPort training/webapp python app.py</span><br></pre></td></tr></table></figure>
+<h1 id="BIO-Blocking-I-x2F-O-同步阻塞I-x2F-O"><a href="#BIO-Blocking-I-x2F-O-同步阻塞I-x2F-O" class="headerlink" title="BIO (Blocking I&#x2F;O) 同步阻塞I&#x2F;O"></a>BIO (Blocking I&#x2F;O) 同步阻塞I&#x2F;O</h1><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/6a9e704af49b4380bb686f0c96d33b81~tplv-k3u1fbpfcp-watermark.image" alt="图源：《深入拆解Tomcat & Jetty》" style="zoom: 67%;" />
 
 <ul>
-<li><strong>-P :<strong>是容器内部端口</strong>随机</strong>映射到主机的端口。</li>
-<li><strong>-p :</strong> 是容器内部端口绑定到<strong>指定</strong>的主机端口。 《主机端口：容器端口》</li>
+<li>监视线程调用”监听socket”的accept()来阻塞的监听tcp连接，当有tcp连接时，accept()返回生成一个通讯socket；</li>
+<li>这时立刻由一个用户工作线程对其发起recv系统调用（也可能监视线程也是工作线程），去请求recv()读取数据，即使内核区数据没准备好也会一直阻塞，直到内核将数据拷贝到用户空间才返回。</li>
 </ul>
-<h3 id="网络端口的快捷方式"><a href="#网络端口的快捷方式" class="headerlink" title="网络端口的快捷方式"></a>网络端口的快捷方式</h3><p>docker port &lt;容器ID或名字&gt;</p>
-<h3 id="查看-WEB-应用程序日志"><a href="#查看-WEB-应用程序日志" class="headerlink" title="查看 WEB 应用程序日志"></a>查看 WEB 应用程序日志</h3><p>docker logs [ID或者名字]</p>
-<h3 id="查看WEB应用程序容器的进程"><a href="#查看WEB应用程序容器的进程" class="headerlink" title="查看WEB应用程序容器的进程"></a>查看WEB应用程序容器的进程</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker top </span><br></pre></td></tr></table></figure>
+<p>此时用户线程阻塞，一个线程只能处理一个请求；因此每监听到一个用户连接，就要生成一个新的工作线程去执行。</p>
+<p>所以一个服务端线程只能同时处理一个请求，面对大量连接时，只能创建多个线程，开销很大。</p>
+<blockquote>
+<p>优点：当数据没准备好，用户线程让出CPU，进入休眠；等到数据拷贝好了，再通过中断唤醒用户线程。</p>
+</blockquote>
+<blockquote>
+<p>缺点：对于单个线程，面对多个请求时，前面的阻塞，后面的也会阻塞，效率低，适合并发量低的场景。</p>
+</blockquote>
+<h1 id="同步非阻塞IO"><a href="#同步非阻塞IO" class="headerlink" title="同步非阻塞IO"></a>同步非阻塞IO</h1><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bb174e22dbe04bb79fe3fc126aed0c61~tplv-k3u1fbpfcp-watermark.image" alt="图源：《深入拆解Tomcat & Jetty》" style="zoom: 67%;" />
 
-<h3 id="检查-WEB-应用程序"><a href="#检查-WEB-应用程序" class="headerlink" title="检查 WEB 应用程序"></a>检查 WEB 应用程序</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker inspect</span><br></pre></td></tr></table></figure>
+<ul>
+<li>通过CPU忙轮询方式来实现非阻塞，每次轮询做两件事情：</li>
+</ul>
+<ol>
+<li>非阻塞的调用 “监听socket” 的accept()方法 ,如果accept()方法返回了结果，就是有新的连接，那就将accept()返回的通讯socket加入到集合中去；在操作系统层面就是将fd加入到fds；</li>
+<li>遍历通讯socket集合，对每个连接都执行一次recv系统调用，内核区准备好数据就直接拷贝（阻塞），没准备好就返回一个错误状态信息；</li>
+</ol>
+<blockquote>
+<p>优点：避免用户线程阻塞，一个线程能同时处理多个请求；</p>
+</blockquote>
+<blockquote>
+<p>缺点：每次都轮询所有的fd，发生多次用户态到核心态的转换，并且对于即使没有发生IO的连接，也会进行recv系统调用，十分浪费CPU资源。</p>
+</blockquote>
+<h1 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h1><blockquote>
+<p>java中的NIO(Non-blocking&#x2F;New I&#x2F;O) 是IO多路复用模型</p>
+</blockquote>
+<img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/88ff862764024c3b8567367df11df6ab~tplv-k3u1fbpfcp-watermark.image" alt="img" style="zoom:67%;" />
 
+<ul>
+<li><p>使用单个线程作为selector监听多个客户端连接，当有一个新的tcp连接过来，就会将对应的socket注册，绑定在一个socketChannel上；在操作系统层面，会生成一个文件描述符fd，并加入到fds中；</p>
+</li>
+<li><p>selector线程发起select&#x2F;poll&#x2F;epoll系统调用，会进入阻塞，让操作系统内核去检查fds中是否有某个连接想要的数据在内核准备就绪了，如果有会返回，然后再调用recv去拷贝相应fd对应的内核数据到用户空间；</p>
+</li>
+<li><p>IO多路复用模型中，selector不仅可以监听’通讯socket’, 还可以监听 ‘监听socket’, 它能够注册多种事件（connect, accept, send, recv）；</p>
+</li>
+<li><p>检查到监听socket的Channel有ACCEPT事件，可以accept()出通讯socket了，同时注册到一个新的socketChannel上，并注册READ事件；这样客户端发送数据，就可以出发read事件了，同时在selector上注册该socketChannel的WRITE事件，实现服务器往客户端写数据。</p>
+</li>
+</ul>
+<h2 id="select-x2F-poll-x2F-epoll的区别"><a href="#select-x2F-poll-x2F-epoll的区别" class="headerlink" title="select&#x2F;poll&#x2F;epoll的区别"></a>select&#x2F;poll&#x2F;epoll的区别</h2><ul>
+<li><p>select的文件描述符集合fds是通过数组方式实现的，数组大小默认1024，有上限；</p>
+</li>
+<li><p>1先将fds从用户空间拷贝到内核空间；2内核去遍历判断是否有socket数据准备就绪，更改状态；3将fds从内核空间拷贝到用户空间；4用户线程遍历fds状态。   要两次拷贝，两次遍历。</p>
+</li>
+<li><p>poll和select的区别就是poll的文件描述符集合fds是通过链表实现的，没有上限，当然会受制于操作系统文件描述符上限；select和poll都需要线性遍历，时间复杂度O（n）;</p>
+</li>
+</ul>
+<blockquote>
+<p>select和poll都是通过系统内核轮询检查的，但是只进行一次系统调用；但是同步阻塞IO是用户空间轮询的，多次系统调用，多次用户态和内核态之间的转换，浪费CPU资源；</p>
+</blockquote>
+<ul>
+<li><p>epoll内核会创建红黑树存储事件，通过事件和回调机制，只会返回有事件发生的文件描述符，</p>
+</li>
+<li><p>时间复杂度O（1）；epoll通过内核和 ⽤户空间共享⼀块内存来实现的，无需select的两次拷贝。</p>
+</li>
+<li><p>epoll是Linux特有的，而select是所有操作系统都有的。</p>
+</li>
+</ul>
+<h1 id="AIO-Asynchronous-I-x2F-O"><a href="#AIO-Asynchronous-I-x2F-O" class="headerlink" title="AIO (Asynchronous I&#x2F;O)"></a>AIO (Asynchronous I&#x2F;O)</h1><p>异步IO基于事件和回调机制，应用进程发起系统调用后，会直接得到返回结果，等系统内核从内核空间向用户空间拷贝好之后，再通知用户进程。</p>
+<p>目前来说 AIO 的应用还不是很广泛。Netty 之前也尝试使用过 AIO，不过又放弃了。这是因为，Netty 使用了 AIO 之后，在 Linux 系统上的性能并没有多少提升。</p>
 ]]></content>
+      <categories>
+        <category>IO</category>
+      </categories>
       <tags>
-        <tag>-docker</tag>
+        <tag>IO模型</tag>
       </tags>
   </entry>
   <entry>
@@ -622,6 +406,220 @@ To be continued
       </categories>
       <tags>
         <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java集合</title>
+    <url>/2022/12/30/14%E5%85%AB%E8%82%A1_%E9%9B%86%E5%90%88/</url>
+    <content><![CDATA[<h1 id="ArrayList"><a href="#ArrayList" class="headerlink" title="ArrayList"></a>ArrayList</h1><p>ArrayList基于动态数组实现，当使用无参构造函数创建一个ArrayList对象时，初始化一个空数组，当第一次往里面add值得时候，数组扩容为10，之后每次当容量满的时候，扩容为原来的1.5倍。扩容时先创建一个新容量的数组，然后将原数据拷贝过去。</p>
+<span id="more"></span>
+
+<h1 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h1><p>在JDK1.8之前，基于<strong>数组</strong>+<strong>链表</strong>实现，JDK1.8之后，基于<strong>数组</strong>+链表+<strong>红黑树</strong>；</p>
+<h2 id="寻址算法"><a href="#寻址算法" class="headerlink" title="寻址算法"></a>寻址算法</h2><p>HashMap时根据key对象的hashCode进行散列的，首先要对key对象的hashCode进行一个扰动函数处理，扰动函数的目的是散列效果更好，减小哈希冲突。</p>
+<blockquote>
+<p>JDK1.8的扰动函数hash()      (h &#x3D; key.hashCode()) ^ (h &gt;&gt;&gt; 16)</p>
+<p>将hashCode有符号右移16位，然后和原来的hashCode异或，得到哈希值</p>
+</blockquote>
+<p>寻址： hash &amp; (n - 1)  n位数组长度</p>
+<h2 id="为什么HashMap的数组长度要是2的整数次方？"><a href="#为什么HashMap的数组长度要是2的整数次方？" class="headerlink" title="为什么HashMap的数组长度要是2的整数次方？"></a>为什么HashMap的数组长度要是2的整数次方？</h2><p>这要从HashMap的寻址算法说起了，寻址的思想就是对key的哈希值对数组长度进行取模运算，但是计算机取模运算速度比较慢，因此HashMap用与运算来代替取模，采用hash &amp; (n - 1)的方式进行寻址，提高计算速度。</p>
+<p> 这样计算的原理是：n是2的次方，那么n-1的二进制表示就都是1，和哈希值相与的话，比n大的二进制位就都变成了0，其效果和取模运算是相同的；如果数组长度不是2的整数次方，还使用这种寻址方式的话，那么n-1低位就不都是1了，与运算得到的散列效果就不会连续的了，哈希冲突概率提高。</p>
+<h2 id="HashMap如何解决哈希冲突"><a href="#HashMap如何解决哈希冲突" class="headerlink" title="HashMap如何解决哈希冲突"></a>HashMap如何解决哈希冲突</h2><p>HashMap通过拉链法解决哈希冲突，如果有key寻址到数组的相同位置，那么就通过链表的方式存储后添加进来的元素。JDK1.8之前采用头插法，之后采用尾插法。</p>
+<p>当链表长度大于转换阈值（默认是8）的时候，如果数组长度＞64，会优先进行扩容，如果数组长度≥64，链表会转化成红黑树；如果红黑树的节点数≤6，红黑树会退化成链表。</p>
+<h2 id="HashMap的扩容机制"><a href="#HashMap的扩容机制" class="headerlink" title="HashMap的扩容机制"></a>HashMap的扩容机制</h2><p>通过无参构造函数new一个HashMap对象时，会创建一个空的数组，第一次put值的时候，初始化一个长度为16的数组。</p>
+<p>当HashMap中的<strong>节点数量</strong>（k-v数量）＞数组长度<em>负载因子（默认为0.75）时（初始为16</em> x 0.75 &#x3D; 12），数组容量扩容为原来的2倍，并进行resize()，扩容时会创建新的数组，并对原有的链表和红黑树结构的元素数据进行重新哈希分配rehash</p>
+<h2 id="为什么链表到红黑树的转化因子是8？"><a href="#为什么链表到红黑树的转化因子是8？" class="headerlink" title="为什么链表到红黑树的转化因子是8？"></a>为什么链表到红黑树的转化因子是8？</h2><p>在理想条件下，使用随机hashCode进行寻址，每个节点在桶中出现的概率是遵循泊松分布的，当我们的负载因子选用0.75时，一个桶中出现链表长度大于8的概率不超过千万分之一。</p>
+<h2 id="为什么要引入红黑树"><a href="#为什么要引入红黑树" class="headerlink" title="为什么要引入红黑树"></a>为什么要引入红黑树</h2><p>因为链表的搜索时间复杂度时O（n），当链表长度过长时，搜索效率大大降低；红黑树是log(n)，但是红黑树的空间占用大（链表的2倍）；因此在节点数较少时，红黑树的搜索时间复杂度并不比链表高多少，采用链表，当节点数多时才转换成红黑树。</p>
+<blockquote>
+<p>红黑树：自动平衡，自动排序。</p>
+</blockquote>
+<h2 id="HashMap的遍历方式"><a href="#HashMap的遍历方式" class="headerlink" title="HashMap的遍历方式"></a>HashMap的遍历方式</h2><h3 id="Iterator迭代器—EntrySet"><a href="#Iterator迭代器—EntrySet" class="headerlink" title="Iterator迭代器—EntrySet"></a>Iterator迭代器—EntrySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Iterator&lt;Map.Entry&lt;Integer, Integer&gt;&gt; it = map.entrySet().iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">	Map.Entry&lt;Integer, Integer&gt; entry = it.next();</span><br><span class="line">	<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> entry.getKey();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Iterator迭代器—KeySet"><a href="#Iterator迭代器—KeySet" class="headerlink" title="Iterator迭代器—KeySet"></a>Iterator迭代器—KeySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Iterator&lt;Integer&gt; it = map.keySet().iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">	<span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> it.next();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> map.get(k);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Foreach—EntrySet"><a href="#Foreach—EntrySet" class="headerlink" title="Foreach—EntrySet"></a>Foreach—EntrySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (Map.Entry&lt;Integer, Integer&gt; entry : map.entrySet()) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> entry.getKey();</span><br><span class="line">	<span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Foreach—KeySet"><a href="#Foreach—KeySet" class="headerlink" title="Foreach—KeySet"></a>Foreach—KeySet</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (Integer key : map.keySet()) &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">v</span> <span class="operator">=</span> map.get(key);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Lambda"><a href="#Lambda" class="headerlink" title="Lambda"></a>Lambda</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.forEach((k, v) -&gt; &#123;</span><br><span class="line">    System.out.println(k);</span><br><span class="line">    System.out.println(v);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Streams-API-单线程"><a href="#Streams-API-单线程" class="headerlink" title="Streams API 单线程"></a>Streams API 单线程</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.entrySet().stream().forEach((entry) -&gt; &#123;</span><br><span class="line">    System.out.println(entry.getKey());</span><br><span class="line">    System.out.println(entry.getValue());</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Streams-API-多线程"><a href="#Streams-API-多线程" class="headerlink" title="Streams API 多线程"></a>Streams API 多线程</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">map.entrySet().parallelStream().forEach((entry) -&gt; &#123;</span><br><span class="line">    System.out.println(entry.getKey());</span><br><span class="line">    System.out.println(entry.getValue());</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="速度比较"><a href="#速度比较" class="headerlink" title="速度比较"></a>速度比较</h3><p>1.迭代器EntrySet 2.foreach EntrySet 3.foreach KeySey 4. 迭代器KeySet 5.Lambda 6.Streams API</p>
+<p><strong><code>entrySet</code> 的性能比 <code>keySet</code> 的性能高出了一倍之多，因此我们应该尽量使用 <code>entrySet</code> 来实现 Map 集合的遍历</strong>。</p>
+<h3 id="安全性问题"><a href="#安全性问题" class="headerlink" title="安全性问题"></a>安全性问题</h3><p>不能在遍历map时，通过map.remove()方法来删除元素，这是不安全的操作；但是可以用迭代器，通过迭代器的iterator.remove()来安全的删除元素。</p>
+<p>同样的我们也可以使用 Lambda 中的 <code>removeIf</code> 来提前删除数据，或者是使用 Stream 中的 <code>filter</code> 过滤掉要删除的数据进行循环，这样都是安全的，当然我们也可以在 <code>for</code> 循环前删除数据在遍历也是线程安全的。</p>
+<h1 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h1><p>JDK1.7之前，采用Segment数组 + Entry数组 + 链表实现，segment数组中的一个位置对应一组哈希桶，Segment数组默认容量16，不可扩容，也就是最多支持16个线程并发；</p>
+<blockquote>
+<p>JDK1.7之前，对一组哈希桶；</p>
+</blockquote>
+<p>JDK1.8之后，采用Node数组 + 链表 + 红黑树的方式，对Node数组的node加锁。</p>
+<blockquote>
+<p>JDK1.8之后，锁的粒度更细了，对每个单独的哈希桶加锁，并发量更大。</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MyBatis在SpringBoot中的使用</title>
+    <url>/2023/02/15/15%E5%85%AB%E8%82%A1_MyBatis/</url>
+    <content><![CDATA[<h1 id="MyBatis"><a href="#MyBatis" class="headerlink" title="MyBatis"></a>MyBatis</h1><p>优秀的持久层框架，对象关系映射，将持久层数据库中的记录的属性，映射到Java的对象上,称为ORM对象关系映射。</p>
+<p>ORM的实现:复杂的多表查询用XML，简单的可以用注解的方式，或者MyBatisPlus</p>
+<span id="more"></span>
+
+<h2 id="XML方式，整个使用流程"><a href="#XML方式，整个使用流程" class="headerlink" title="XML方式，整个使用流程"></a>XML方式，整个使用流程</h2><ol>
+<li><p>一般同一个模块的业务写在一个mapper.xml文件中，xml文件中namespace指定映射的mapper接口，xml文件中每个sql标签的id对应mapper接口的方法;</p>
+</li>
+<li><p>xml文件路径要配置在application.yml文件中，每个mapper接口要中@Mapper注解，表示接口的实现类交给Spring Ioc容器管理，或者在启动类用@MapperScan指定所有mapper接口的路径，就不用每个都写@mapper注解了;</p>
+</li>
+<li><p>然后service层调用mapper接口的方法，就能和持久层交互了;</p>
+</li>
+</ol>
+<h2 id="多条件查询（sql传入参数）"><a href="#多条件查询（sql传入参数）" class="headerlink" title="多条件查询（sql传入参数）"></a>多条件查询（sql传入参数）</h2><p>xml中sql传入的每个参数用#{ } 或者${ }符号传递;</p>
+<blockquote>
+<p>#{ } 是把传入的参数当作字符串处理;</p>
+<p>${ }是通过sql拼接的方式，传入的什么就原封不动的拼接在sql中，所以要注意<strong>sql注入</strong>问题；</p>
+<p>所以：</p>
+<ol>
+<li>如果传入的<strong>变量的值</strong>，最好用#;</li>
+<li>对于一些特殊的业务，可能要传入一些非变量的部分，比如传入<strong>数据库名</strong>，<strong>表名</strong>之类的，这时候用#不行，因为给表明加引号sql语法就不对了，这时候就要用$符号了。</li>
+</ol>
+</blockquote>
+<p>三种方式：</p>
+<ol>
+<li>mapper接口方法用@Param标记多个参数名（对应sql中的#{ }）</li>
+<li>用Map传递参数</li>
+<li>用pojo类传递参数</li>
+</ol>
+<p>动态sql：</p>
+<p>一个sql语句不用每次都写的所有参数都要传进来，根据实际传进来的参数，动态变换sql语句。</p>
+<p>常用标签： if, where , foreach</p>
+<h2 id="结果处理（sql返回结果）"><a href="#结果处理（sql返回结果）" class="headerlink" title="结果处理（sql返回结果）"></a>结果处理（sql返回结果）</h2><p>返回的每条记录的接收类型：（xml中的resultType）</p>
+<ol>
+<li><p>用pojo类接收结果</p>
+</li>
+<li><p>用HashMap接收结果</p>
+</li>
+</ol>
+<blockquote>
+<p>a. 对于pojo接收，可以定义一个resultMap，把pojo的属性名和数据库字段名对应；</p>
+<p>b. 用sql中的 as把返回数据规定好属性名规定好</p>
+<p>c.啥也没定义就默认用返回的数据数据的字段首字母小写作为返回数据的属性名。</p>
+</blockquote>
+<p>多条返回记录，mapper接口中的方法返回值类型写  <code>List&lt;HashMap&gt; </code>或者<code>List&lt;Entity&gt;</code></p>
+<p>List<HashMap> getUserByName(String name)</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>MyBatis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Git的一些基本使用命令</title>
+    <url>/2023/06/02/16%E5%85%AB%E8%82%A1_git/</url>
+    <content><![CDATA[<h1 id="第一次-从远端拉取代码"><a href="#第一次-从远端拉取代码" class="headerlink" title="第一次 从远端拉取代码"></a>第一次 从远端拉取代码</h1><p>git clone  远端地址</p>
+<span id="more"></span>
+
+<h1 id="上班改代码之前第一件事情-先拉取代码（更新）"><a href="#上班改代码之前第一件事情-先拉取代码（更新）" class="headerlink" title="上班改代码之前第一件事情 先拉取代码（更新）"></a>上班改代码之前第一件事情 先拉取代码（更新）</h1><p>git pull</p>
+<h1 id="修改自己代码"><a href="#修改自己代码" class="headerlink" title="修改自己代码"></a>修改自己代码</h1><p>  自己改代码，此时项目在本地的文件系统中有变化了。</p>
+<h1 id="提交过程"><a href="#提交过程" class="headerlink" title="提交过程"></a>提交过程</h1><h2 id="查看修改了什么"><a href="#查看修改了什么" class="headerlink" title="查看修改了什么"></a>查看修改了什么</h2><p>git diff</p>
+<h2 id="对修改-x2F-添加了的文件，在git版本库中进行更改"><a href="#对修改-x2F-添加了的文件，在git版本库中进行更改" class="headerlink" title="对修改&#x2F;添加了的文件，在git版本库中进行更改"></a>对修改&#x2F;添加了的文件，在git版本库中进行更改</h2><p>git add .  #点表示所有文件</p>
+<p>git add abc.txt</p>
+<h2 id="对删除了的文件，在git版本库中进行处理"><a href="#对删除了的文件，在git版本库中进行处理" class="headerlink" title="对删除了的文件，在git版本库中进行处理"></a>对删除了的文件，在git版本库中进行处理</h2><p>git rm efg.txt</p>
+<h2 id="创建一个提交"><a href="#创建一个提交" class="headerlink" title="创建一个提交"></a>创建一个提交</h2><p>git commit -m    ‘name’      #”起个commit名字”</p>
+<h2 id="再一次pull"><a href="#再一次pull" class="headerlink" title="再一次pull"></a>再一次pull</h2><p>git pull</p>
+<h2 id="push到远端"><a href="#push到远端" class="headerlink" title="push到远端"></a>push到远端</h2><p>git push -u origin main</p>
+<blockquote>
+<p>一次push能处理多个commit</p>
+</blockquote>
+<h2 id="回滚commit"><a href="#回滚commit" class="headerlink" title="回滚commit"></a>回滚commit</h2><p>git reset </p>
+]]></content>
+      <categories>
+        <category>开发工具</category>
+      </categories>
+      <tags>
+        <tag>Git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Docker</title>
+    <url>/2023/06/08/17%E5%85%AB%E8%82%A1_Docker/</url>
+    <content><![CDATA[<h1 id="docker概念"><a href="#docker概念" class="headerlink" title="docker概念"></a>docker概念</h1><h2 id="镜像image"><a href="#镜像image" class="headerlink" title="镜像image"></a>镜像image</h2><ul>
+<li>镜像是一种特殊的文件系统，提供了容器运行时所需的资源（程序、库、配置等），不包含动态数据。</li>
+</ul>
+<h2 id="容器container"><a href="#容器container" class="headerlink" title="容器container"></a>容器container</h2><ul>
+<li>镜像运行时的实体。（image — container  相当于 类 — 实例 的关系）<span id="more"></span></li>
+<li><blockquote>
+<p>容器的存储层不应写入任何数据，存储层要保持无状态化；</p>
+<p>所有文件的写入操作，应该用   <strong>数据卷</strong>  或者  <strong>绑定宿主机目录</strong>； 这样容器删除，重启后，数据不会消失；</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="仓库repository"><a href="#仓库repository" class="headerlink" title="仓库repository"></a>仓库repository</h2><ul>
+<li>仓库是主机存放镜像的地方。</li>
+<li>一个linux主机可以有多个仓库，每个仓库的不同标签tag代表不同版本的镜像；</li>
+<li>&lt;仓库名&gt;:&lt;标签&gt;表示一个具体的image；如果不指出标签，默认用latest作为标签tag</li>
+</ul>
+<h1 id="docker的好处"><a href="#docker的好处" class="headerlink" title="docker的好处"></a>docker的好处</h1><ul>
+<li>可以将不同项目打包运行在各自的容器中，隔绝环境；</li>
+<li>镜像可以让项目在任何地方的运行环境是一致的；</li>
+<li>相比于传统虚拟机，docker容器直接使用宿主机的内核，启动速度更快；</li>
+</ul>
+<h1 id="Docker-命令"><a href="#Docker-命令" class="headerlink" title="Docker 命令"></a>Docker 命令</h1><h2 id="镜像操作"><a href="#镜像操作" class="headerlink" title="镜像操作"></a>镜像操作</h2><h3 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h3><p>docker pull &lt;镜像名称&gt;：&lt;版本&gt;</p>
+<h3 id="查看dockerhub远程仓库中镜像"><a href="#查看dockerhub远程仓库中镜像" class="headerlink" title="查看dockerhub远程仓库中镜像"></a>查看dockerhub远程仓库中镜像</h3><p>Docker search &lt;镜像名称&gt;</p>
+<h3 id="查看本地已有镜像"><a href="#查看本地已有镜像" class="headerlink" title="查看本地已有镜像"></a>查看本地已有镜像</h3><p>docker images</p>
+<h3 id="删除镜像"><a href="#删除镜像" class="headerlink" title="删除镜像"></a>删除镜像</h3><p>docker rmi &lt;镜像名&gt;</p>
+<h3 id="创建镜像"><a href="#创建镜像" class="headerlink" title="创建镜像"></a>创建镜像</h3><pre><code>当我们从 docker 镜像仓库中下载的镜像不能满足我们的需求时，我们可以通过以下两种方式对镜像进行更改。
+</code></pre>
+<ol>
+<li>从已经创建的容器中更新镜像，并且提交这个镜像</li>
+<li>使用 Dockerfile 指令来创建一个新的镜像</li>
+</ol>
+<h4 id="更新镜像"><a href="#更新镜像" class="headerlink" title="更新镜像"></a><strong>更新镜像</strong></h4><pre><code>更新镜像之前，我们需要使用镜像来创建一个容器。
+
+To be continued
+</code></pre>
+<h2 id="容器操作"><a href="#容器操作" class="headerlink" title="容器操作"></a>容器操作</h2><h3 id="创建一个新的容器并启动该容器"><a href="#创建一个新的容器并启动该容器" class="headerlink" title="创建一个新的容器并启动该容器"></a>创建一个新的容器并启动该容器</h3><p>docker run -itd &lt;Image名称&gt;</p>
+<p>我们通过 docker 的两个参数 -i -t，让 docker 运行的容器实现**”对话”**的能力：</p>
+<ul>
+<li>-t: 在新容器内指定一个伪终端或终端。</li>
+<li>-i: 允许你对容器内的标准输入 (STDIN) 进行交互</li>
+<li>-d: 后台启动</li>
+</ul>
+<p>docker run -itd –name &lt;给容器起个名字&gt; &lt;Image名称&gt;</p>
+<h3 id="停止容器"><a href="#停止容器" class="headerlink" title="停止容器"></a>停止容器</h3><p>docker stop &lt;容器ID&gt;</p>
+<h3 id="进入容器"><a href="#进入容器" class="headerlink" title="进入容器"></a>进入容器</h3><p>在使用 <strong>-d</strong> 参数时，容器启动后会进入后台。此时想要进入容器，可以通过以下指令进入：</p>
+<ul>
+<li><strong>docker attach</strong></li>
+<li><strong>docker exec</strong>：推荐大家使用 docker exec 命令，因为此命令会退出容器终端，但不会导致容器的停止。</li>
+</ul>
+<h3 id="查看容器信息"><a href="#查看容器信息" class="headerlink" title="查看容器信息"></a>查看容器信息</h3><p>docker ps -a</p>
+<h3 id="查看容器日志"><a href="#查看容器日志" class="headerlink" title="查看容器日志"></a>查看容器日志</h3><p>docker logs &lt;容器ID&gt;</p>
+<h3 id="删除容器"><a href="#删除容器" class="headerlink" title="删除容器"></a><strong>删除容器</strong></h3><p><code>docker rm -f &lt;容器ID&gt;</code> 清理某一容器</p>
+<p><code>docker container prune</code>  清理掉所有处于终止状态的容器</p>
+<h3 id="运行一个-web-应用"><a href="#运行一个-web-应用" class="headerlink" title="运行一个 web 应用"></a>运行一个 web 应用</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d -P training/webapp python app.py</span><br><span class="line">docker run -d -p 5000:5000 training/webapp python app.py</span><br><span class="line">Docker run -d -p hostPort:containerPort training/webapp python app.py</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>-P :<strong>是容器内部端口</strong>随机</strong>映射到主机的端口。</li>
+<li><strong>-p :</strong> 是容器内部端口绑定到<strong>指定</strong>的主机端口。 《主机端口：容器端口》</li>
+</ul>
+<h3 id="网络端口的快捷方式"><a href="#网络端口的快捷方式" class="headerlink" title="网络端口的快捷方式"></a>网络端口的快捷方式</h3><p>docker port &lt;容器ID或名字&gt;</p>
+<h3 id="查看-WEB-应用程序日志"><a href="#查看-WEB-应用程序日志" class="headerlink" title="查看 WEB 应用程序日志"></a>查看 WEB 应用程序日志</h3><p>docker logs [ID或者名字]</p>
+<h3 id="查看WEB应用程序容器的进程"><a href="#查看WEB应用程序容器的进程" class="headerlink" title="查看WEB应用程序容器的进程"></a>查看WEB应用程序容器的进程</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker top </span><br></pre></td></tr></table></figure>
+
+<h3 id="检查-WEB-应用程序"><a href="#检查-WEB-应用程序" class="headerlink" title="检查 WEB 应用程序"></a>检查 WEB 应用程序</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker inspect</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <tags>
+        <tag>-docker</tag>
       </tags>
   </entry>
   <entry>
@@ -892,192 +890,6 @@ To be continued
       </tags>
   </entry>
   <entry>
-    <title>JVM</title>
-    <url>/2023/02/16/3%E5%85%AB%E8%82%A1_JVM/</url>
-    <content><![CDATA[<h1 id="内存区域"><a href="#内存区域" class="headerlink" title="内存区域"></a>内存区域</h1><p>​    JVM管理的内存区域称为运行时数据区，包括以下几个部分：</p>
-<p>​    <strong>线程共享的：</strong></p>
-<ol>
-<li>堆</li>
-<li>方法区（JDK8之后变为本地内存中的元空间）</li>
-</ol>
-<p>​    <strong>线程私有的：</strong></p>
-<ol>
-<li><p>虚拟机栈</p>
-</li>
-<li><p>本地方法栈</p>
-</li>
-<li><p>程序计数器</p>
-</li>
-</ol>
-<span id="more"></span>
-
-<h2 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h2><p>​    可以看作当前进行线程所执行字节码的行号指示器。</p>
-<p>​    作用：</p>
-<ol>
-<li>代码执行中的跳转、循环等流程依赖于程序计数器。</li>
-<li>线程切换程序计数器保存、恢复线程的执行到哪一步</li>
-</ol>
-<p>唯一一个不会出现OOM情况内存区域</p>
-<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p>​    每个方法被执行都会创建一个栈帧，方法被调用到执行完毕的过程，对应着栈帧在虚拟机栈中从入栈到出栈的过程。</p>
-<p>​    栈帧包含：局部变量表，操作数栈，动态链接，方法出口</p>
-<h3 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h3><p>​    主要存放了编译期可知的各种数据类型（boolean、byte、char、short、int、float、long、double）、对象引用（reference 类型，它不同于对象本身，可能是一个指向对象起始地址的引用指针，也可能是指向一个代表对象的句柄或其他与此对象相关的位置）。</p>
-<h3 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h3><p>​    如果一个方法调用其他方法，那么就要使用运行时常量池的该方法的符号引用，将符号引用转化为内存中实际地址的直接引用的过程，叫做动态链接。</p>
-<p>​    有些符号引用在类加载阶段或第一次使用时完成饿了转换，称为静态解析；</p>
-<p>​    另外一部分在每次运行期间被转换，称为动态链接。</p>
-<p>如果线程请求的栈深度大于虚拟机请求所允许的深度，将抛出stackoverflowError,</p>
-<p>如果虚拟机栈容量空一动态扩展，则当扩展时无法申请到足够内存空间时，会抛OOM错误。</p>
-<h2 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h2><p>​    与虚拟机栈相似，只不过是运行本地方法（Native方法）</p>
-<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><p>​    线程共享，几乎所有对象实例都在这里分配内存。</p>
-<p>​    新生代 老年代 永久代，都是因为大部分都是基于分代垃圾回收器而得名的，只是一个设计风格，而并非java虚拟机固定的布局。</p>
-<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p>​    存储已被JVM加载的类型信息、常量、静态变量、等</p>
-<p>​    方法区的具体实现并不是固定的，JDK8之前是永久代实现，JDK8之后就变成本地内存中的元空间了。</p>
-<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>​    位于方法区，编译期生成的各种字面量、<strong>符号引用</strong>，在类加载之后存放到方法区的运行时常量池。</p>
-<p>​    一般情况下，类加载后，由符号引用翻译出来的直接引用也存储在运行时常量池。</p>
-<p>​    符号引用：在一个类中（当然不仅是类，还包括类的其他部分，比如方法，字段等），用到其他类（或其他类的方法、字段等），编译时并不知道其具体内存地址，要等类加载之后才知道，因此先用一个符号引用来表示。</p>
-<p>​    在Java中，一个java类将会编译成一个class文件。在编译时，java类并不知道所引用的类的实际地址，因此只能使用符号引用来代替</p>
-<h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>​    位于本地内存。</p>
-<h2 id="一个对象的创建过程"><a href="#一个对象的创建过程" class="headerlink" title="一个对象的创建过程"></a>一个对象的创建过程</h2><p><strong>1.</strong>    <strong>类加载检查</strong></p>
-<p>​    当虚拟机遇到一个new 指令时，首先检查能否在常量池定位到对应的类的符号引用，再检查该类是否被加载过，如果没有必须先执行类加载过程。</p>
-<ol start="2">
-<li><strong>分配内存</strong></li>
-</ol>
-<p>​    对象所需的内存大小在类加载完成后便可确定，分配内存就是在堆空间划出一块固定内存给新建的对象。有两种方式，1. “指针碰撞”：内存空间是规整的； 2. “空闲列表”:内存空间不规整； 能否规整看垃圾收集器是否有空间压缩整理功能。</p>
-<ol start="3">
-<li><strong>初始化零值</strong></li>
-</ol>
-<p>··   将对象的内存空间（不包括对象头）都初始化为0，保证Java对象不用赋初值就能直接使用。</p>
-<ol start="4">
-<li><strong>设置对象头</strong></li>
-</ol>
-<p>​    对象头包扩：对象的类型指针，hashCode, 线程的锁信息，对应的元数据信息等。</p>
-<ol start="5">
-<li><strong>执行 init 方法</strong></li>
-</ol>
-<p>​    按照程序员设置的参数，执行初始化方法。</p>
-<h1 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h1><h2 id="一个类的生命周期"><a href="#一个类的生命周期" class="headerlink" title="一个类的生命周期"></a>一个类的生命周期</h2><p>加载 验证 准备 解析 初始化 使用 卸载</p>
-<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true" alt="p1.png"></p>
-<p>类加载过程包括：加载-&gt;连接-&gt;初始化 ， 连接过程包括：验证、准备、解析。</p>
-<h2 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h2><p><strong>加载：</strong></p>
-<p>​    通过<strong>类加载器</strong>完成，具体用哪个加载器，通过双亲委派模型选取。</p>
-<ol>
-<li>虚拟机获得类的二进制字节流Class文件</li>
-</ol>
-<p>​       获取方式多样：源程序.java编译得来，压缩包jar、网络传输Web Applet 、运行时动态生成：动态代理</p>
-<ol start="2">
-<li>将字节流代表的静态存储结构，转化为方法区内的运行时数据结构。</li>
-<li>在内存中生成代表这个类的java.lang.Class对象，作为方法区这个类数据的访问接口<strong>。</strong></li>
-</ol>
-<p><strong>验证：</strong></p>
-<p>​    保证Class文件中的信息是否正确，且不会危害虚拟机安全：</p>
-<p>​    Class文件格式是否正确，字节码语义是否符合逻辑，符号引用的验证</p>
-<p><strong>准备</strong>：</p>
-<p>​    为静态变量(类变量，static修饰)分配内存，并设置初值为0；</p>
-<p>​    在JDK8之前，Class对象与静态变量存储在方法区（JDK8之前方法区由永久代实现）；</p>
-<p>JDK8之后，Class对象与静态变量放在Java堆里了。</p>
-<p>​    Public static int value &#x3D; 123;</p>
-<p>​    准备阶段后，value为0，而不是123，赋值为123要等到类的初始化，通过<code>&lt;clinit&gt;()</code>方法；</p>
-<p>​    而如果final修饰静态变量，在准备阶段就会直接被赋值。</p>
-<p><strong>解析</strong>：</p>
-<p>​    将符号引用（类的，方法，字段，等）转化为直接引用</p>
-<p><strong>初始化</strong>:</p>
-<p>​    根据程序员的代码，主观初始化静态变量和其他资源。这个阶段就是执行类构造器的<clinit>()方法的过程，这个方法是Javac编译器的自动生成物。</p>
-<p>​    <clinit>()收集静态变量的赋值行为和静态语句块static{}</p>
-<p>​    即  public static int value &#x3D; 123;</p>
-<p>​       static { value &#x3D; 456;}</p>
-<p>​    按照他们在源文件中出现的顺序进行。</p>
-<h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><p>​    类加载器是一个负责加载类的对象，用于实现类加载过程中的加载这一步。</p>
-<p>每个 Java 类都有一个引用指向加载它的 ClassLoader。</p>
-<p>数组类不是通过 ClassLoader 创建的（数组类没有对应的二进制字节流），是由 JVM 直接生成的。</p>
-<p><strong>类加载器的主要作用就是加载</strong> <strong>Java</strong> <strong>类的字节码（</strong><code>.class</code><strong>文件）到</strong> <strong>JVM</strong> <strong>中（在内存中生成一个代表该类的</strong><code>Class</code><strong>对象）</strong></p>
-<p>JVM 启动的时候，并不会一次性加载所有的类，而是根据需要去动态加载。也就是说，大部分类在具体用到的时候才会去加载，这样对内存更加友好。</p>
-<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p2.png?raw=true" alt="p2.png"></p>
-<h2 id="双亲委派模型："><a href="#双亲委派模型：" class="headerlink" title="双亲委派模型："></a>双亲委派模型：</h2><p>​		先判断这个类有没有被加载过，如果加载过直接返回，没加载过就走加载流程。</p>
-<p>​		一个类加载器收到加载请求，要先把请求委派给父类加载器，这个请求会一直传递到最顶层类加载器；</p>
-<p>​		只有父类加载器反馈加载不了（它的搜索范围内找不到class文件），子加载器才能加载。</p>
-<p>​		这种父子关系不是通过<strong>继承</strong>实现的，而是使用<strong>组合</strong>关系来复用父加载器的代码</p>
-<p>​		好处：双亲委派模型主要是为了类加载的稳定性，可以避免加载相同名字的类造成混乱，比如Object类存放在rt.jar，由启动类加载器加载，如果用户自己编了一个Object类，类加载请求最终会传递到最顶层的启动类加载器，判断Object类加载过了，就不会加载用户的Object类了。</p>
-<h1 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h1><h2 id="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"><a href="#为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？" class="headerlink" title="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"></a>为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？</h2><p>​		因为虚拟机栈、本地方法栈、程序计数器是线程私有的，随线程生，随线程灭，且每一个栈帧所需的大小在编译期即可确定，不受程序运行期变量数据的影响，因此内存的分配和回收都具有确定性，因此不需要过多考虑如何回收。</p>
-<p>​		而堆和方法区中的内存分配受不同运行情况影响，比如一个接口的多个实现类所需内存不同，一个方法执行不同条件分支所需内存也可能不一样，因此只有处于运行期间才能指导会创建哪些对象，创建多少对象。</p>
-<h2 id="Java引用分类"><a href="#Java引用分类" class="headerlink" title="Java引用分类"></a>Java引用分类</h2><ol>
-<li><p>强引用</p>
-<blockquote>
-<p>程序代码中最常见的引用方式，只要强引用关系还在，被引用对象永远不能被回收。</p>
-</blockquote>
-</li>
-<li><p>软引用</p>
-<blockquote>
-<p>用来描述一些还有用，但非必须的对象。被软引用关联的对象，在系统将要发生内存溢出异常前，会将这些对象列入回收范围，进行第二次回收。</p>
-</blockquote>
-</li>
-<li><p>弱引用</p>
-<blockquote>
-<p>用来描述非必须对象。弱引用关联的对象只能生存到下一次垃圾收集发生。</p>
-</blockquote>
-</li>
-<li><p>虚引用</p>
-<blockquote>
-<p>不影响对象生存时间，也无法通过虚引用获取对象实例。为对象设置虚引用的唯一目的就是：为了在这个对象被回收时收到一个系统通知。</p>
-</blockquote>
-</li>
-</ol>
-<h2 id="死亡对象的判定方法"><a href="#死亡对象的判定方法" class="headerlink" title="死亡对象的判定方法"></a>死亡对象的判定方法</h2><blockquote>
-<p>对象死亡即不存在对该对象的引用。</p>
-</blockquote>
-<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>​    	给对象中添加一个引用计数器：每当有一个地方引用它，计数器就加 1；当引用失效，计数器就减 1；任何时候计数器为 0 的对象就是不可能再被使用的。</p>
-<p>​    	这个方法简单，效率高，但是无法解决两个对象循环引用的现象，因此现代虚拟机不采用这种方式。</p>
-<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><p>​    	通过一系列称为”GC roots”对象为根节点，通过引用关系向下查找，如果一个对象不和任何一个GC roots的调用链相连，则说明该对象不可达，将被判定为回收对象。</p>
-<p>​    	可作为GC roots的对象包括以下几种：</p>
-<ol>
-<li>虚拟机栈中引用的对象。</li>
-<li>方法区类静态变量引用的对象。</li>
-<li>被同步锁synchronized关键字持有的对象</li>
-<li>方法去常量池引用的对象等</li>
-</ol>
-<h2 id="可达性分析出对象可以被回收，就代表一定会被回收吗？"><a href="#可达性分析出对象可以被回收，就代表一定会被回收吗？" class="headerlink" title="可达性分析出对象可以被回收，就代表一定会被回收吗？"></a>可达性分析出对象可以被回收，就代表一定会被回收吗？</h2><p>不一定。</p>
-<p>当对象通过可达性分析，判定为不可用对象后，会被第一次标记，之后将对象放入一个名叫F-Queue的队列里，再进行一次筛选，判断有没有必要执行该对象的finalize（）方法，【如果该对象没有重写finalize()方法，或者finalize()方法已经被调用过一次了，就判定为没必要执行finalize()方法。】</p>
-<p>Finalize方法是对象逃脱死亡的最后一次机会，如果对象重新与引用链上的任何一个对象建立关联，即使是把自己this赋给某个类变量或者对象的成员变量也行，那么对象就会逃脱回收。</p>
-<p>所以说Object类的finalize方法设计的比较糟糕，它是Java诞生时对C C++程序员容易接受的一项妥协，运行代价昂贵，不确定性大，JDK9之后就开始逐渐弃用了。</p>
-<h2 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h2><p>​    	主要针对分代收集理论，“分代收集”的几个假说</p>
-<ul>
-<li><p>弱分代假说：绝大多数对象都是朝生夕灭的（新生代有98%熬不过第一轮垃圾回收）</p>
-</li>
-<li><p>强分代假说: 熬过越多次垃圾回收的对象就越难以消亡</p>
-</li>
-<li><p>跨代引用假说：跨代引用相对于同代引用来说仅占少数;</p>
-</li>
-</ul>
-<p>部分收集Partial GC:</p>
-<ul>
-<li>新生代收集Minor GC&#x2F;Young GC</li>
-<li>老年代收集 Major GC&#x2F;Old GC</li>
-<li>混合收集 Mixed GC</li>
-</ul>
-<p>整堆收集Full GC:</p>
-<ul>
-<li>收集整个Java堆和方法区的垃圾收集</li>
-</ul>
-<h3 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h3><p>​    	最基础的垃圾收集算法，通过垃圾判定，对对象进行标记，标记之后统一回收所标记的对象。</p>
-<p>​    	缺点：执行效率不稳定，并且会产生内存碎片。</p>
-<h3 id="标记-复制算法"><a href="#标记-复制算法" class="headerlink" title="标记-复制算法"></a>标记-复制算法</h3><p>​    	最早的标记-复制算法采用“半区复制”，就是将内存空间分成两个大小相等的块，每次只是用一个，当一个满了，将活着的对象复制到另一个块，其余的回收。</p>
-<p>​    	不会产生内存碎片，但是代价是可用的内存空间变少了。</p>
-<p>​    	因此后来根据对象“朝生夕灭”的特性，提出了更优化的标记-复制算法，将新生代分为一个Eden区和两个Suivivor区，比例为8：1：1；</p>
-<p>​    	每次给对象分配内存，只是用Eden区和其中一个Suivivor区，垃圾回收时，将存活的对象复制到另一个Suivivor区，如果空间不足，就通过<strong>分配担保机制</strong>，直接进入老年代。</p>
-<h3 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h3><p>​    先标记，之后将存活对象向空间一端移动，然后清除掉边界外的空间。</p>
-<p>​    不会产生内存碎片，但是对象移动的效率慢，多用于老年代。</p>
-<h2 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h2><p>​    比如在新生代中，每次收集都会有大量对象死去，所以可以选择”标记-复制“算法，只需要付出少量对象的复制成本就可以完成每次垃圾收集。而老年代的对象存活几率是比较高的，而且没有额外的空间对它进行分配担保，所以我们必须选择“标记-清除”或“标记-整理”算法进行垃圾收集。</p>
-<p>​    年龄增大到15岁，将从新生代晋升到老年代。</p>
-<h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p>​    	如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</p>
-<p>​    	现代虚拟机采用的垃圾收集器多采用：</p>
-<p>​		新生代采用标记-复制算法，老年代采用标记-整理算法。</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>操作系统</title>
     <url>/2022/11/20/2%E5%85%AB%E8%82%A1_%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</url>
     <content><![CDATA[<h1 id="什么是操作系统？"><a href="#什么是操作系统？" class="headerlink" title="什么是操作系统？"></a>什么是操作系统？</h1><p>​    操作系统是在计算机上运行的最基本的软件程序，它位于计算机硬件资源和应用程序之间，能够管理计算机的硬件资源和应用程序，为应用程序提供服务。</p>
@@ -1312,6 +1124,498 @@ To be continued
       </categories>
       <tags>
         <tag>操作系统</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>JVM</title>
+    <url>/2023/02/16/3%E5%85%AB%E8%82%A1_JVM/</url>
+    <content><![CDATA[<h1 id="内存区域"><a href="#内存区域" class="headerlink" title="内存区域"></a>内存区域</h1><p>​    JVM管理的内存区域称为运行时数据区，包括以下几个部分：</p>
+<p>​    <strong>线程共享的：</strong></p>
+<ol>
+<li>堆</li>
+<li>方法区（JDK8之后变为本地内存中的元空间）</li>
+</ol>
+<p>​    <strong>线程私有的：</strong></p>
+<ol>
+<li><p>虚拟机栈</p>
+</li>
+<li><p>本地方法栈</p>
+</li>
+<li><p>程序计数器</p>
+</li>
+</ol>
+<span id="more"></span>
+
+<h2 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h2><p>​    可以看作当前进行线程所执行字节码的行号指示器。</p>
+<p>​    作用：</p>
+<ol>
+<li>代码执行中的跳转、循环等流程依赖于程序计数器。</li>
+<li>线程切换程序计数器保存、恢复线程的执行到哪一步</li>
+</ol>
+<p>唯一一个不会出现OOM情况内存区域</p>
+<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><p>​    每个方法被执行都会创建一个栈帧，方法被调用到执行完毕的过程，对应着栈帧在虚拟机栈中从入栈到出栈的过程。</p>
+<p>​    栈帧包含：局部变量表，操作数栈，动态链接，方法出口</p>
+<h3 id="局部变量表"><a href="#局部变量表" class="headerlink" title="局部变量表"></a>局部变量表</h3><p>​    主要存放了编译期可知的各种数据类型（boolean、byte、char、short、int、float、long、double）、对象引用（reference 类型，它不同于对象本身，可能是一个指向对象起始地址的引用指针，也可能是指向一个代表对象的句柄或其他与此对象相关的位置）。</p>
+<h3 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h3><p>​    如果一个方法调用其他方法，那么就要使用运行时常量池的该方法的符号引用，将符号引用转化为内存中实际地址的直接引用的过程，叫做动态链接。</p>
+<p>​    有些符号引用在类加载阶段或第一次使用时完成饿了转换，称为静态解析；</p>
+<p>​    另外一部分在每次运行期间被转换，称为动态链接。</p>
+<p>如果线程请求的栈深度大于虚拟机请求所允许的深度，将抛出stackoverflowError,</p>
+<p>如果虚拟机栈容量空一动态扩展，则当扩展时无法申请到足够内存空间时，会抛OOM错误。</p>
+<h2 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h2><p>​    与虚拟机栈相似，只不过是运行本地方法（Native方法）</p>
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><p>​    线程共享，几乎所有对象实例都在这里分配内存。</p>
+<p>​    新生代 老年代 永久代，都是因为大部分都是基于分代垃圾回收器而得名的，只是一个设计风格，而并非java虚拟机固定的布局。</p>
+<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p>​    存储已被JVM加载的类型信息、常量、静态变量、等</p>
+<p>​    方法区的具体实现并不是固定的，JDK8之前是永久代实现，JDK8之后就变成本地内存中的元空间了。</p>
+<h3 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h3><p>​    位于方法区，编译期生成的各种字面量、<strong>符号引用</strong>，在类加载之后存放到方法区的运行时常量池。</p>
+<p>​    一般情况下，类加载后，由符号引用翻译出来的直接引用也存储在运行时常量池。</p>
+<p>​    符号引用：在一个类中（当然不仅是类，还包括类的其他部分，比如方法，字段等），用到其他类（或其他类的方法、字段等），编译时并不知道其具体内存地址，要等类加载之后才知道，因此先用一个符号引用来表示。</p>
+<p>​    在Java中，一个java类将会编译成一个class文件。在编译时，java类并不知道所引用的类的实际地址，因此只能使用符号引用来代替</p>
+<h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>​    位于本地内存。</p>
+<h2 id="一个对象的创建过程"><a href="#一个对象的创建过程" class="headerlink" title="一个对象的创建过程"></a>一个对象的创建过程</h2><p><strong>1.</strong>    <strong>类加载检查</strong></p>
+<p>​    当虚拟机遇到一个new 指令时，首先检查能否在常量池定位到对应的类的符号引用，再检查该类是否被加载过，如果没有必须先执行类加载过程。</p>
+<ol start="2">
+<li><strong>分配内存</strong></li>
+</ol>
+<p>​    对象所需的内存大小在类加载完成后便可确定，分配内存就是在堆空间划出一块固定内存给新建的对象。有两种方式，1. “指针碰撞”：内存空间是规整的； 2. “空闲列表”:内存空间不规整； 能否规整看垃圾收集器是否有空间压缩整理功能。</p>
+<ol start="3">
+<li><strong>初始化零值</strong></li>
+</ol>
+<p>··   将对象的内存空间（不包括对象头）都初始化为0，保证Java对象不用赋初值就能直接使用。</p>
+<ol start="4">
+<li><strong>设置对象头</strong></li>
+</ol>
+<p>​    对象头包扩：对象的类型指针，hashCode, 线程的锁信息，对应的元数据信息等。</p>
+<ol start="5">
+<li><strong>执行 init 方法</strong></li>
+</ol>
+<p>​    按照程序员设置的参数，执行初始化方法。</p>
+<h1 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h1><h2 id="一个类的生命周期"><a href="#一个类的生命周期" class="headerlink" title="一个类的生命周期"></a>一个类的生命周期</h2><p>加载 验证 准备 解析 初始化 使用 卸载</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true" alt="p1.png"></p>
+<p>类加载过程包括：加载-&gt;连接-&gt;初始化 ， 连接过程包括：验证、准备、解析。</p>
+<h2 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h2><p><strong>加载：</strong></p>
+<p>​    通过<strong>类加载器</strong>完成，具体用哪个加载器，通过双亲委派模型选取。</p>
+<ol>
+<li>虚拟机获得类的二进制字节流Class文件</li>
+</ol>
+<p>​       获取方式多样：源程序.java编译得来，压缩包jar、网络传输Web Applet 、运行时动态生成：动态代理</p>
+<ol start="2">
+<li>将字节流代表的静态存储结构，转化为方法区内的运行时数据结构。</li>
+<li>在内存中生成代表这个类的java.lang.Class对象，作为方法区这个类数据的访问接口<strong>。</strong></li>
+</ol>
+<p><strong>验证：</strong></p>
+<p>​    保证Class文件中的信息是否正确，且不会危害虚拟机安全：</p>
+<p>​    Class文件格式是否正确，字节码语义是否符合逻辑，符号引用的验证</p>
+<p><strong>准备</strong>：</p>
+<p>​    为静态变量(类变量，static修饰)分配内存，并设置初值为0；</p>
+<p>​    在JDK8之前，Class对象与静态变量存储在方法区（JDK8之前方法区由永久代实现）；</p>
+<p>JDK8之后，Class对象与静态变量放在Java堆里了。</p>
+<p>​    Public static int value &#x3D; 123;</p>
+<p>​    准备阶段后，value为0，而不是123，赋值为123要等到类的初始化，通过<code>&lt;clinit&gt;()</code>方法；</p>
+<p>​    而如果final修饰静态变量，在准备阶段就会直接被赋值。</p>
+<p><strong>解析</strong>：</p>
+<p>​    将符号引用（类的，方法，字段，等）转化为直接引用</p>
+<p><strong>初始化</strong>:</p>
+<p>​    根据程序员的代码，主观初始化静态变量和其他资源。这个阶段就是执行类构造器的<clinit>()方法的过程，这个方法是Javac编译器的自动生成物。</p>
+<p>​    <clinit>()收集静态变量的赋值行为和静态语句块static{}</p>
+<p>​    即  public static int value &#x3D; 123;</p>
+<p>​       static { value &#x3D; 456;}</p>
+<p>​    按照他们在源文件中出现的顺序进行。</p>
+<h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><p>​    类加载器是一个负责加载类的对象，用于实现类加载过程中的加载这一步。</p>
+<p>每个 Java 类都有一个引用指向加载它的 ClassLoader。</p>
+<p>数组类不是通过 ClassLoader 创建的（数组类没有对应的二进制字节流），是由 JVM 直接生成的。</p>
+<p><strong>类加载器的主要作用就是加载</strong> <strong>Java</strong> <strong>类的字节码（</strong><code>.class</code><strong>文件）到</strong> <strong>JVM</strong> <strong>中（在内存中生成一个代表该类的</strong><code>Class</code><strong>对象）</strong></p>
+<p>JVM 启动的时候，并不会一次性加载所有的类，而是根据需要去动态加载。也就是说，大部分类在具体用到的时候才会去加载，这样对内存更加友好。</p>
+<p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p2.png?raw=true" alt="p2.png"></p>
+<h2 id="双亲委派模型："><a href="#双亲委派模型：" class="headerlink" title="双亲委派模型："></a>双亲委派模型：</h2><p>​		先判断这个类有没有被加载过，如果加载过直接返回，没加载过就走加载流程。</p>
+<p>​		一个类加载器收到加载请求，要先把请求委派给父类加载器，这个请求会一直传递到最顶层类加载器；</p>
+<p>​		只有父类加载器反馈加载不了（它的搜索范围内找不到class文件），子加载器才能加载。</p>
+<p>​		这种父子关系不是通过<strong>继承</strong>实现的，而是使用<strong>组合</strong>关系来复用父加载器的代码</p>
+<p>​		好处：双亲委派模型主要是为了类加载的稳定性，可以避免加载相同名字的类造成混乱，比如Object类存放在rt.jar，由启动类加载器加载，如果用户自己编了一个Object类，类加载请求最终会传递到最顶层的启动类加载器，判断Object类加载过了，就不会加载用户的Object类了。</p>
+<h1 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h1><h2 id="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"><a href="#为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？" class="headerlink" title="为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？"></a>为什么垃圾回收主要针对堆和方法区，而虚拟机栈，本地方法栈，程序计数器不需要？</h2><p>​		因为虚拟机栈、本地方法栈、程序计数器是线程私有的，随线程生，随线程灭，且每一个栈帧所需的大小在编译期即可确定，不受程序运行期变量数据的影响，因此内存的分配和回收都具有确定性，因此不需要过多考虑如何回收。</p>
+<p>​		而堆和方法区中的内存分配受不同运行情况影响，比如一个接口的多个实现类所需内存不同，一个方法执行不同条件分支所需内存也可能不一样，因此只有处于运行期间才能指导会创建哪些对象，创建多少对象。</p>
+<h2 id="Java引用分类"><a href="#Java引用分类" class="headerlink" title="Java引用分类"></a>Java引用分类</h2><ol>
+<li><p>强引用</p>
+<blockquote>
+<p>程序代码中最常见的引用方式，只要强引用关系还在，被引用对象永远不能被回收。</p>
+</blockquote>
+</li>
+<li><p>软引用</p>
+<blockquote>
+<p>用来描述一些还有用，但非必须的对象。被软引用关联的对象，在系统将要发生内存溢出异常前，会将这些对象列入回收范围，进行第二次回收。</p>
+</blockquote>
+</li>
+<li><p>弱引用</p>
+<blockquote>
+<p>用来描述非必须对象。弱引用关联的对象只能生存到下一次垃圾收集发生。</p>
+</blockquote>
+</li>
+<li><p>虚引用</p>
+<blockquote>
+<p>不影响对象生存时间，也无法通过虚引用获取对象实例。为对象设置虚引用的唯一目的就是：为了在这个对象被回收时收到一个系统通知。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="死亡对象的判定方法"><a href="#死亡对象的判定方法" class="headerlink" title="死亡对象的判定方法"></a>死亡对象的判定方法</h2><blockquote>
+<p>对象死亡即不存在对该对象的引用。</p>
+</blockquote>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>​    	给对象中添加一个引用计数器：每当有一个地方引用它，计数器就加 1；当引用失效，计数器就减 1；任何时候计数器为 0 的对象就是不可能再被使用的。</p>
+<p>​    	这个方法简单，效率高，但是无法解决两个对象循环引用的现象，因此现代虚拟机不采用这种方式。</p>
+<h3 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h3><p>​    	通过一系列称为”GC roots”对象为根节点，通过引用关系向下查找，如果一个对象不和任何一个GC roots的调用链相连，则说明该对象不可达，将被判定为回收对象。</p>
+<p>​    	可作为GC roots的对象包括以下几种：</p>
+<ol>
+<li>虚拟机栈中引用的对象。</li>
+<li>方法区类静态变量引用的对象。</li>
+<li>被同步锁synchronized关键字持有的对象</li>
+<li>方法去常量池引用的对象等</li>
+</ol>
+<h2 id="可达性分析出对象可以被回收，就代表一定会被回收吗？"><a href="#可达性分析出对象可以被回收，就代表一定会被回收吗？" class="headerlink" title="可达性分析出对象可以被回收，就代表一定会被回收吗？"></a>可达性分析出对象可以被回收，就代表一定会被回收吗？</h2><p>不一定。</p>
+<p>当对象通过可达性分析，判定为不可用对象后，会被第一次标记，之后将对象放入一个名叫F-Queue的队列里，再进行一次筛选，判断有没有必要执行该对象的finalize（）方法，【如果该对象没有重写finalize()方法，或者finalize()方法已经被调用过一次了，就判定为没必要执行finalize()方法。】</p>
+<p>Finalize方法是对象逃脱死亡的最后一次机会，如果对象重新与引用链上的任何一个对象建立关联，即使是把自己this赋给某个类变量或者对象的成员变量也行，那么对象就会逃脱回收。</p>
+<p>所以说Object类的finalize方法设计的比较糟糕，它是Java诞生时对C C++程序员容易接受的一项妥协，运行代价昂贵，不确定性大，JDK9之后就开始逐渐弃用了。</p>
+<h2 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h2><p>​    	主要针对分代收集理论，“分代收集”的几个假说</p>
+<ul>
+<li><p>弱分代假说：绝大多数对象都是朝生夕灭的（新生代有98%熬不过第一轮垃圾回收）</p>
+</li>
+<li><p>强分代假说: 熬过越多次垃圾回收的对象就越难以消亡</p>
+</li>
+<li><p>跨代引用假说：跨代引用相对于同代引用来说仅占少数;</p>
+</li>
+</ul>
+<p>部分收集Partial GC:</p>
+<ul>
+<li>新生代收集Minor GC&#x2F;Young GC</li>
+<li>老年代收集 Major GC&#x2F;Old GC</li>
+<li>混合收集 Mixed GC</li>
+</ul>
+<p>整堆收集Full GC:</p>
+<ul>
+<li>收集整个Java堆和方法区的垃圾收集</li>
+</ul>
+<h3 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h3><p>​    	最基础的垃圾收集算法，通过垃圾判定，对对象进行标记，标记之后统一回收所标记的对象。</p>
+<p>​    	缺点：执行效率不稳定，并且会产生内存碎片。</p>
+<h3 id="标记-复制算法"><a href="#标记-复制算法" class="headerlink" title="标记-复制算法"></a>标记-复制算法</h3><p>​    	最早的标记-复制算法采用“半区复制”，就是将内存空间分成两个大小相等的块，每次只是用一个，当一个满了，将活着的对象复制到另一个块，其余的回收。</p>
+<p>​    	不会产生内存碎片，但是代价是可用的内存空间变少了。</p>
+<p>​    	因此后来根据对象“朝生夕灭”的特性，提出了更优化的标记-复制算法，将新生代分为一个Eden区和两个Suivivor区，比例为8：1：1；</p>
+<p>​    	每次给对象分配内存，只是用Eden区和其中一个Suivivor区，垃圾回收时，将存活的对象复制到另一个Suivivor区，如果空间不足，就通过<strong>分配担保机制</strong>，直接进入老年代。</p>
+<h3 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h3><p>​    先标记，之后将存活对象向空间一端移动，然后清除掉边界外的空间。</p>
+<p>​    不会产生内存碎片，但是对象移动的效率慢，多用于老年代。</p>
+<h2 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h2><p>​    比如在新生代中，每次收集都会有大量对象死去，所以可以选择”标记-复制“算法，只需要付出少量对象的复制成本就可以完成每次垃圾收集。而老年代的对象存活几率是比较高的，而且没有额外的空间对它进行分配担保，所以我们必须选择“标记-清除”或“标记-整理”算法进行垃圾收集。</p>
+<p>​    年龄增大到15岁，将从新生代晋升到老年代。</p>
+<h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p>​    	如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</p>
+<p>​    	现代虚拟机采用的垃圾收集器多采用：</p>
+<p>​		新生代采用标记-复制算法，老年代采用标记-整理算法。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL</title>
+    <url>/2022/12/28/5%E5%85%AB%E8%82%A1_MySQL/</url>
+    <content><![CDATA[<h1 id="MySQL逻辑架构"><a href="#MySQL逻辑架构" class="headerlink" title="MySQL逻辑架构"></a>MySQL逻辑架构</h1><p>1.连接器</p>
+<p>管理客户端连接，验证登陆权限</p>
+<p>2.缓存查询</p>
+<p>对用户的查询内容进行缓存，缓存命中则不必走存储引擎。但是再MySQL8.0之后移除了这一功能，因为：</p>
+<span id="more"></span>
+
+<ul>
+<li>命中率不高，要求SQL语句要完全相同;</li>
+<li>表结构有任何变化，则缓存全部失效。</li>
+<li>因此额外开销较大，弊大于利</li>
+</ul>
+<p>3.分析器</p>
+<ul>
+<li>分析SQL语法，解析SQL语义，知道这个SQL要干嘛</li>
+</ul>
+<p>4.优化器</p>
+<ul>
+<li>选择索引，表连接顺序，生成执行计划</li>
+</ul>
+<p>5.执行器</p>
+<ul>
+<li>调用存储引擎接口，返回结果</li>
+</ul>
+<p>6.存储引擎</p>
+<ul>
+<li>插件式存储引擎，负责数据的读写。</li>
+</ul>
+<h2 id="一个SQL语句，有几次权限验证？"><a href="#一个SQL语句，有几次权限验证？" class="headerlink" title="一个SQL语句，有几次权限验证？"></a>一个SQL语句，有几次权限验证？</h2><p>3次。</p>
+<p>第一次：连接器阶段，验证用户对于数据库的权限；</p>
+<p>第二次：分析器解析完SQL语义的时候，有一个precheck, 判断对表有没有这个操作权限；</p>
+<p>第三次：执行器阶段，还会有对表的权限的判断。因为执行时可能会涉及到其他表，比如设置了触发器操作。</p>
+<h1 id="MySQL存储引擎"><a href="#MySQL存储引擎" class="headerlink" title="MySQL存储引擎"></a>MySQL存储引擎</h1><p>InnoDB和MyISAM的区别</p>
+<p>5.5.5版本之后，InnoDB取代MyISAM成为MySQL的默认存储引擎。</p>
+<ol>
+<li>事务</li>
+<li>崩溃恢复</li>
+<li>行锁</li>
+<li>MVCC</li>
+<li>数据文件和索引文件的存储结构</li>
+</ol>
+<p>​					InnoDB的数据文件存在主键索引树的叶子节点，而MyISAM的数据文件和索引是分开的。</p>
+<ol start="6">
+<li>外键</li>
+</ol>
+<p>​					InnoDB是支持外键的，但是外键在阿里巴巴java开发手册里规定，项目生产里，外键禁止使用，要在业务代码里进行约束，外键会对性能带来损耗。</p>
+<h1 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h1><p><strong>何为事务？</strong> 一言蔽之，<strong>事务是逻辑上的一组操作，要么都执行，要么都不执行。</strong></p>
+<h2 id="事务的四个性质ACID"><a href="#事务的四个性质ACID" class="headerlink" title="事务的四个性质ACID"></a>事务的四个性质ACID</h2><p>Atomic 原子性</p>
+<p>Consistent 一致性</p>
+<p>Isolation 隔离性</p>
+<p>Durable 持久性</p>
+<p><strong>只有保证了事务的持久性、原子性、隔离性之后，一致性才能得到保障。也就是说 A、I、D 是手段，C 是目的！</strong></p>
+<h2 id="事务隔离级别"><a href="#事务隔离级别" class="headerlink" title="事务隔离级别"></a>事务隔离级别</h2><p>​		事务隔离的4个级别？</p>
+<ol>
+<li>读未提交 <strong>READ-UNCOMMITTED</strong> RU ：允许读到未提交的数据</li>
+<li>读已提交 <strong>READ-COMMITTED</strong> RC ：事务能读到其他事务已经提交的事务</li>
+<li>可重复读 **REPEATABLE-READ **RR ：一个事务内多次读取数据，都和事务的一致性视图一致。</li>
+<li>串行化 <strong>SERIALIZABLE</strong> ：事务按照顺序执行，不支持并发事务</li>
+</ol>
+<p>默认的事务隔离级别是 ：可重复读  REPEATABLE-READ</p>
+<h2 id="MySQL事务隔离级别都是基于锁实现的吗？"><a href="#MySQL事务隔离级别都是基于锁实现的吗？" class="headerlink" title="MySQL事务隔离级别都是基于锁实现的吗？"></a>MySQL事务隔离级别都是基于锁实现的吗？</h2><p>串行化隔离级别是通过锁实现的，而可重复读和读已提交级别下，MVCC和锁都有用到，如果是快照读，用的是MVCC，但是两者生成一致性视图的时刻是不同的，如果 是当前读，比如写操作(update insert delete)，或者加锁读（For update &#x2F; lock in share mode）那么是依赖读写锁的。</p>
+<h2 id="并发事务带来的问题？"><a href="#并发事务带来的问题？" class="headerlink" title="并发事务带来的问题？"></a>并发事务带来的问题？</h2><ol>
+<li><p>脏读：指事务读到了其他事务尚未读到的数据，RU会有脏读现象</p>
+</li>
+<li><p>不可重复读：不可重复度是指事务中前后两次对同一数据读到的值可能不一致，RU,RC都会有这个现象，可重复读隔离级别解决了这个事情</p>
+</li>
+<li><p>幻读：指的是一个事务在前后两次查询同一个范围的时候，后一次查询看到了前一次查询没有看到的行。</p>
+</li>
+</ol>
+<h3 id="如何解决幻读"><a href="#如何解决幻读" class="headerlink" title="如何解决幻读"></a>如何解决幻读</h3><p>   首先普通的查询是快照读，由于MVCC一致性视图的存在，是不会出现幻读的；</p>
+<p>   但是如果是当前读的话，它会加行锁，所以其他事务的update和delete是会被阻塞的，但是Insert是可以插入新纪录的，新纪录是没有行锁的嘛，所以会产生幻读。</p>
+<p>   那么为了解决可重复读隔离级别下的幻读问题，MySQL引入了间隙锁，间隙锁能锁住两行记录间的间隙，防止其他事务插入，间隙锁+行锁合成为next-key lock，来解决幻读的问题。</p>
+<h3 id="next-key-lock锁的范围"><a href="#next-key-lock锁的范围" class="headerlink" title="next-key lock锁的范围"></a>next-key lock锁的范围</h3><p>范围： 左开右闭的区间，并且只有查询过程中真正访问到的对象才会加锁。</p>
+<p>优化：1.如果是唯一索引上的等值查找，那么加锁时next-key lock会退化为行锁；</p>
+<p>​			2.如果是非唯一索引上的等值查找，那么向右遍历访问到索引上第一个不符合条件的值时，会退化为间隙锁。</p>
+<h2 id="如何对并发事务进行控制？"><a href="#如何对并发事务进行控制？" class="headerlink" title="如何对并发事务进行控制？"></a>如何对并发事务进行控制？</h2><ol>
+<li>通过读写锁</li>
+<li>MVCC</li>
+</ol>
+<h2 id="开启事务的指令"><a href="#开启事务的指令" class="headerlink" title="开启事务的指令"></a>开启事务的指令</h2><p>1.显式启动事务语句， begin 或 start transaction。配套的提交语句是 commit，回滚语句是 rollback。</p>
+<p>2.<set autocommit=1>参数，每次执行语句会自动开启事务和提交事务。</p>
+<h2 id="长事务有什么后果？"><a href="#长事务有什么后果？" class="headerlink" title="长事务有什么后果？"></a>长事务有什么后果？</h2><ol>
+<li><p>长时间占用锁资源，会影响性能；</p>
+</li>
+<li><p>会导致主从延迟</p>
+</li>
+<li><p>还会导致大量的undo log占用存储空间，因为undo log清理的判断依据是，看如果没有比该事务的更早的一致性视图了，才会被清理，所以说长事务还会影响它后面事务的undo log的清理。</p>
+</li>
+<li><p>长事务还会影响修改表结构，长事务给表加MDL读锁，之后要有修改表结构的操作，会请求MDL写锁，而MDL队列中写锁优先级高于读锁，所以修改表结构的事务后边的CRUD操作也会被阻塞。</p>
+</li>
+</ol>
+<h1 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h1><h2 id="全局锁"><a href="#全局锁" class="headerlink" title="全局锁"></a>全局锁</h2><p>Flush tables with read lock (FTWRL)，使整个库都处于一个只读的状态。</p>
+<p>使用场景：做全库逻辑备份。逻辑备份时要保持整个过程数据要保持一致性；当然这只适用于不支持事务的存储引擎，对于InnoDB存储引擎来说，可以通过MVCC拿到一致性视图来进行全库备份，而不需要使用全局锁，造成全库只读。</p>
+<h2 id="表级锁"><a href="#表级锁" class="headerlink" title="表级锁"></a>表级锁</h2><ol>
+<li>表锁：表锁是针对表中数据的，读操作加读锁，写操作加写锁；需要显示命令&lt;lock tables … read&#x2F;write&gt;;在没有出现行锁的时候，表锁是控制并发的方式。</li>
+<li>meta data lock (MDL): 元数据锁是针对修改表结构的，在修改表结构的时候，会加MDL写锁，CRUD操作的时候加的是MDL读锁，读锁共享；MDL锁是隐式自动加的。</li>
+</ol>
+<h2 id="如何安全的给小表加字段（或者说修改表结构）？"><a href="#如何安全的给小表加字段（或者说修改表结构）？" class="headerlink" title="如何安全的给小表加字段（或者说修改表结构）？"></a>如何安全的给小表加字段（或者说修改表结构）？</h2><p>​		由于meta data lock (MDL)的存在，如果在修改表结构之前，有一个长事务存在，会占据MDL写锁，此时修改表结构的事务申请MDL写锁会被阻塞，并且由于申请MDL锁的队列是写锁优先的，所以再后面的CRUD操作也会被阻塞。</p>
+<p>那么如何安全的修改表结构呢？</p>
+<ol>
+<li><p>首先要先清理掉长事务，会让后面的修改表结构操作长时间拿不到MDL写锁；</p>
+</li>
+<li><p>其次是可以给修改表结构的指令加上一个超时时间，保证不会阻塞后续语句太久。</p>
+</li>
+</ol>
+<h2 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h2><p>InnoDB引擎才支持行锁。</p>
+<p>普通读是加读锁，是共享锁(S 锁)；增删改操作加的是行锁，是排他锁(X 锁)。</p>
+<h3 id="两阶段锁协议"><a href="#两阶段锁协议" class="headerlink" title="两阶段锁协议"></a>两阶段锁协议</h3><p>事务中的锁是在需要的时候才上锁的，但是要等到事务提交或者回滚了之后才会释放。</p>
+<p>所以说事务中容易造成锁冲突的语句尽量放在事务最后，这样可以减少事务时间的锁等待，增加并发度。</p>
+<blockquote>
+<p>为什么要两阶段锁呢？</p>
+<p>如果写操作完事之后没等事务提交就立马释放，那么其他事务如果快照读还好，有一致性视图，但是如果执行当前读的操作时，就会<strong>脏读</strong>了。</p>
+</blockquote>
+<h2 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h2><p>间隙锁是为了解决幻读的，只有在可重复读的隔离级级别下才有。因为如果只有行锁，那么插入新纪录的时候不会被上锁，在一个事务中，对于同一个范围内的两次查询，后一次的查询可能会出现新的结果，也就是幻读现象。</p>
+<p>Next-key lock 临键锁</p>
+<p>为了解决幻读现象，就有了next-key lock，行锁+间隙锁结合就叫做next-key lock  </p>
+<p>范围： 左开右闭的区间，并且只有查询过程中真正访问到的对象才会加锁。</p>
+<p>优化：1.如果是唯一索引上的等值查找，那么加锁时next-key lock会退化为行锁；</p>
+<p>​			2.如果是非唯一索引上的等值查找，那么向右遍历访问到索引上第一个不符合条件的值时，会退化为间隙锁。</p>
+<h1 id="三大日志"><a href="#三大日志" class="headerlink" title="三大日志"></a>三大日志</h1><h2 id="redo-log"><a href="#redo-log" class="headerlink" title="redo log"></a>redo log</h2><p>InnoDB 的 redo log 是固定大小的，比如可以配置为一组 4 个文件，每个文件的大小是 1GB；</p>
+<p>redo log是循环写的，有两个指针 write pos和check point，分别指向当前写的位置和要擦除的位置。只要redo log被记录了，那么mysql崩溃后，就可根据check point回放，来恢复数据</p>
+<img src="https://static001.geekbang.org/resource/image/9d/d4/9d057f61d3962407f413deebc80526d4.png?wh=1142*639" alt="img" style="zoom: 67%;" />
+
+<h3 id="redo-log-刷盘时机"><a href="#redo-log-刷盘时机" class="headerlink" title="redo log 刷盘时机"></a>redo log 刷盘时机</h3><p>事务执行过程中，redo log只写到redo log buffer中，但是要在事务提交，执行commit指令时，才</p>
+<p><code>InnoDB</code> 存储引擎为 <code>redo log</code> 的刷盘策略提供了 <code>innodb_flush_log_at_trx_commit</code> 参数，它支持三种策略：</p>
+<ul>
+<li><strong>0</strong> ：设置为 0 的时候，表示每次<strong>事务提交时</strong>，redo log只停留在redo log buffer</li>
+<li><strong>1</strong> ：设置为 1 的时候，表示每次<strong>事务提交时</strong>都将持久化到磁盘（默认值）</li>
+<li><strong>2</strong> ：设置为 2 的时候，表示每次<strong>事务提交时</strong>都只把 redo log buffer 内容写入 page cache</li>
+</ul>
+<p>另外，<code>InnoDB</code> 存储引擎有一个后台线程，每隔<code>1</code> 秒，就会把 <code>redo log buffer</code> 中的内容写到文件系统缓存（<code>page cache</code>），然后调用 <code>fsync</code> 刷盘。</p>
+<blockquote>
+<p>如果设置为1，只要事务提交，redo log一定落盘成功；如果事务执行期间MySQL挂了或者宕机，那么事务没提交，redo log不记录也正常。</p>
+<p>如果设置为0，如果MySQL挂了或者宕机，则会损失1秒中内的数据</p>
+<p>如果设置为2，每次事务都会write文件系统的page cache中，那么MySQL挂了不会有数据损失，但是如果宕机了，就会损失1秒内数据。</p>
+</blockquote>
+<h3 id="没提交的redo-log为什么会从redo-log-buffer-刷新到磁盘？"><a href="#没提交的redo-log为什么会从redo-log-buffer-刷新到磁盘？" class="headerlink" title="没提交的redo log为什么会从redo log buffer 刷新到磁盘？"></a>没提交的redo log为什么会从redo log buffer 刷新到磁盘？</h3><ol>
+<li>后台线程每隔一秒的轮询操作，会将redo log buffer同步到磁盘</li>
+<li>redo log buffer的内存空间达到总空间的一半时，会将redo log buffer中的内容write到page cache中</li>
+<li>并发事务时，多个事务共享一个redo log buffer，如果redo log刷盘时机的参数选为1，那么有一个事务提交时，把整个redo log buffer全部提交，能够实现组提交，减少磁盘IO。【binlog也有组提交机制】</li>
+</ol>
+<h2 id="binlog"><a href="#binlog" class="headerlink" title="binlog"></a>binlog</h2><p><code>redo log</code> 它是物理日志，记录内容是“在某个数据页上做了什么修改”，属于 <code>InnoDB</code> 存储引擎。redo log是循环写</p>
+<p>而 <code>binlog</code> 是逻辑日志，记录内容是语句的原始逻辑，类似于“给 ID&#x3D;2 这一行的 c 字段加 1”，属于<code>MySQL Server</code> 层。binlog是追加写。</p>
+<p><code>MySQL</code>数据库的<strong>数据备份、主备、主主、主从</strong>都离不开<code>binlog</code>，需要依靠<code>binlog</code>来同步数据，保证数据一致性。</p>
+<h3 id="binlog格式"><a href="#binlog格式" class="headerlink" title="binlog格式"></a>binlog格式</h3><ul>
+<li><strong>statement</strong></li>
+</ul>
+<p>statement格式的Binlog记录的是每个事务的SQL语句，缺点是从库用来同步的时候可能造成主从不一致，如：一个写操作，加了limit，但是可能走了不同的索引，导致主从不一致</p>
+<ul>
+<li><strong>row</strong></li>
+</ul>
+<p>row格式binlog的记录对应到每一行，因此不会出现主从数据不一致的情况，但是这种格式的Binlog文件占用空间会比较大。</p>
+<ul>
+<li><strong>mixed</strong></li>
+</ul>
+<p>综合以上两种格式，先判断一个SQL语句是否会造成主从不一致，不会的话用statement格式，否则用row格式</p>
+<h3 id="binlog刷盘时机"><a href="#binlog刷盘时机" class="headerlink" title="binlog刷盘时机"></a>binlog刷盘时机</h3><p>在事务执行过程中，binlog写入内存中的 binlog cache，事务提交的时候才会刷新到磁盘</p>
+<p>write 和 fsync 的时机，是由参数 sync_binlog 控制的：</p>
+<p>sync_binlog&#x3D;0 的时候，表示每次提交事务都只 write到page cache，不 fsync到磁盘；</p>
+<p>sync_binlog&#x3D;1 的时候，表示每次提交事务都会执行 fsync到磁盘；</p>
+<p>sync_binlog&#x3D;N(N&gt;1) 的时候，表示每次提交事务都 write，但累积 N 个事务后才 fsync。</p>
+<img src="https://static001.geekbang.org/resource/image/9e/3e/9ed86644d5f39efb0efec595abb92e3e.png?wh=1142*748" alt="img" style="zoom: 50%;" />
+
+<h3 id="为什么Binlog不能实现崩溃恢复？"><a href="#为什么Binlog不能实现崩溃恢复？" class="headerlink" title="为什么Binlog不能实现崩溃恢复？"></a>为什么Binlog不能实现崩溃恢复？</h3><p>我认为主要是因为binlog没有check point指针，binlog和redo log都是WAL机制（预先写日志），redo log在回放数据的时候，根据check point指针，来恢复数据，check point能保证它之前的数据是全部已经落盘的数据;而Binlog没有这样的机制，binlog只能判断事务是否执行完成了，但是由于WAL机制，事务完成了，数据可能还没有刷盘，因此也就无法判断哪些需要恢复。</p>
+<h2 id="redo-log和binlog的两阶段提交？"><a href="#redo-log和binlog的两阶段提交？" class="headerlink" title="redo log和binlog的两阶段提交？"></a>redo log和binlog的两阶段提交？</h2><p>目的：保证两份日志文件的一致性。因为binlog会用作创建备库或者恢复临时库（库被误删了），操作是拿到最近一次的整库备份，加上对应时间节点的Binlog进行恢复。如果redo log和binlog不一致，那么就会导致备库与原库不一致。</p>
+<img src="https://static001.geekbang.org/resource/image/2e/be/2e5bff4910ec189fe1ee6e2ecc7b4bbe.png?wh=1142*1522" alt="img" style="zoom: 33%;" />
+
+<p>一个更新语句的流程：【上图从写redolog开始都是执行事务提交指令COMMIT后的操作】</p>
+<ol>
+<li>先看数据是否在内存buffer pool中，不在的话先将数据从磁盘读到内存中；</li>
+<li>修改内存中的数据</li>
+<li>写redo log，写完之后标记redo log为prepare状态</li>
+<li>写binlog</li>
+<li>提交事务时（commit指令），将redo log标记为commit状态</li>
+</ol>
+<blockquote>
+<p>如果不采用两阶段提交，那么如果在写两份日志之间发生崩溃，会导致两份日志数据不一致</p>
+</blockquote>
+<p>为什么binlog不能支持崩溃恢复</p>
+<h2 id="mysql崩溃后，如何恢复数据？"><a href="#mysql崩溃后，如何恢复数据？" class="headerlink" title="mysql崩溃后，如何恢复数据？"></a>mysql崩溃后，如何恢复数据？</h2><p>崩溃恢复的时候，会按照顺序从check point开始扫描redo log</p>
+<p>如果这条事务的redo log标记为commit状态，则认为该事务有效，进行提交。</p>
+<p>如果redo log是prepare状态，这是需要判断binlog是否完整，如果完整就提交事务，不完整就回滚事务。</p>
+<blockquote>
+<p>如何判断binlog是否完整？</p>
+<p>答：一个事务的binlog有格式的，如果是statement格式，完整的Binlog最后会有commit标志，如果是row格式，最后会有一个XID event。</p>
+</blockquote>
+<blockquote>
+<p>一个事务的Binlog 和redo log是如何关联在一起的？</p>
+<p>答: 二者有一个公共字段 XID</p>
+</blockquote>
+<h2 id="MySQL如何保证数据不丢失？"><a href="#MySQL如何保证数据不丢失？" class="headerlink" title="MySQL如何保证数据不丢失？"></a>MySQL如何保证数据不丢失？</h2><blockquote>
+<p>mysql通过write-ahead logging WAL 预先写日志机制，内从中数据修改不用马上去刷新磁盘，用redo log和binlog保证数据不丢失，提高mysql的并行能力。</p>
+<p>WAL机制主要得益于两个方面：</p>
+<ol>
+<li>binlog和redo log顺序写，比数据写磁盘时的随机写要快得多；</li>
+<li>组提交机制，可以减少了IO次数，提高了IO性能。</li>
+</ol>
+</blockquote>
+<h2 id="MySQL如何保证原子性？"><a href="#MySQL如何保证原子性？" class="headerlink" title="MySQL如何保证原子性？"></a>MySQL如何保证原子性？</h2><p>通过回滚日志，mysql在开启事务之后，每一个sql语句的逆逻辑都会记录在回滚日志中，当事务没执行完，中途出现异常，或者主动通过rollback指令，就会根据回滚日志将数据恢复到事务开启之前的状态。</p>
+<h2 id="undo-log"><a href="#undo-log" class="headerlink" title="undo log"></a>undo log</h2><p>回滚日志记录的是我们事务执行的倒序逻辑，1. 用来事务的回滚； 2. MVCC的实现。</p>
+<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><h2 id="一致性视图"><a href="#一致性视图" class="headerlink" title="一致性视图"></a>一致性视图</h2><p>一致性视图相当于给整库拍了一个快照，保存当前的状态，在RC下每执行一个语句会创建一个一致性视图，RR隔离级别下，在事务启动时开启一致性视图，整个事务使用同一个一致性视图。</p>
+<p>读提交RC和可重复读RR的一致性视图的区别？</p>
+<p>RC隔离级别下的每执行一个语句就会创建一个一致性视图，而RR隔离级别下，是在开启事务的时候创建的，直到事务提交之前一直使用这一个一致性视图。</p>
+<h2 id="如何实现可重复读"><a href="#如何实现可重复读" class="headerlink" title="如何实现可重复读"></a>如何实现可重复读</h2><ol>
+<li><p>InnoDB存储引擎的为每行数据提供了隐藏字段，其中的事务Id字段记录了更新该行数据的事务Id，用于表示这行数据的版本；</p>
+</li>
+<li><p>每个事务在开启一致性视图时会创建一个视图数组，用于记录启动事务瞬间正在活跃的所有事务的id；</p>
+</li>
+<li><p>事务在查询数据时，通过undo log从数据当前值开始向前查找，比对数据的版本号，也就是更新这条记录的事务Id，</p>
+<p>a. 如果id比视图数组的低水位小，表示是在开启一致性视图之前创建的，那么这条事务可见；</p>
+<p>b. 如果Id比视图数组的高水位大，表示是后创建的视图修改的数据，那么这条事务不可见，继续根据undo log向前查找;</p>
+<p>c. 如果id落在视图数组的高水位和低水位之间，如果视图数组中存在该事务Id，那么就是未提交的事务修改的，不可见，如果不存在，就是已提交事务的修改的，是可见的；</p>
+</li>
+<li><p>就这样根据undo log回滚视图不断查找，直到找到第一个可见数据。</p>
+</li>
+</ol>
+<h1 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h1><h2 id="常见的索引模型"><a href="#常见的索引模型" class="headerlink" title="常见的索引模型"></a>常见的索引模型</h2><ol>
+<li><p>哈希索引</p>
+<p> 时间复杂度接近O(1)，结构简单，缺点是只适合等值查找，不支持范围查找，范围查找要走全表扫描。</p>
+</li>
+<li><p>有序数组<br> 可以二分查找，时间复杂度log(n)，但是插入新数据时，后边的都需要向后移动，成本较高。</p>
+</li>
+<li><p>二叉搜索树<br> 查找的时间复杂度为log(n)，但是二叉树每层的节点数太少了，树高会很高，每次查找读磁盘次数都会很多，又会减少查询速度 。</p>
+</li>
+<li><p>N叉树</p>
+<p> N叉树的出现就是来解决访问页面过多的问题，以 InnoDB 的一个整数字段索引为例，这个 N 差不多是 1200。这棵树高是 4 的时候，就可以存 1200 的 3 次方个值，这已经 17 亿了。</p>
+</li>
+</ol>
+<h2 id="InnoDB索引模型"><a href="#InnoDB索引模型" class="headerlink" title="InnoDB索引模型"></a>InnoDB索引模型</h2><p>采用B+树，是一种平衡 多叉 搜索 树<br>非叶子节点只存放key，而叶子节点存放key和数据，叶子节点通过双向指针形成链表。</p>
+<p>B树与B+树有哪些区别？<br>    B树所有节点都能存放key和数据，每个节点之间是独立的，查找时可能走不到叶子节点就结束了;<br>    而B+树的数据只存在在叶子节点，并且通过链表连接，每次查找都要走到叶子节点;</p>
+<p>B+树的优点：</p>
+<ol>
+<li>由于B树每个节点都存储key和数据，导致每个页面内存储的索引更少，整个索引树的树高会更高，查找时需要更多次读磁盘；</li>
+<li>范围查询时，B+树查找到两个端点就可以了，然后通过链表的指针进行遍历即可；而B树要遍历更多节点；</li>
+</ol>
+<h2 id="聚簇索引和非聚簇索引"><a href="#聚簇索引和非聚簇索引" class="headerlink" title="聚簇索引和非聚簇索引"></a>聚簇索引和非聚簇索引</h2><p>聚簇索引：索引结构和数据存放在一起的索引，InnoDB的主键索引就是聚簇索引</p>
+<p>非聚簇索引：索引结构和数据是分开存放的，InnoDB的二级索引就是非聚簇索引，叶子节点存储的是主键值。而MyISAM都是非聚簇索引。</p>
+<h2 id="单列索引和联合索引"><a href="#单列索引和联合索引" class="headerlink" title="单列索引和联合索引"></a>单列索引和联合索引</h2><p>单列索引：单个字段做索引；  联合索引：多个字段做索引</p>
+<h2 id="主键索引与二级索引"><a href="#主键索引与二级索引" class="headerlink" title="主键索引与二级索引"></a>主键索引与二级索引</h2><p>主键索引：一张表只能有一个主键索引，索引字段要满足不能重复，不为null；主键索引叶子节点存储的是数据。</p>
+<p>如果没有显示指定主键字段，则InnoDB自动检查看有没有一个字段能满足主键索引的条件，没有的话会创建一个不可见的6Byte的自增主键。</p>
+<p>二级索引：一张表可以有多个二级索引，二级索引叶子节点存储的是主键值。通过二级索引查找到主键值之后，需要根据主键值回表，到主键索引查找到对应数据。</p>
+<h2 id="索引的三大特性"><a href="#索引的三大特性" class="headerlink" title="索引的三大特性"></a>索引的三大特性</h2><h3 id="索引覆盖"><a href="#索引覆盖" class="headerlink" title="索引覆盖"></a>索引覆盖</h3><p>当通过非聚簇索引树查询时，在非聚簇索引树上就有想查询的数据时，就没必要回表了，比如：</p>
+<ol>
+<li>通过某个普通索引，想查询主键ID字段；</li>
+<li>或者联合索引，联合索引有最左匹配原则，当想通过索引中左边的字段查询右侧字段的数据时，也不需要回表。</li>
+</ol>
+<h3 id="最左匹配"><a href="#最左匹配" class="headerlink" title="最左匹配"></a>最左匹配</h3><p>在使用联合索引时，<strong>MySQL</strong> 会根据联合索引中的字段顺序，从左到右依次到查询条件中去匹配。匹配完成或者遇到范围查询（如&gt; &lt; between）无法继续匹配时，匹配结束。</p>
+<h3 id="索引下推"><a href="#索引下推" class="headerlink" title="索引下推"></a>索引下推</h3><p>如果是联合索引，遇到无法继续匹配的情况了，比如范围查找，那么其他查询条件如果在索引中能找到，会先做判断，不满足的就不用回表了，减少回表次数。</p>
+<h2 id="怎么给字符串字段加索引？"><a href="#怎么给字符串字段加索引？" class="headerlink" title="怎么给字符串字段加索引？"></a>怎么给字符串字段加索引？</h2><p>场景1：邮箱登录；</p>
+<p>给邮箱字段加索引。 <a href="mailto:&#122;&#x68;&#x61;&#x6e;&#x67;&#115;&#115;&#x78;&#121;&#x7a;&#x40;&#x78;&#x78;&#120;&#x2e;&#99;&#111;&#109;">&#122;&#x68;&#x61;&#x6e;&#x67;&#115;&#115;&#x78;&#121;&#x7a;&#x40;&#x78;&#x78;&#120;&#x2e;&#99;&#111;&#109;</a>；问题：字段太长，占据空间太大</p>
+<p><strong>前缀索引</strong>，取前几个字符做索引，最左匹配原则。使用前缀索引，定义好长度，就可以做到既节省空间，又不用额外增加太多的查询成本。</p>
+<p>前缀索引的问题是会增加一些扫描行数，牺牲了一些匹配精确度。并且前缀索引依赖于区分度。</p>
+<p>场景2：身份证号</p>
+<p>身份证号的前缀区分度不高；因此可采用</p>
+<p><strong>倒序存储</strong> ， 之后再取前6位做前缀索引，每次需要调用reverse函数</p>
+<p><strong>添加hash字段</strong>：为表添加一个hash字段，作为索引。每次插入通过哈希函数计算出身份证号的hash值；hash索引的匹配精度高，会增加一个额外字段空间，一般四个字节就够了；可能会哈希冲突，还要和id联合判断是否完全相同，但是冲突几率比较低；</p>
+<p>总体来说hash字段索引查询效率要更高一些。地址空间hash字段可能更多，但是如果前缀区分度低，要更长长度，也会增加额外地址空间。</p>
+<h2 id="什么时候不走索引（导致索引失效的原因）？"><a href="#什么时候不走索引（导致索引失效的原因）？" class="headerlink" title="什么时候不走索引（导致索引失效的原因）？"></a>什么时候不走索引（导致索引失效的原因）？</h2><ol>
+<li>对索引字段进行了函数计算</li>
+</ol>
+<blockquote>
+<p> select * from t where year(date) &#x3D; 2020 索引上有函数运算</p>
+<p>select * from t where id+1&#x3D;1000  写成where id &#x3D; 1000 - 1 就行了</p>
+</blockquote>
+<ol start="2">
+<li>隐式类型转换</li>
+</ol>
+<blockquote>
+<p>首先明确，mysql 中 select “10” &gt; 9 ，字符串和数字做比较的话，是将字符串转换成数字。</p>
+<p>select * from tradelog where tradeid&#x3D;110717 相当于  select * from tradelog where  CAST(tradid AS signed int) &#x3D; 110717</p>
+<p>所以相当于对索引字段进行了隐式的函数计算，会导致不走索引</p>
+</blockquote>
+<ol start="3">
+<li>隐式字符编码转换</li>
+</ol>
+<blockquote>
+<p>如果两个关联表的字符集不同，也可能不走索引；比如表1字符集是utf8mb3，表2字符集是utf8mb4，由于uft8mb4是超集，范围更大，会将utf8mb3字符的字段转换为utf8mb4的字符进行关联比较。</p>
+</blockquote>
+<h1 id="MySQL性能优化"><a href="#MySQL性能优化" class="headerlink" title="MySQL性能优化"></a>MySQL性能优化</h1><h2 id="主备"><a href="#主备" class="headerlink" title="主备"></a>主备</h2><h2 id="读写分离"><a href="#读写分离" class="headerlink" title="读写分离"></a>读写分离</h2><h2 id="分库库表"><a href="#分库库表" class="headerlink" title="分库库表"></a>分库库表</h2><h2 id="高可用性和高可靠性"><a href="#高可用性和高可靠性" class="headerlink" title="高可用性和高可靠性"></a>高可用性和高可靠性</h2><h1 id="零散问题"><a href="#零散问题" class="headerlink" title="零散问题"></a>零散问题</h1><h2 id="change-buffer"><a href="#change-buffer" class="headerlink" title="change buffer"></a>change buffer</h2><p>对于二级索引树的数据页通常是无序的，每次读取要进行随机磁盘IO，那么为了避免读磁盘，就将对二级索引树的写操作缓存在change buffer中，等下次要访问这个数据页的时候，再将change buffer中的操作执行。</p>
+<blockquote>
+<p>对于唯一索引，由于每次要进行唯一性检查，所以每次都要读进内存，所以不走change buffer</p>
+</blockquote>
+<h2 id="刷脏页"><a href="#刷脏页" class="headerlink" title="刷脏页"></a>刷脏页</h2><h2 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h2><p>mysql为每个线程分配一个用于排序的内存区域sort buffer;</p>
+<blockquote>
+<p>全字段排序：将要查询的内容全部放进sort buffer，更具order by字段进行快排，如果超过sort buffer size，则需要借助临时磁盘文件，进行归并排序；</p>
+<p>row id 排序：如果查询内容的每行字节数太大，受sort buffer size限制，如果借用磁盘文件可能数量太多，则采用另一种排序方式,row id排序；   </p>
+<p>​				将排序字段和对应的主键放入sort buffer进行排序，之后再根据主键进行一次回表，解决了内存不足问题，但是多了一次磁盘回表操作，因此全字段排序作为默认方式。但是如果是对内存临时表进行排序，回表也不用到磁盘中查，因此采用row id排序。</p>
+</blockquote>
+<h2 id="随机显示数据"><a href="#随机显示数据" class="headerlink" title="随机显示数据"></a>随机显示数据</h2><p>join</p>
+<p>临时表</p>
+<h2 id="数据库设计的三大范式"><a href="#数据库设计的三大范式" class="headerlink" title="数据库设计的三大范式"></a>数据库设计的三大范式</h2><blockquote>
+<p>第一范式：每个列都是不可拆分的</p>
+<p>第二范式：每个表只做一件事</p>
+<p>第三范式：不存在对非主键列的传递依赖</p>
+<p>目的：<strong>减少数据耦合</strong></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>数据库</tag>
       </tags>
   </entry>
   <entry>
@@ -1692,312 +1996,6 @@ To be continued
       </tags>
   </entry>
   <entry>
-    <title>MySQL</title>
-    <url>/2022/12/28/5%E5%85%AB%E8%82%A1_MySQL/</url>
-    <content><![CDATA[<h1 id="MySQL逻辑架构"><a href="#MySQL逻辑架构" class="headerlink" title="MySQL逻辑架构"></a>MySQL逻辑架构</h1><p>1.连接器</p>
-<p>管理客户端连接，验证登陆权限</p>
-<p>2.缓存查询</p>
-<p>对用户的查询内容进行缓存，缓存命中则不必走存储引擎。但是再MySQL8.0之后移除了这一功能，因为：</p>
-<span id="more"></span>
-
-<ul>
-<li>命中率不高，要求SQL语句要完全相同;</li>
-<li>表结构有任何变化，则缓存全部失效。</li>
-<li>因此额外开销较大，弊大于利</li>
-</ul>
-<p>3.分析器</p>
-<ul>
-<li>分析SQL语法，解析SQL语义，知道这个SQL要干嘛</li>
-</ul>
-<p>4.优化器</p>
-<ul>
-<li>选择索引，表连接顺序，生成执行计划</li>
-</ul>
-<p>5.执行器</p>
-<ul>
-<li>调用存储引擎接口，返回结果</li>
-</ul>
-<p>6.存储引擎</p>
-<ul>
-<li>插件式存储引擎，负责数据的读写。</li>
-</ul>
-<h2 id="一个SQL语句，有几次权限验证？"><a href="#一个SQL语句，有几次权限验证？" class="headerlink" title="一个SQL语句，有几次权限验证？"></a>一个SQL语句，有几次权限验证？</h2><p>3次。</p>
-<p>第一次：连接器阶段，验证用户对于数据库的权限；</p>
-<p>第二次：分析器解析完SQL语义的时候，有一个precheck, 判断对表有没有这个操作权限；</p>
-<p>第三次：执行器阶段，还会有对表的权限的判断。因为执行时可能会涉及到其他表，比如设置了触发器操作。</p>
-<h1 id="MySQL存储引擎"><a href="#MySQL存储引擎" class="headerlink" title="MySQL存储引擎"></a>MySQL存储引擎</h1><p>InnoDB和MyISAM的区别</p>
-<p>5.5.5版本之后，InnoDB取代MyISAM成为MySQL的默认存储引擎。</p>
-<ol>
-<li>事务</li>
-<li>崩溃恢复</li>
-<li>行锁</li>
-<li>MVCC</li>
-<li>数据文件和索引文件的存储结构</li>
-</ol>
-<p>​					InnoDB的数据文件存在主键索引树的叶子节点，而MyISAM的数据文件和索引是分开的。</p>
-<ol start="6">
-<li>外键</li>
-</ol>
-<p>​					InnoDB是支持外键的，但是外键在阿里巴巴java开发手册里规定，项目生产里，外键禁止使用，要在业务代码里进行约束，外键会对性能带来损耗。</p>
-<h1 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h1><p><strong>何为事务？</strong> 一言蔽之，<strong>事务是逻辑上的一组操作，要么都执行，要么都不执行。</strong></p>
-<h2 id="事务的四个性质ACID"><a href="#事务的四个性质ACID" class="headerlink" title="事务的四个性质ACID"></a>事务的四个性质ACID</h2><p>Atomic 原子性</p>
-<p>Consistent 一致性</p>
-<p>Isolation 隔离性</p>
-<p>Durable 持久性</p>
-<p><strong>只有保证了事务的持久性、原子性、隔离性之后，一致性才能得到保障。也就是说 A、I、D 是手段，C 是目的！</strong></p>
-<h2 id="事务隔离级别"><a href="#事务隔离级别" class="headerlink" title="事务隔离级别"></a>事务隔离级别</h2><p>​		事务隔离的4个级别？</p>
-<ol>
-<li>读未提交 <strong>READ-UNCOMMITTED</strong> RU ：允许读到未提交的数据</li>
-<li>读已提交 <strong>READ-COMMITTED</strong> RC ：事务能读到其他事务已经提交的事务</li>
-<li>可重复读 **REPEATABLE-READ **RR ：一个事务内多次读取数据，都和事务的一致性视图一致。</li>
-<li>串行化 <strong>SERIALIZABLE</strong> ：事务按照顺序执行，不支持并发事务</li>
-</ol>
-<p>默认的事务隔离级别是 ：可重复读  REPEATABLE-READ</p>
-<h2 id="MySQL事务隔离级别都是基于锁实现的吗？"><a href="#MySQL事务隔离级别都是基于锁实现的吗？" class="headerlink" title="MySQL事务隔离级别都是基于锁实现的吗？"></a>MySQL事务隔离级别都是基于锁实现的吗？</h2><p>串行化隔离级别是通过锁实现的，而可重复读和读已提交级别下，MVCC和锁都有用到，如果是快照读，用的是MVCC，但是两者生成一致性视图的时刻是不同的，如果 是当前读，比如写操作(update insert delete)，或者加锁读（For update &#x2F; lock in share mode）那么是依赖读写锁的。</p>
-<h2 id="并发事务带来的问题？"><a href="#并发事务带来的问题？" class="headerlink" title="并发事务带来的问题？"></a>并发事务带来的问题？</h2><ol>
-<li><p>脏读：指事务读到了其他事务尚未读到的数据，RU会有脏读现象</p>
-</li>
-<li><p>不可重复读：不可重复度是指事务中前后两次对同一数据读到的值可能不一致，RU,RC都会有这个现象，可重复读隔离级别解决了这个事情</p>
-</li>
-<li><p>幻读：指的是一个事务在前后两次查询同一个范围的时候，后一次查询看到了前一次查询没有看到的行。</p>
-</li>
-</ol>
-<h3 id="如何解决幻读"><a href="#如何解决幻读" class="headerlink" title="如何解决幻读"></a>如何解决幻读</h3><p>   首先普通的查询是快照读，由于MVCC一致性视图的存在，是不会出现幻读的；</p>
-<p>   但是如果是当前读的话，它会加行锁，所以其他事务的update和delete是会被阻塞的，但是Insert是可以插入新纪录的，新纪录是没有行锁的嘛，所以会产生幻读。</p>
-<p>   那么为了解决可重复读隔离级别下的幻读问题，MySQL引入了间隙锁，间隙锁能锁住两行记录间的间隙，防止其他事务插入，间隙锁+行锁合成为next-key lock，来解决幻读的问题。</p>
-<h3 id="next-key-lock锁的范围"><a href="#next-key-lock锁的范围" class="headerlink" title="next-key lock锁的范围"></a>next-key lock锁的范围</h3><p>范围： 左开右闭的区间，并且只有查询过程中真正访问到的对象才会加锁。</p>
-<p>优化：1.如果是唯一索引上的等值查找，那么加锁时next-key lock会退化为行锁；</p>
-<p>​			2.如果是非唯一索引上的等值查找，那么向右遍历访问到索引上第一个不符合条件的值时，会退化为间隙锁。</p>
-<h2 id="如何对并发事务进行控制？"><a href="#如何对并发事务进行控制？" class="headerlink" title="如何对并发事务进行控制？"></a>如何对并发事务进行控制？</h2><ol>
-<li>通过读写锁</li>
-<li>MVCC</li>
-</ol>
-<h2 id="开启事务的指令"><a href="#开启事务的指令" class="headerlink" title="开启事务的指令"></a>开启事务的指令</h2><p>1.显式启动事务语句， begin 或 start transaction。配套的提交语句是 commit，回滚语句是 rollback。</p>
-<p>2.<set autocommit=1>参数，每次执行语句会自动开启事务和提交事务。</p>
-<h2 id="长事务有什么后果？"><a href="#长事务有什么后果？" class="headerlink" title="长事务有什么后果？"></a>长事务有什么后果？</h2><ol>
-<li><p>长时间占用锁资源，会影响性能；</p>
-</li>
-<li><p>会导致主从延迟</p>
-</li>
-<li><p>还会导致大量的undo log占用存储空间，因为undo log清理的判断依据是，看如果没有比该事务的更早的一致性视图了，才会被清理，所以说长事务还会影响它后面事务的undo log的清理。</p>
-</li>
-<li><p>长事务还会影响修改表结构，长事务给表加MDL读锁，之后要有修改表结构的操作，会请求MDL写锁，而MDL队列中写锁优先级高于读锁，所以修改表结构的事务后边的CRUD操作也会被阻塞。</p>
-</li>
-</ol>
-<h1 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h1><h2 id="全局锁"><a href="#全局锁" class="headerlink" title="全局锁"></a>全局锁</h2><p>Flush tables with read lock (FTWRL)，使整个库都处于一个只读的状态。</p>
-<p>使用场景：做全库逻辑备份。逻辑备份时要保持整个过程数据要保持一致性；当然这只适用于不支持事务的存储引擎，对于InnoDB存储引擎来说，可以通过MVCC拿到一致性视图来进行全库备份，而不需要使用全局锁，造成全库只读。</p>
-<h2 id="表级锁"><a href="#表级锁" class="headerlink" title="表级锁"></a>表级锁</h2><ol>
-<li>表锁：表锁是针对表中数据的，读操作加读锁，写操作加写锁；需要显示命令&lt;lock tables … read&#x2F;write&gt;;在没有出现行锁的时候，表锁是控制并发的方式。</li>
-<li>meta data lock (MDL): 元数据锁是针对修改表结构的，在修改表结构的时候，会加MDL写锁，CRUD操作的时候加的是MDL读锁，读锁共享；MDL锁是隐式自动加的。</li>
-</ol>
-<h2 id="如何安全的给小表加字段（或者说修改表结构）？"><a href="#如何安全的给小表加字段（或者说修改表结构）？" class="headerlink" title="如何安全的给小表加字段（或者说修改表结构）？"></a>如何安全的给小表加字段（或者说修改表结构）？</h2><p>​		由于meta data lock (MDL)的存在，如果在修改表结构之前，有一个长事务存在，会占据MDL写锁，此时修改表结构的事务申请MDL写锁会被阻塞，并且由于申请MDL锁的队列是写锁优先的，所以再后面的CRUD操作也会被阻塞。</p>
-<p>那么如何安全的修改表结构呢？</p>
-<ol>
-<li><p>首先要先清理掉长事务，会让后面的修改表结构操作长时间拿不到MDL写锁；</p>
-</li>
-<li><p>其次是可以给修改表结构的指令加上一个超时时间，保证不会阻塞后续语句太久。</p>
-</li>
-</ol>
-<h2 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h2><p>InnoDB引擎才支持行锁。</p>
-<p>普通读是加读锁，是共享锁(S 锁)；增删改操作加的是行锁，是排他锁(X 锁)。</p>
-<h3 id="两阶段锁协议"><a href="#两阶段锁协议" class="headerlink" title="两阶段锁协议"></a>两阶段锁协议</h3><p>事务中的锁是在需要的时候才上锁的，但是要等到事务提交或者回滚了之后才会释放。</p>
-<p>所以说事务中容易造成锁冲突的语句尽量放在事务最后，这样可以减少事务时间的锁等待，增加并发度。</p>
-<blockquote>
-<p>为什么要两阶段锁呢？</p>
-<p>如果写操作完事之后没等事务提交就立马释放，那么其他事务如果快照读还好，有一致性视图，但是如果执行当前读的操作时，就会<strong>脏读</strong>了。</p>
-</blockquote>
-<h2 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h2><p>间隙锁是为了解决幻读的，只有在可重复读的隔离级级别下才有。因为如果只有行锁，那么插入新纪录的时候不会被上锁，在一个事务中，对于同一个范围内的两次查询，后一次的查询可能会出现新的结果，也就是幻读现象。</p>
-<p>Next-key lock 临键锁</p>
-<p>为了解决幻读现象，就有了next-key lock，行锁+间隙锁结合就叫做next-key lock  </p>
-<p>范围： 左开右闭的区间，并且只有查询过程中真正访问到的对象才会加锁。</p>
-<p>优化：1.如果是唯一索引上的等值查找，那么加锁时next-key lock会退化为行锁；</p>
-<p>​			2.如果是非唯一索引上的等值查找，那么向右遍历访问到索引上第一个不符合条件的值时，会退化为间隙锁。</p>
-<h1 id="三大日志"><a href="#三大日志" class="headerlink" title="三大日志"></a>三大日志</h1><h2 id="redo-log"><a href="#redo-log" class="headerlink" title="redo log"></a>redo log</h2><p>InnoDB 的 redo log 是固定大小的，比如可以配置为一组 4 个文件，每个文件的大小是 1GB；</p>
-<p>redo log是循环写的，有两个指针 write pos和check point，分别指向当前写的位置和要擦除的位置。只要redo log被记录了，那么mysql崩溃后，就可根据check point回放，来恢复数据</p>
-<img src="https://static001.geekbang.org/resource/image/9d/d4/9d057f61d3962407f413deebc80526d4.png?wh=1142*639" alt="img" style="zoom: 67%;" />
-
-<h3 id="redo-log-刷盘时机"><a href="#redo-log-刷盘时机" class="headerlink" title="redo log 刷盘时机"></a>redo log 刷盘时机</h3><p>事务执行过程中，redo log只写到redo log buffer中，但是要在事务提交，执行commit指令时，才</p>
-<p><code>InnoDB</code> 存储引擎为 <code>redo log</code> 的刷盘策略提供了 <code>innodb_flush_log_at_trx_commit</code> 参数，它支持三种策略：</p>
-<ul>
-<li><strong>0</strong> ：设置为 0 的时候，表示每次<strong>事务提交时</strong>，redo log只停留在redo log buffer</li>
-<li><strong>1</strong> ：设置为 1 的时候，表示每次<strong>事务提交时</strong>都将持久化到磁盘（默认值）</li>
-<li><strong>2</strong> ：设置为 2 的时候，表示每次<strong>事务提交时</strong>都只把 redo log buffer 内容写入 page cache</li>
-</ul>
-<p>另外，<code>InnoDB</code> 存储引擎有一个后台线程，每隔<code>1</code> 秒，就会把 <code>redo log buffer</code> 中的内容写到文件系统缓存（<code>page cache</code>），然后调用 <code>fsync</code> 刷盘。</p>
-<blockquote>
-<p>如果设置为1，只要事务提交，redo log一定落盘成功；如果事务执行期间MySQL挂了或者宕机，那么事务没提交，redo log不记录也正常。</p>
-<p>如果设置为0，如果MySQL挂了或者宕机，则会损失1秒中内的数据</p>
-<p>如果设置为2，每次事务都会write文件系统的page cache中，那么MySQL挂了不会有数据损失，但是如果宕机了，就会损失1秒内数据。</p>
-</blockquote>
-<h3 id="没提交的redo-log为什么会从redo-log-buffer-刷新到磁盘？"><a href="#没提交的redo-log为什么会从redo-log-buffer-刷新到磁盘？" class="headerlink" title="没提交的redo log为什么会从redo log buffer 刷新到磁盘？"></a>没提交的redo log为什么会从redo log buffer 刷新到磁盘？</h3><ol>
-<li>后台线程每隔一秒的轮询操作，会将redo log buffer同步到磁盘</li>
-<li>redo log buffer的内存空间达到总空间的一半时，会将redo log buffer中的内容write到page cache中</li>
-<li>并发事务时，多个事务共享一个redo log buffer，如果redo log刷盘时机的参数选为1，那么有一个事务提交时，把整个redo log buffer全部提交，能够实现组提交，减少磁盘IO。【binlog也有组提交机制】</li>
-</ol>
-<h2 id="binlog"><a href="#binlog" class="headerlink" title="binlog"></a>binlog</h2><p><code>redo log</code> 它是物理日志，记录内容是“在某个数据页上做了什么修改”，属于 <code>InnoDB</code> 存储引擎。redo log是循环写</p>
-<p>而 <code>binlog</code> 是逻辑日志，记录内容是语句的原始逻辑，类似于“给 ID&#x3D;2 这一行的 c 字段加 1”，属于<code>MySQL Server</code> 层。binlog是追加写。</p>
-<p><code>MySQL</code>数据库的<strong>数据备份、主备、主主、主从</strong>都离不开<code>binlog</code>，需要依靠<code>binlog</code>来同步数据，保证数据一致性。</p>
-<h3 id="binlog格式"><a href="#binlog格式" class="headerlink" title="binlog格式"></a>binlog格式</h3><ul>
-<li><strong>statement</strong></li>
-</ul>
-<p>statement格式的Binlog记录的是每个事务的SQL语句，缺点是从库用来同步的时候可能造成主从不一致，如：一个写操作，加了limit，但是可能走了不同的索引，导致主从不一致</p>
-<ul>
-<li><strong>row</strong></li>
-</ul>
-<p>row格式binlog的记录对应到每一行，因此不会出现主从数据不一致的情况，但是这种格式的Binlog文件占用空间会比较大。</p>
-<ul>
-<li><strong>mixed</strong></li>
-</ul>
-<p>综合以上两种格式，先判断一个SQL语句是否会造成主从不一致，不会的话用statement格式，否则用row格式</p>
-<h3 id="binlog刷盘时机"><a href="#binlog刷盘时机" class="headerlink" title="binlog刷盘时机"></a>binlog刷盘时机</h3><p>在事务执行过程中，binlog写入内存中的 binlog cache，事务提交的时候才会刷新到磁盘</p>
-<p>write 和 fsync 的时机，是由参数 sync_binlog 控制的：</p>
-<p>sync_binlog&#x3D;0 的时候，表示每次提交事务都只 write到page cache，不 fsync到磁盘；</p>
-<p>sync_binlog&#x3D;1 的时候，表示每次提交事务都会执行 fsync到磁盘；</p>
-<p>sync_binlog&#x3D;N(N&gt;1) 的时候，表示每次提交事务都 write，但累积 N 个事务后才 fsync。</p>
-<img src="https://static001.geekbang.org/resource/image/9e/3e/9ed86644d5f39efb0efec595abb92e3e.png?wh=1142*748" alt="img" style="zoom: 50%;" />
-
-<h3 id="为什么Binlog不能实现崩溃恢复？"><a href="#为什么Binlog不能实现崩溃恢复？" class="headerlink" title="为什么Binlog不能实现崩溃恢复？"></a>为什么Binlog不能实现崩溃恢复？</h3><p>我认为主要是因为binlog没有check point指针，binlog和redo log都是WAL机制（预先写日志），redo log在回放数据的时候，根据check point指针，来恢复数据，check point能保证它之前的数据是全部已经落盘的数据;而Binlog没有这样的机制，binlog只能判断事务是否执行完成了，但是由于WAL机制，事务完成了，数据可能还没有刷盘，因此也就无法判断哪些需要恢复。</p>
-<h2 id="redo-log和binlog的两阶段提交？"><a href="#redo-log和binlog的两阶段提交？" class="headerlink" title="redo log和binlog的两阶段提交？"></a>redo log和binlog的两阶段提交？</h2><p>目的：保证两份日志文件的一致性。因为binlog会用作创建备库或者恢复临时库（库被误删了），操作是拿到最近一次的整库备份，加上对应时间节点的Binlog进行恢复。如果redo log和binlog不一致，那么就会导致备库与原库不一致。</p>
-<img src="https://static001.geekbang.org/resource/image/2e/be/2e5bff4910ec189fe1ee6e2ecc7b4bbe.png?wh=1142*1522" alt="img" style="zoom: 33%;" />
-
-<p>一个更新语句的流程：【上图从写redolog开始都是执行事务提交指令COMMIT后的操作】</p>
-<ol>
-<li>先看数据是否在内存buffer pool中，不在的话先将数据从磁盘读到内存中；</li>
-<li>修改内存中的数据</li>
-<li>写redo log，写完之后标记redo log为prepare状态</li>
-<li>写binlog</li>
-<li>提交事务时（commit指令），将redo log标记为commit状态</li>
-</ol>
-<blockquote>
-<p>如果不采用两阶段提交，那么如果在写两份日志之间发生崩溃，会导致两份日志数据不一致</p>
-</blockquote>
-<p>为什么binlog不能支持崩溃恢复</p>
-<h2 id="mysql崩溃后，如何恢复数据？"><a href="#mysql崩溃后，如何恢复数据？" class="headerlink" title="mysql崩溃后，如何恢复数据？"></a>mysql崩溃后，如何恢复数据？</h2><p>崩溃恢复的时候，会按照顺序从check point开始扫描redo log</p>
-<p>如果这条事务的redo log标记为commit状态，则认为该事务有效，进行提交。</p>
-<p>如果redo log是prepare状态，这是需要判断binlog是否完整，如果完整就提交事务，不完整就回滚事务。</p>
-<blockquote>
-<p>如何判断binlog是否完整？</p>
-<p>答：一个事务的binlog有格式的，如果是statement格式，完整的Binlog最后会有commit标志，如果是row格式，最后会有一个XID event。</p>
-</blockquote>
-<blockquote>
-<p>一个事务的Binlog 和redo log是如何关联在一起的？</p>
-<p>答: 二者有一个公共字段 XID</p>
-</blockquote>
-<h2 id="MySQL如何保证数据不丢失？"><a href="#MySQL如何保证数据不丢失？" class="headerlink" title="MySQL如何保证数据不丢失？"></a>MySQL如何保证数据不丢失？</h2><blockquote>
-<p>mysql通过write-ahead logging WAL 预先写日志机制，内从中数据修改不用马上去刷新磁盘，用redo log和binlog保证数据不丢失，提高mysql的并行能力。</p>
-<p>WAL机制主要得益于两个方面：</p>
-<ol>
-<li>binlog和redo log顺序写，比数据写磁盘时的随机写要快得多；</li>
-<li>组提交机制，可以减少了IO次数，提高了IO性能。</li>
-</ol>
-</blockquote>
-<h2 id="MySQL如何保证原子性？"><a href="#MySQL如何保证原子性？" class="headerlink" title="MySQL如何保证原子性？"></a>MySQL如何保证原子性？</h2><p>通过回滚日志，mysql在开启事务之后，每一个sql语句的逆逻辑都会记录在回滚日志中，当事务没执行完，中途出现异常，或者主动通过rollback指令，就会根据回滚日志将数据恢复到事务开启之前的状态。</p>
-<h2 id="undo-log"><a href="#undo-log" class="headerlink" title="undo log"></a>undo log</h2><p>回滚日志记录的是我们事务执行的倒序逻辑，1. 用来事务的回滚； 2. MVCC的实现。</p>
-<h1 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h1><h2 id="一致性视图"><a href="#一致性视图" class="headerlink" title="一致性视图"></a>一致性视图</h2><p>一致性视图相当于给整库拍了一个快照，保存当前的状态，在RC下每执行一个语句会创建一个一致性视图，RR隔离级别下，在事务启动时开启一致性视图，整个事务使用同一个一致性视图。</p>
-<p>读提交RC和可重复读RR的一致性视图的区别？</p>
-<p>RC隔离级别下的每执行一个语句就会创建一个一致性视图，而RR隔离级别下，是在开启事务的时候创建的，直到事务提交之前一直使用这一个一致性视图。</p>
-<h2 id="如何实现可重复读"><a href="#如何实现可重复读" class="headerlink" title="如何实现可重复读"></a>如何实现可重复读</h2><ol>
-<li><p>InnoDB存储引擎的为每行数据提供了隐藏字段，其中的事务Id字段记录了更新该行数据的事务Id，用于表示这行数据的版本；</p>
-</li>
-<li><p>每个事务在开启一致性视图时会创建一个视图数组，用于记录启动事务瞬间正在活跃的所有事务的id；</p>
-</li>
-<li><p>事务在查询数据时，通过undo log从数据当前值开始向前查找，比对数据的版本号，也就是更新这条记录的事务Id，</p>
-<p>a. 如果id比视图数组的低水位小，表示是在开启一致性视图之前创建的，那么这条事务可见；</p>
-<p>b. 如果Id比视图数组的高水位大，表示是后创建的视图修改的数据，那么这条事务不可见，继续根据undo log向前查找;</p>
-<p>c. 如果id落在视图数组的高水位和低水位之间，如果视图数组中存在该事务Id，那么就是未提交的事务修改的，不可见，如果不存在，就是已提交事务的修改的，是可见的；</p>
-</li>
-<li><p>就这样根据undo log回滚视图不断查找，直到找到第一个可见数据。</p>
-</li>
-</ol>
-<h1 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h1><h2 id="常见的索引模型"><a href="#常见的索引模型" class="headerlink" title="常见的索引模型"></a>常见的索引模型</h2><ol>
-<li><p>哈希索引</p>
-<p> 时间复杂度接近O(1)，结构简单，缺点是只适合等值查找，不支持范围查找，范围查找要走全表扫描。</p>
-</li>
-<li><p>有序数组<br> 可以二分查找，时间复杂度log(n)，但是插入新数据时，后边的都需要向后移动，成本较高。</p>
-</li>
-<li><p>二叉搜索树<br> 查找的时间复杂度为log(n)，但是二叉树每层的节点数太少了，树高会很高，每次查找读磁盘次数都会很多，又会减少查询速度 。</p>
-</li>
-<li><p>N叉树</p>
-<p> N叉树的出现就是来解决访问页面过多的问题，以 InnoDB 的一个整数字段索引为例，这个 N 差不多是 1200。这棵树高是 4 的时候，就可以存 1200 的 3 次方个值，这已经 17 亿了。</p>
-</li>
-</ol>
-<h2 id="InnoDB索引模型"><a href="#InnoDB索引模型" class="headerlink" title="InnoDB索引模型"></a>InnoDB索引模型</h2><p>采用B+树，是一种平衡 多叉 搜索 树<br>非叶子节点只存放key，而叶子节点存放key和数据，叶子节点通过双向指针形成链表。</p>
-<p>B树与B+树有哪些区别？<br>    B树所有节点都能存放key和数据，每个节点之间是独立的，查找时可能走不到叶子节点就结束了;<br>    而B+树的数据只存在在叶子节点，并且通过链表连接，每次查找都要走到叶子节点;</p>
-<p>B+树的优点：</p>
-<ol>
-<li>由于B树每个节点都存储key和数据，导致每个页面内存储的索引更少，整个索引树的树高会更高，查找时需要更多次读磁盘；</li>
-<li>范围查询时，B+树查找到两个端点就可以了，然后通过链表的指针进行遍历即可；而B树要遍历更多节点；</li>
-</ol>
-<h2 id="聚簇索引和非聚簇索引"><a href="#聚簇索引和非聚簇索引" class="headerlink" title="聚簇索引和非聚簇索引"></a>聚簇索引和非聚簇索引</h2><p>聚簇索引：索引结构和数据存放在一起的索引，InnoDB的主键索引就是聚簇索引</p>
-<p>非聚簇索引：索引结构和数据是分开存放的，InnoDB的二级索引就是非聚簇索引，叶子节点存储的是主键值。而MyISAM都是非聚簇索引。</p>
-<h2 id="单列索引和联合索引"><a href="#单列索引和联合索引" class="headerlink" title="单列索引和联合索引"></a>单列索引和联合索引</h2><p>单列索引：单个字段做索引；  联合索引：多个字段做索引</p>
-<h2 id="主键索引与二级索引"><a href="#主键索引与二级索引" class="headerlink" title="主键索引与二级索引"></a>主键索引与二级索引</h2><p>主键索引：一张表只能有一个主键索引，索引字段要满足不能重复，不为null；主键索引叶子节点存储的是数据。</p>
-<p>如果没有显示指定主键字段，则InnoDB自动检查看有没有一个字段能满足主键索引的条件，没有的话会创建一个不可见的6Byte的自增主键。</p>
-<p>二级索引：一张表可以有多个二级索引，二级索引叶子节点存储的是主键值。通过二级索引查找到主键值之后，需要根据主键值回表，到主键索引查找到对应数据。</p>
-<h2 id="索引的三大特性"><a href="#索引的三大特性" class="headerlink" title="索引的三大特性"></a>索引的三大特性</h2><h3 id="索引覆盖"><a href="#索引覆盖" class="headerlink" title="索引覆盖"></a>索引覆盖</h3><p>当通过非聚簇索引树查询时，在非聚簇索引树上就有想查询的数据时，就没必要回表了，比如：</p>
-<ol>
-<li>通过某个普通索引，想查询主键ID字段；</li>
-<li>或者联合索引，联合索引有最左匹配原则，当想通过索引中左边的字段查询右侧字段的数据时，也不需要回表。</li>
-</ol>
-<h3 id="最左匹配"><a href="#最左匹配" class="headerlink" title="最左匹配"></a>最左匹配</h3><p>在使用联合索引时，<strong>MySQL</strong> 会根据联合索引中的字段顺序，从左到右依次到查询条件中去匹配。匹配完成或者遇到范围查询（如&gt; &lt; between）无法继续匹配时，匹配结束。</p>
-<h3 id="索引下推"><a href="#索引下推" class="headerlink" title="索引下推"></a>索引下推</h3><p>如果是联合索引，遇到无法继续匹配的情况了，比如范围查找，那么其他查询条件如果在索引中能找到，会先做判断，不满足的就不用回表了，减少回表次数。</p>
-<h2 id="怎么给字符串字段加索引？"><a href="#怎么给字符串字段加索引？" class="headerlink" title="怎么给字符串字段加索引？"></a>怎么给字符串字段加索引？</h2><p>场景1：邮箱登录；</p>
-<p>给邮箱字段加索引。 <a href="mailto:&#x7a;&#104;&#x61;&#110;&#x67;&#115;&#x73;&#120;&#121;&#x7a;&#x40;&#x78;&#120;&#x78;&#46;&#99;&#111;&#109;">&#x7a;&#104;&#x61;&#110;&#x67;&#115;&#x73;&#120;&#121;&#x7a;&#x40;&#x78;&#120;&#x78;&#46;&#99;&#111;&#109;</a>；问题：字段太长，占据空间太大</p>
-<p><strong>前缀索引</strong>，取前几个字符做索引，最左匹配原则。使用前缀索引，定义好长度，就可以做到既节省空间，又不用额外增加太多的查询成本。</p>
-<p>前缀索引的问题是会增加一些扫描行数，牺牲了一些匹配精确度。并且前缀索引依赖于区分度。</p>
-<p>场景2：身份证号</p>
-<p>身份证号的前缀区分度不高；因此可采用</p>
-<p><strong>倒序存储</strong> ， 之后再取前6位做前缀索引，每次需要调用reverse函数</p>
-<p><strong>添加hash字段</strong>：为表添加一个hash字段，作为索引。每次插入通过哈希函数计算出身份证号的hash值；hash索引的匹配精度高，会增加一个额外字段空间，一般四个字节就够了；可能会哈希冲突，还要和id联合判断是否完全相同，但是冲突几率比较低；</p>
-<p>总体来说hash字段索引查询效率要更高一些。地址空间hash字段可能更多，但是如果前缀区分度低，要更长长度，也会增加额外地址空间。</p>
-<h2 id="什么时候不走索引（导致索引失效的原因）？"><a href="#什么时候不走索引（导致索引失效的原因）？" class="headerlink" title="什么时候不走索引（导致索引失效的原因）？"></a>什么时候不走索引（导致索引失效的原因）？</h2><ol>
-<li>对索引字段进行了函数计算</li>
-</ol>
-<blockquote>
-<p> select * from t where year(date) &#x3D; 2020 索引上有函数运算</p>
-<p>select * from t where id+1&#x3D;1000  写成where id &#x3D; 1000 - 1 就行了</p>
-</blockquote>
-<ol start="2">
-<li>隐式类型转换</li>
-</ol>
-<blockquote>
-<p>首先明确，mysql 中 select “10” &gt; 9 ，字符串和数字做比较的话，是将字符串转换成数字。</p>
-<p>select * from tradelog where tradeid&#x3D;110717 相当于  select * from tradelog where  CAST(tradid AS signed int) &#x3D; 110717</p>
-<p>所以相当于对索引字段进行了隐式的函数计算，会导致不走索引</p>
-</blockquote>
-<ol start="3">
-<li>隐式字符编码转换</li>
-</ol>
-<blockquote>
-<p>如果两个关联表的字符集不同，也可能不走索引；比如表1字符集是utf8mb3，表2字符集是utf8mb4，由于uft8mb4是超集，范围更大，会将utf8mb3字符的字段转换为utf8mb4的字符进行关联比较。</p>
-</blockquote>
-<h1 id="MySQL性能优化"><a href="#MySQL性能优化" class="headerlink" title="MySQL性能优化"></a>MySQL性能优化</h1><h2 id="主备"><a href="#主备" class="headerlink" title="主备"></a>主备</h2><h2 id="读写分离"><a href="#读写分离" class="headerlink" title="读写分离"></a>读写分离</h2><h2 id="分库库表"><a href="#分库库表" class="headerlink" title="分库库表"></a>分库库表</h2><h2 id="高可用性和高可靠性"><a href="#高可用性和高可靠性" class="headerlink" title="高可用性和高可靠性"></a>高可用性和高可靠性</h2><h1 id="零散问题"><a href="#零散问题" class="headerlink" title="零散问题"></a>零散问题</h1><h2 id="change-buffer"><a href="#change-buffer" class="headerlink" title="change buffer"></a>change buffer</h2><p>对于二级索引树的数据页通常是无序的，每次读取要进行随机磁盘IO，那么为了避免读磁盘，就将对二级索引树的写操作缓存在change buffer中，等下次要访问这个数据页的时候，再将change buffer中的操作执行。</p>
-<blockquote>
-<p>对于唯一索引，由于每次要进行唯一性检查，所以每次都要读进内存，所以不走change buffer</p>
-</blockquote>
-<h2 id="刷脏页"><a href="#刷脏页" class="headerlink" title="刷脏页"></a>刷脏页</h2><h2 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h2><p>mysql为每个线程分配一个用于排序的内存区域sort buffer;</p>
-<blockquote>
-<p>全字段排序：将要查询的内容全部放进sort buffer，更具order by字段进行快排，如果超过sort buffer size，则需要借助临时磁盘文件，进行归并排序；</p>
-<p>row id 排序：如果查询内容的每行字节数太大，受sort buffer size限制，如果借用磁盘文件可能数量太多，则采用另一种排序方式,row id排序；   </p>
-<p>​				将排序字段和对应的主键放入sort buffer进行排序，之后再根据主键进行一次回表，解决了内存不足问题，但是多了一次磁盘回表操作，因此全字段排序作为默认方式。但是如果是对内存临时表进行排序，回表也不用到磁盘中查，因此采用row id排序。</p>
-</blockquote>
-<h2 id="随机显示数据"><a href="#随机显示数据" class="headerlink" title="随机显示数据"></a>随机显示数据</h2><p>join</p>
-<p>临时表</p>
-<h2 id="数据库设计的三大范式"><a href="#数据库设计的三大范式" class="headerlink" title="数据库设计的三大范式"></a>数据库设计的三大范式</h2><blockquote>
-<p>第一范式：每个列都是不可拆分的</p>
-<p>第二范式：每个表只做一件事</p>
-<p>第三范式：不存在对非主键列的传递依赖</p>
-<p>目的：<strong>减少数据耦合</strong></p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>后端</category>
-      </categories>
-      <tags>
-        <tag>数据库</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>设计模式</title>
     <url>/2023/04/02/6%E5%85%AB%E8%82%A1_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<h1 id="设计模式六大原则"><a href="#设计模式六大原则" class="headerlink" title="设计模式六大原则"></a>设计模式六大原则</h1><ol>
@@ -2213,65 +2211,6 @@ To be continued
       </tags>
   </entry>
   <entry>
-    <title>SpringBoot</title>
-    <url>/2023/02/03/9%E5%85%AB%E8%82%A1_SptringBoot/</url>
-    <content><![CDATA[<h1 id="为什么要有SpringBoot？"><a href="#为什么要有SpringBoot？" class="headerlink" title="为什么要有SpringBoot？"></a>为什么要有SpringBoot？</h1><p>SpringBoot旨在减少配置文件，方便Spring框架开发。</p>
-<span id="more"></span>
-
-<h1 id="简单介绍一下Spring，有什么缺点？"><a href="#简单介绍一下Spring，有什么缺点？" class="headerlink" title="简单介绍一下Spring，有什么缺点？"></a>简单介绍一下Spring，有什么缺点？</h1><p>spring是轻量级开发框架，集成了很多模块，如Ioc,Aop等，能够减少重复代码，提高开发效率。</p>
-<p>缺点是:需要大量的XML配置文件，比较繁琐。</p>
-<h1 id="Spring-boot-starters是什么？"><a href="#Spring-boot-starters是什么？" class="headerlink" title="Spring-boot-starters是什么？"></a>Spring-boot-starters是什么？</h1><p>Spring-boot-starters是一系列依赖关系的集合，它能够让我们项目的依赖配置更加简单。</p>
-<p>在没有Spring-boot-starters之前，开发一个web应用要引入spring-mvc，tomcat,jackson时，要分别配置，还要考虑他们之间的版本支持关系；但是如果使用一个依赖Spring-boot-starter-web就可以将他们集成一体化配置了，里边包含了web开发服务的所有依赖。</p>
-<h1 id="Spring支持哪些内嵌web容器"><a href="#Spring支持哪些内嵌web容器" class="headerlink" title="Spring支持哪些内嵌web容器"></a>Spring支持哪些内嵌web容器</h1><p>默认使用tomcat,还可以用jetty【在pom.xml中先移除tomcat，再添加jetty】</p>
-<h1 id="介绍一下-SpringBootApplication注解"><a href="#介绍一下-SpringBootApplication注解" class="headerlink" title="介绍一下@SpringBootApplication注解"></a>介绍一下@SpringBootApplication注解</h1><p>@SpringBootApplication是项目启动注解，他可以看作@EnableAutoConfiguration @ComponentScan @Configration注解的集合。</p>
-<blockquote>
-<p>@EnableAutoConfiguration: 启用springboot的自动配置功能</p>
-<p>@ComponentScan：扫描被@Component（@Controller）等注解注释的类，将他们以bean的形式注入到ioc容器。</p>
-<p>​				@ComponentScan默认扫描路径为同级包及其子包；</p>
-<p>@Configration允许在上下文中注入额外的bean和其他配置类</p>
-</blockquote>
-<h1 id="开发RESTful-Web服务常用的注解有哪些？"><a href="#开发RESTful-Web服务常用的注解有哪些？" class="headerlink" title="开发RESTful Web服务常用的注解有哪些？"></a>开发RESTful Web服务常用的注解有哪些？</h1><h2 id="Spring-Bean相关"><a href="#Spring-Bean相关" class="headerlink" title="Spring Bean相关"></a>Spring Bean相关</h2><h3 id="标记为ioc容器管理"><a href="#标记为ioc容器管理" class="headerlink" title="标记为ioc容器管理"></a>标记为ioc容器管理</h3><ul>
-<li>@Component @Repository @Service @Controller</li>
-</ul>
-<h3 id="装配bean"><a href="#装配bean" class="headerlink" title="装配bean"></a>装配bean</h3><ul>
-<li>@Autowired @Resource</li>
-</ul>
-<h3 id="HTTP请求类型"><a href="#HTTP请求类型" class="headerlink" title="HTTP请求类型"></a>HTTP请求类型</h3><ul>
-<li>@GetMapping @PostMapping @PutMapping @DeleteMapping</li>
-</ul>
-<h3 id="前后端传值"><a href="#前后端传值" class="headerlink" title="前后端传值"></a>前后端传值</h3><blockquote>
-<p>@RequestParam 用于?传参</p>
-<p>@PathVariable用于url路径传参</p>
-<p>@RequestBody用于读取Request请求的body部分以json格式传递的数据，将json字符串解析成java对象。</p>
-</blockquote>
-<blockquote>
-<p>一个请求方法只可以有一个@RequestBody，但是可以有多个@RequestParam，@PathVariable</p>
-</blockquote>
-<blockquote>
-<p>@RequestParam，@PathVariable通常用于get请求，get请求一般不用于传递json，硬传递的话要在url中添加json字符串，但是Url有长度限制。</p>
-<p>@RequestBody多用于post,put,delete请求，传递json</p>
-</blockquote>
-<h1 id="Springboot常用的两种配置文件"><a href="#Springboot常用的两种配置文件" class="headerlink" title="Springboot常用的两种配置文件"></a>Springboot常用的两种配置文件</h1><p>properties文件和yml文件。yml配置更加简单，看起来更有层次性（冒号后边的空格不要忘记）</p>
-<p>使用 <code>@Value(&quot;$&#123;property&#125;&quot;)</code> 读取比较简单的配置信息</p>
-<h1 id="Springboot后端请求参数验证"><a href="#Springboot后端请求参数验证" class="headerlink" title="Springboot后端请求参数验证"></a>Springboot后端请求参数验证</h1><p>即使前端做了请求参数验证，后端还是要进行参数验证，为了避免用户绕过浏览器通过http工具请求违法数据。</p>
-<blockquote>
-<p>对于requestbody请求参数，传入表单类通过框架注解进行参数限制，web方法请求参数前加@Valid</p>
-</blockquote>
-<blockquote>
-<p>对于RequestParam和PathVariable请求参数，请求方法加@valid和@Notnull等限制，在controller类上必须加@Validated注解</p>
-</blockquote>
-<h1 id="SpringBoot全局异常处理"><a href="#SpringBoot全局异常处理" class="headerlink" title="SpringBoot全局异常处理"></a>SpringBoot全局异常处理</h1><p>通过@ControllerAdvice注解 + @ResponseBody注解修饰配置类，@ExceptionHandler设置特定异常的处理方式。</p>
-<p>通过AOP实现，@ControllerAdvice注解会为controller类织入抛异常通知，具体的执行要看下边的配置。</p>
-<h1 id="SpringBoot定时任务"><a href="#SpringBoot定时任务" class="headerlink" title="SpringBoot定时任务"></a>SpringBoot定时任务</h1><p>通过@Scheduled修饰定时方法，并在启动类@EnableScheduling</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-      </categories>
-      <tags>
-        <tag>SpringBoot</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>服务器</title>
     <url>/2023/01/14/8%E5%85%AB%E8%82%A1_Tomcat&amp;Nginx/</url>
     <content><![CDATA[<h1 id="Tomcat"><a href="#Tomcat" class="headerlink" title="Tomcat"></a>Tomcat</h1><h2 id="什么是web容器？"><a href="#什么是web容器？" class="headerlink" title="什么是web容器？"></a>什么是web容器？</h2><p>早期的HTTP服务器主要用于返回静态资源，如Apache,Nginx服务器都是静态服务器，像浏览器返回静态html,浏览器负责解析html页面；</p>
@@ -2372,6 +2311,65 @@ To be continued
         <tag>Tomcat</tag>
         <tag>Servlet</tag>
         <tag>Nginx</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SpringBoot</title>
+    <url>/2023/02/03/9%E5%85%AB%E8%82%A1_SptringBoot/</url>
+    <content><![CDATA[<h1 id="为什么要有SpringBoot？"><a href="#为什么要有SpringBoot？" class="headerlink" title="为什么要有SpringBoot？"></a>为什么要有SpringBoot？</h1><p>SpringBoot旨在减少配置文件，方便Spring框架开发。</p>
+<span id="more"></span>
+
+<h1 id="简单介绍一下Spring，有什么缺点？"><a href="#简单介绍一下Spring，有什么缺点？" class="headerlink" title="简单介绍一下Spring，有什么缺点？"></a>简单介绍一下Spring，有什么缺点？</h1><p>spring是轻量级开发框架，集成了很多模块，如Ioc,Aop等，能够减少重复代码，提高开发效率。</p>
+<p>缺点是:需要大量的XML配置文件，比较繁琐。</p>
+<h1 id="Spring-boot-starters是什么？"><a href="#Spring-boot-starters是什么？" class="headerlink" title="Spring-boot-starters是什么？"></a>Spring-boot-starters是什么？</h1><p>Spring-boot-starters是一系列依赖关系的集合，它能够让我们项目的依赖配置更加简单。</p>
+<p>在没有Spring-boot-starters之前，开发一个web应用要引入spring-mvc，tomcat,jackson时，要分别配置，还要考虑他们之间的版本支持关系；但是如果使用一个依赖Spring-boot-starter-web就可以将他们集成一体化配置了，里边包含了web开发服务的所有依赖。</p>
+<h1 id="Spring支持哪些内嵌web容器"><a href="#Spring支持哪些内嵌web容器" class="headerlink" title="Spring支持哪些内嵌web容器"></a>Spring支持哪些内嵌web容器</h1><p>默认使用tomcat,还可以用jetty【在pom.xml中先移除tomcat，再添加jetty】</p>
+<h1 id="介绍一下-SpringBootApplication注解"><a href="#介绍一下-SpringBootApplication注解" class="headerlink" title="介绍一下@SpringBootApplication注解"></a>介绍一下@SpringBootApplication注解</h1><p>@SpringBootApplication是项目启动注解，他可以看作@EnableAutoConfiguration @ComponentScan @Configration注解的集合。</p>
+<blockquote>
+<p>@EnableAutoConfiguration: 启用springboot的自动配置功能</p>
+<p>@ComponentScan：扫描被@Component（@Controller）等注解注释的类，将他们以bean的形式注入到ioc容器。</p>
+<p>​				@ComponentScan默认扫描路径为同级包及其子包；</p>
+<p>@Configration允许在上下文中注入额外的bean和其他配置类</p>
+</blockquote>
+<h1 id="开发RESTful-Web服务常用的注解有哪些？"><a href="#开发RESTful-Web服务常用的注解有哪些？" class="headerlink" title="开发RESTful Web服务常用的注解有哪些？"></a>开发RESTful Web服务常用的注解有哪些？</h1><h2 id="Spring-Bean相关"><a href="#Spring-Bean相关" class="headerlink" title="Spring Bean相关"></a>Spring Bean相关</h2><h3 id="标记为ioc容器管理"><a href="#标记为ioc容器管理" class="headerlink" title="标记为ioc容器管理"></a>标记为ioc容器管理</h3><ul>
+<li>@Component @Repository @Service @Controller</li>
+</ul>
+<h3 id="装配bean"><a href="#装配bean" class="headerlink" title="装配bean"></a>装配bean</h3><ul>
+<li>@Autowired @Resource</li>
+</ul>
+<h3 id="HTTP请求类型"><a href="#HTTP请求类型" class="headerlink" title="HTTP请求类型"></a>HTTP请求类型</h3><ul>
+<li>@GetMapping @PostMapping @PutMapping @DeleteMapping</li>
+</ul>
+<h3 id="前后端传值"><a href="#前后端传值" class="headerlink" title="前后端传值"></a>前后端传值</h3><blockquote>
+<p>@RequestParam 用于?传参</p>
+<p>@PathVariable用于url路径传参</p>
+<p>@RequestBody用于读取Request请求的body部分以json格式传递的数据，将json字符串解析成java对象。</p>
+</blockquote>
+<blockquote>
+<p>一个请求方法只可以有一个@RequestBody，但是可以有多个@RequestParam，@PathVariable</p>
+</blockquote>
+<blockquote>
+<p>@RequestParam，@PathVariable通常用于get请求，get请求一般不用于传递json，硬传递的话要在url中添加json字符串，但是Url有长度限制。</p>
+<p>@RequestBody多用于post,put,delete请求，传递json</p>
+</blockquote>
+<h1 id="Springboot常用的两种配置文件"><a href="#Springboot常用的两种配置文件" class="headerlink" title="Springboot常用的两种配置文件"></a>Springboot常用的两种配置文件</h1><p>properties文件和yml文件。yml配置更加简单，看起来更有层次性（冒号后边的空格不要忘记）</p>
+<p>使用 <code>@Value(&quot;$&#123;property&#125;&quot;)</code> 读取比较简单的配置信息</p>
+<h1 id="Springboot后端请求参数验证"><a href="#Springboot后端请求参数验证" class="headerlink" title="Springboot后端请求参数验证"></a>Springboot后端请求参数验证</h1><p>即使前端做了请求参数验证，后端还是要进行参数验证，为了避免用户绕过浏览器通过http工具请求违法数据。</p>
+<blockquote>
+<p>对于requestbody请求参数，传入表单类通过框架注解进行参数限制，web方法请求参数前加@Valid</p>
+</blockquote>
+<blockquote>
+<p>对于RequestParam和PathVariable请求参数，请求方法加@valid和@Notnull等限制，在controller类上必须加@Validated注解</p>
+</blockquote>
+<h1 id="SpringBoot全局异常处理"><a href="#SpringBoot全局异常处理" class="headerlink" title="SpringBoot全局异常处理"></a>SpringBoot全局异常处理</h1><p>通过@ControllerAdvice注解 + @ResponseBody注解修饰配置类，@ExceptionHandler设置特定异常的处理方式。</p>
+<p>通过AOP实现，@ControllerAdvice注解会为controller类织入抛异常通知，具体的执行要看下边的配置。</p>
+<h1 id="SpringBoot定时任务"><a href="#SpringBoot定时任务" class="headerlink" title="SpringBoot定时任务"></a>SpringBoot定时任务</h1><p>通过@Scheduled修饰定时方法，并在启动类@EnableScheduling</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>SpringBoot</tag>
       </tags>
   </entry>
 </search>
