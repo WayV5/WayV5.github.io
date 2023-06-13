@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true">
 <meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/JVM/p2.png?raw=true">
 <meta property="article:published_time" content="2023-02-16T06:39:00.000Z">
-<meta property="article:modified_time" content="2023-06-07T07:31:40.280Z">
+<meta property="article:modified_time" content="2023-06-12T06:49:55.317Z">
 <meta property="article:author" content="Wei">
 <meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary">
@@ -227,7 +227,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-07 15:31:40" itemprop="dateModified" datetime="2023-06-07T15:31:40+08:00">2023-06-07</time>
+                <time title="修改时间：2023-06-12 14:49:55" itemprop="dateModified" datetime="2023-06-12T14:49:55+08:00">2023-06-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -307,23 +307,23 @@
 <p>​    在Java中，一个java类将会编译成一个class文件。在编译时，java类并不知道所引用的类的实际地址，因此只能使用符号引用来代替</p>
 <h2 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h2><p>​    位于本地内存。</p>
 <h2 id="一个对象的创建过程"><a href="#一个对象的创建过程" class="headerlink" title="一个对象的创建过程"></a>一个对象的创建过程</h2><p><strong>1.</strong>    <strong>类加载检查</strong></p>
-<p>​    当虚拟机遇到一个new 指令时，首先检查能否在常量池定位到对应的类的符号引用，再检查该类是否被加载过，如果没有必须先执行类加载过程。</p>
+<p>​		当虚拟机遇到一个new 指令时，首先检查能否在常量池定位到对应的类的符号引用，再检查该类是否被加载过，如果没有必须先执行类加载过程。</p>
 <ol start="2">
 <li><strong>分配内存</strong></li>
 </ol>
-<p>​    对象所需的内存大小在类加载完成后便可确定，分配内存就是在堆空间划出一块固定内存给新建的对象。有两种方式，1. “指针碰撞”：内存空间是规整的； 2. “空闲列表”:内存空间不规整； 能否规整看垃圾收集器是否有空间压缩整理功能。</p>
+<p>​		对象所需的内存大小在类加载完成后便可确定，分配内存就是在堆空间划出一块固定内存给新建的对象。有两种方式，1. “指针碰撞”：内存空间是规整的； 2. “空闲列表”:内存空间不规整； 能否规整看垃圾收集器是否有空间压缩整理功能。</p>
 <ol start="3">
 <li><strong>初始化零值</strong></li>
 </ol>
-<p>··   将对象的内存空间（不包括对象头）都初始化为0，保证Java对象不用赋初值就能直接使用。</p>
+<p>​		 将对象的内存空间（不包括对象头）都初始化为0，保证Java对象不用赋初值就能直接使用。</p>
 <ol start="4">
 <li><strong>设置对象头</strong></li>
 </ol>
-<p>​    对象头包扩：对象的类型指针，hashCode, 线程的锁信息，对应的元数据信息等。</p>
+<p>​		对象头包扩：对象的类型指针，hashCode, 线程的锁信息，对应的元数据信息等。</p>
 <ol start="5">
 <li><strong>执行 init 方法</strong></li>
 </ol>
-<p>​    按照程序员设置的参数，执行初始化方法。</p>
+<p>​		按照程序员设置的参数，执行初始化方法。</p>
 <h1 id="类加载机制"><a href="#类加载机制" class="headerlink" title="类加载机制"></a>类加载机制</h1><h2 id="一个类的生命周期"><a href="#一个类的生命周期" class="headerlink" title="一个类的生命周期"></a>一个类的生命周期</h2><p>加载 验证 准备 解析 初始化 使用 卸载</p>
 <p><img src="https://github.com/WayV5/imgs/blob/main/JVM/p1.png?raw=true" alt="p1.png"></p>
 <p>类加载过程包括：加载-&gt;连接-&gt;初始化 ， 连接过程包括：验证、准备、解析。</p>
@@ -599,13 +599,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">80k</span>
+    <span title="站点总字数">82k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">1:12</span>
+    <span title="站点阅读时长">1:15</span>
 </div>
 
         

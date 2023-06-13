@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/p1.png?raw=true">
 <meta property="og:image" content="https://github.com/WayV5/imgs/blob/main/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/p2.png?raw=true">
 <meta property="article:published_time" content="2022-11-20T12:15:00.000Z">
-<meta property="article:modified_time" content="2023-06-11T09:13:31.134Z">
+<meta property="article:modified_time" content="2023-06-12T09:11:19.448Z">
 <meta property="article:author" content="Wei">
 <meta property="article:tag" content="操作系统">
 <meta name="twitter:card" content="summary">
@@ -227,7 +227,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-11 17:13:31" itemprop="dateModified" datetime="2023-06-11T17:13:31+08:00">2023-06-11</time>
+                <time title="修改时间：2023-06-12 17:11:19" itemprop="dateModified" datetime="2023-06-12T17:11:19+08:00">2023-06-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -245,7 +245,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>7.9k</span>
+              <span>8k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -274,7 +274,7 @@
 <p>​    <strong>性能</strong>：如果用户直接访问共享资源，势必会产生冲突，影响执行效率。</p>
 <p>​    系统调用会发生进程的用户态和核心态之间的转换，转换时需要保存现场，恢复现场，状态的保存和恢复都要在CPU寄存器，浪费CPU资源（空间资源、时间资源）。</p>
 <h1 id="进程"><a href="#进程" class="headerlink" title="进程?"></a>进程?</h1><p>​    进程实体由 PCB 程序段 数据段 三部分组成。</p>
-<p>   *<em>PCB</em>***：进程控制块，是操作系统跟踪、管理进程的一个数据结构。组成有：</p>
+<p>   <strong>PCB</strong>：进程控制块，是操作系统跟踪、管理进程的一个数据结构。组成有：</p>
 <ul>
 <li>进程描述信息：PID UID</li>
 <li>进程控制和管理信息：如当前进程状态，进程优先级等</li>
@@ -417,14 +417,14 @@
 <li><p>空间局部性：一个程序访问了一个存储单元，在不久时间内，附近的存储单元很可能被访问。（因为数据存放形式大多是连续的）</p>
 </li>
 </ul>
-<h2 id="内存管理主要做什么"><a href="#内存管理主要做什么" class="headerlink" title="内存管理主要做什么"></a>内存管理主要做什么</h2><ul>
-<li><strong>内存空间的分配与回收</strong></li>
-<li><em>地址转换*<em>：装入时完成逻辑地址到物理地址的转换</em></em></li>
-<li>内存空间的扩展<strong>：覆盖、交换、虚拟内存</strong></li>
-<li>存储保护**：每个用户进程只能访问各自的内存地址</li>
+<h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><h3 id="内存管理要做什么"><a href="#内存管理要做什么" class="headerlink" title="内存管理要做什么"></a>内存管理要做什么</h3><ul>
+<li>内存空间的分配与回收</li>
+<li>地址转换：装入时完成逻辑地址到物理地址的转换</li>
+<li>内存空间的扩展：覆盖、交换、虚拟内存</li>
+<li>存储保护：每个用户进程只能访问各自的内存地址</li>
 </ul>
-<h2 id="内存空间的分配与回收"><a href="#内存空间的分配与回收" class="headerlink" title="内存空间的分配与回收?"></a>内存空间的分配与回收?</h2><blockquote>
-<p>内存管理分为<strong>连续分配</strong>管理方式和<strong>非连续</strong>分配管理方式，连续分配管理方式是指为一个用户程序分配一个连续的内存空间。</p>
+<blockquote>
+<p>内存管理的方式分为<strong>连续分配</strong>管理方式和<strong>非连续</strong>分配管理方式，连续分配管理方式是指为一个用户程序分配一个连续的内存空间。</p>
 </blockquote>
 <h3 id="连续分配管理方式"><a href="#连续分配管理方式" class="headerlink" title="连续分配管理方式"></a><strong>连续分配</strong>管理方式</h3><p>又有固定分区分配和动态分区分配:</p>
 <ol>
@@ -435,7 +435,7 @@
 </ol>
 <h3 id="非连续分配管理方式"><a href="#非连续分配管理方式" class="headerlink" title="非连续分配管理方式"></a><strong>非连续分配</strong>管理方式</h3><p>分为页式分配、段式分配、段页式分配。</p>
 <h4 id="页式分配管理"><a href="#页式分配管理" class="headerlink" title="页式分配管理"></a>页式分配管理</h4><ul>
-<li><p>将内存采用固定分区分配的方式进行分配，不过每个分区空间更小，称为<strong>页框。</strong></p>
+<li><p>将内存采用固定分区分配的方式进行分配，不过每个分区空间更小，称为<strong>页框</strong>。</p>
 </li>
 <li><p>将进程分成多个部分，每个部分大小与页框相等，称为<strong>页&#x2F;页面</strong>。</p>
 </li>
@@ -443,17 +443,26 @@
 </li>
 </ul>
 <h5 id="页式分配如何得到物理地址？"><a href="#页式分配如何得到物理地址？" class="headerlink" title="页式分配如何得到物理地址？"></a><strong>页式分配如何得到物理地址？</strong></h5><p>将程序页放入内存页框时可以采用离散的方式存放，因此难点在于逻辑地址到物理地址的转换。</p>
-<p>​		<em>页号</em>* &#x3D; 逻辑地址&#x2F;页面大小  <strong>页内偏移量</strong> &#x3D; 逻辑地址%页面大小</p>
-<p>​		<strong>页表</strong>记录了页号与页面地址的对应关系，通过页号查询得到页面地址，再结合页内偏移量就能得到实际的物理地址。页表存储地址的信息存放在PCB中。</p>
+<p><strong>页表</strong>记录了页号与页面地址的对应关系，通过页号查询得到页面地址，再结合页内偏移量就能得到实际的物理地址。每个程序的PCB中保存着页表地址的指针。因此程序通过自己的逻辑地址，结合页表，即可确定相应的物理地址。</p>
+<blockquote>
+<p> <strong>页号</strong> &#x3D; 逻辑地址&#x2F;页面大小；       <strong>页内偏移量</strong> &#x3D; 逻辑地址%页面大小</p>
+</blockquote>
 <p>当然这是基本的分页管理方式，如果采用的是虚拟内存技术，那么在地址转换过程要更加复杂，页表还要记录页面在外存中的状态，判断页面是否在内存中，（也就是判断是否缺页），进行页面置换，页表项也要动态更新。</p>
 <p><img src="https://github.com/WayV5/imgs/blob/main/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/p2.png?raw=true" alt="p2.png"></p>
-<p>​		页表中的页号字段其实是隐含的，因为每个页表项（每条记录）是等长的，看多少位能把所有的业内偏移量表示，就用了多少位。</p>
 <h5 id="快表"><a href="#快表" class="headerlink" title="快表"></a>快表</h5><p>​		快表是为了解决页式管理时，逻辑地址到物理地址转换时，查询页表速度较慢的问题。</p>
-<p>​		快表是页表的<strong>高速缓存存储器</strong>，当需要查询页表时，先查询快表中的缓存，缓存命中直接返回页面地址，未命中则去查询页表，然后缓存到快表中。</p>
-<p>​		由于局部性原理，我们访问了一个内存单元，那么这个内存单元附近的内存单元很可能在短时间内被访问，因此很可能查询到的页号是相同的，所以这种缓存机制命中率是很高的，能够很好的提高地址转换效率。</p>
+<p>​		快表是页表在<strong>高速缓存存储器</strong>Cache中的缓存，当需要查询页表时，先查询快表中的缓存，缓存命中直接返回页面地址，未命中则去查询页表，然后缓存到快表中。</p>
+<p>​		由于局部性原理，一个程序访问了一个内存单元，那么这个内存单元附近的内存单元很可能在短时间内被访问，因此很可能查询到的页号是相同的，所以这种缓存机制命中率是很高的，能够很好的提高地址转换效率。</p>
 <p>​    	这种操作系统的设计思想在我们开发系统时也经常用到。</p>
-<h5 id="多级页表"><a href="#多级页表" class="headerlink" title="多级页表"></a>多级页表</h5><p>​    	多级页表是为了避免，由于页表是连续存放的，把全部页表一直放在内存中占用过多内存空间。由于局部性原理，在一段时间内，程序只需要访问某些特定的存储空间就可以了，那些不需要的页表就不需要保留在内存中，我们通过将页表分块来解决。多级页表属于时间换空间的典型场景。</p>
-<h4 id="段式分配管理"><a href="#段式分配管理" class="headerlink" title="段式分配管理"></a>段式分配管理</h4><p>​    	分段的实际意义是：将用户程序按照逻辑关系，分成多个段（如MAIN段, 子程序段，数据段等）,以段为单元离散存放在物理内存中。</p>
+<h5 id="多级页表"><a href="#多级页表" class="headerlink" title="多级页表"></a>多级页表</h5><blockquote>
+<p>一般用两级页表</p>
+</blockquote>
+<ul>
+<li>单级页表的缺陷是：1. 为了实现逻辑地址到物理地址的快速转换，页表的存放地址是连续的；2. 整个页表需要常驻内存，占用了较大的内存空间；</li>
+<li>由于空间局部性原理，一个程序的运行，在一段时间内只需要访问特定的几个页面就可以；</li>
+<li>解决方式是采用两级页表，将页表分组，每个分组大小正好是一个页面的大小，然后再用一个页表存储每个分组的地址；</li>
+<li>这样每次地址转换只要将需要的页表部分调入内存就可以了。</li>
+</ul>
+<h4 id="段式分配管理"><a href="#段式分配管理" class="headerlink" title="段式分配管理"></a>段式分配管理</h4><p>​    	分段的实际意义是：将用户程序按照功能和逻辑关系，分成多个段（如MAIN段, 子程序段，数据段等）,以段为单元离散存放在物理内存中。</p>
 <p>​    	地址转换方式：段表记录了每个段的段号，段长，以及在物理内存中的基址，然后根据段号+段内偏移量，实现逻辑地址到物理地址的转换。</p>
 <p>段式管理和页式管理的区别和共同点：</p>
 <ul>
@@ -473,22 +482,24 @@
 <p>​		页表记录  页号-页基址 </p>
 <p>​       根据段号和段内偏移量可算出页号和页内偏移量，根据页号和业内偏移量可知物理地址。</p>
 <p>​			a)    段号查表得到起始页号；<br>​			b)   页号 &#x3D; 起始页号 + 段内偏移量&#x2F;页长；<br>​			c)    页内偏移量 &#x3D; 段内偏移量 % 页长；</p>
-<h2 id="内存空间的扩充？"><a href="#内存空间的扩充？" class="headerlink" title="内存空间的扩充？"></a>内存空间的扩充？</h2><h3 id="覆盖技术"><a href="#覆盖技术" class="headerlink" title="覆盖技术"></a>覆盖技术</h3><p>​    早期计算机使用，将内存分为<strong>固定区</strong>和<strong>覆盖区</strong>，固定区存放需要常驻内存的程序模块，对于不会同时装入内存的程序模块，共享某一段覆盖区。实现了内存空间的扩展。</p>
+<h2 id="内存空间的扩充"><a href="#内存空间的扩充" class="headerlink" title="内存空间的扩充"></a>内存空间的扩充</h2><h3 id="覆盖技术"><a href="#覆盖技术" class="headerlink" title="覆盖技术"></a>覆盖技术</h3><p>​    早期计算机使用，将内存分为<strong>固定区</strong>和<strong>覆盖区</strong>，固定区存放需要常驻内存的程序模块，对于不会同时装入内存的程序模块，共享某一段覆盖区。实现了内存空间的扩展。</p>
 <p>​    缺点：哪些程序段是常驻内存的，哪些可以共享覆盖区的，需要程序员声明，增加了编程负担。</p>
 <h3 id="交换技术"><a href="#交换技术" class="headerlink" title="交换技术"></a>交换技术</h3><p>​    当内存紧张时，将暂时不具备运行条件的进程换到外存，比如处于阻塞态、就绪态的进程，可以给它换到外存，此时状态叫他挂起态，然后具备运行条件再换入内存。</p>
 <p>​    外存的磁盘空间分为<strong>对换区</strong>和<strong>文件区</strong>：</p>
 <p>​    <strong>文件区</strong>：用于存放文件，追求存储空间的利用率，离散分布，随机读写；</p>
 <p>​    <strong>对换区</strong>：用于存放被换出的进程数据，追究的是换入换出的速度，采用顺序读写的方式，IO速度更快。</p>
-<p>​    交换技术以进程为单位，而虚拟内存是针对进程内的页面的。</p>
-<h3 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h3><h4 id="什么是虚拟内存？"><a href="#什么是虚拟内存？" class="headerlink" title="什么是虚拟内存？"></a>什么是虚拟内存？</h4><p>​    虚拟内存通过一种“数据交换”的方式，将暂时用不到的程序模块放在外存中，在逻辑上扩展了系统的内存空间，是局部性原理的一个重要应用。</p>
+<blockquote>
+<p>交换技术以<strong>进程</strong>为单位，而虚拟内存是以进程内的<strong>页面</strong>为单位的, 粒度更细。</p>
+</blockquote>
+<h3 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h3><h4 id="什么是虚拟内存？"><a href="#什么是虚拟内存？" class="headerlink" title="什么是虚拟内存？"></a>什么是虚拟内存？</h4><p>​    虚拟内存通过一种“数据交换”的方式，将暂时用不到的程序页面放在外存中，在逻辑上扩展了系统的内存空间，是局部性原理的一个重要应用。</p>
 <p>​    请求分页管理方式：基本分页管理+虚拟内存。</p>
 <h4 id="页缺失是什么意思？"><a href="#页缺失是什么意思？" class="headerlink" title="页缺失是什么意思？"></a>页缺失是什么意思？</h4><p>需要访问的程序页不在内存中，被置换到了外存当中。</p>
 <h4 id="页面置换算法有哪些？"><a href="#页面置换算法有哪些？" class="headerlink" title="页面置换算法有哪些？"></a>页面置换算法有哪些？</h4><p>​    页面置换算法是在请求分页管理方式中，当内存块都被占满的情况下，有新的页面要从外存中请求调入时，淘汰当前内存中页面的规则。</p>
 <p>页面置换算法性能指标是缺页率。</p>
-<p>a)    <strong>最佳置换算法OPT</strong>：每次选择淘汰以后永不访问，或最长时间不被访问的页面。这种算法是最理想的算法，但是由于这个衡量标准只能在上帝视角才知道，因此无法实现。但是可以作为衡量其他算法的一个标准</p>
+<p>a)    <strong>最佳置换算法OPT</strong>：每次选择淘汰以后永不访问，或最长时间不被访问的页面。这种算法是最理想的算法，但是由于这个衡量标准只能在上帝视角才知道，因此无法实现。但是可以作为衡量其他算法的一个标准。</p>
 <p>b)   <strong>先入先出置换算法FIFO</strong>：维护一个<strong>先进先出队列</strong>，最先进入内存的页面被淘汰。</p>
-<p>算法实现简单，但是当为进程分配的内存页增加时，缺页率反而会上升，称为Belady异常。</p>
-<p>c)    <strong>最近最久页面置换算法LRU</strong>：淘汰最近最久没有被使用的页面。页表中记录分配一个字段，记录这个页面没被使用的时间。Mysql里边，当buffer pool满了的时候，淘汰页面用的就是这个算法。</p>
+<p>算法实现简单，但是当为进程分配的内存页增加时，缺页率反而会上升，称为Belady异常（贝拉迪异常）。</p>
+<p>c)    <strong>最近最久页面置换算法LRU</strong>（Least Recently Used）：淘汰最近最久没有被使用的页面。页表中记录分配一个字段，记录这个页面没被使用的时间。Mysql里边，当buffer pool满了的时候，淘汰页面用的就是这个算法。</p>
 <p>d)   <strong>时钟页面置换算法：</strong>可以认为是一种最近未使用算法，即逐出的页面都是最近没有使用的那个。</p>
 
     </div>
@@ -574,7 +585,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是操作系统？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">系统调用？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">进程?</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%9C%89%E5%93%AA%E5%87%A0%E7%A7%8D%E7%8A%B6%E6%80%81"><span class="nav-number">3.1.</span> <span class="nav-text">进程有哪几种状态?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6"><span class="nav-number">3.2.</span> <span class="nav-text">进程调度?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E9%80%9A%E4%BF%A1%EF%BC%9F"><span class="nav-number">3.3.</span> <span class="nav-text">进程通信？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5%EF%BC%9F"><span class="nav-number">3.4.</span> <span class="nav-text">进程同步？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%83%B5%E5%B0%B8%E8%BF%9B%E7%A8%8B%E5%92%8C%E5%AD%A4%E5%84%BF%E8%BF%9B%E7%A8%8B%EF%BC%9F"><span class="nav-number">3.5.</span> <span class="nav-text">僵尸进程和孤儿进程？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%BB%E9%94%81%EF%BC%9F"><span class="nav-number">3.6.</span> <span class="nav-text">死锁？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E5%9B%9B%E4%B8%AA%E5%BF%85%E8%A6%81%E6%9D%A1%E4%BB%B6"><span class="nav-number">3.6.1.</span> <span class="nav-text">死锁产生的四个必要条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%AD%BB%E9%94%81%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">3.6.2.</span> <span class="nav-text">解决死锁的方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java%E5%A6%82%E4%BD%95%E6%8E%92%E6%9F%A5%E6%AD%BB%E9%94%81"><span class="nav-number">3.7.</span> <span class="nav-text">Java如何排查死锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%BD%E5%86%99%E4%B8%80%E4%B8%AA%E6%A8%A1%E6%8B%9F%E4%BA%A7%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E4%BB%A3%E7%A0%81%E5%90%97%EF%BC%9F"><span class="nav-number">3.7.1.</span> <span class="nav-text">能写一个模拟产生死锁的代码吗？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B"><span class="nav-number">3.8.</span> <span class="nav-text">线程?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%92%8C%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.8.1.</span> <span class="nav-text">线程和进程的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%A5%BD%E5%A4%84%EF%BC%9F"><span class="nav-number">3.8.2.</span> <span class="nav-text">多线程的好处？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">内存？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E4%BB%A3%E7%A0%81%E5%88%B0%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="nav-number">4.1.</span> <span class="nav-text">用户代码到内存中的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E6%80%A7%E5%8E%9F%E7%90%86%EF%BC%9F"><span class="nav-number">4.2.</span> <span class="nav-text">局部性原理？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%BB%E8%A6%81%E5%81%9A%E4%BB%80%E4%B9%88"><span class="nav-number">4.3.</span> <span class="nav-text">内存管理主要做什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E7%9A%84%E5%88%86%E9%85%8D%E4%B8%8E%E5%9B%9E%E6%94%B6"><span class="nav-number">4.4.</span> <span class="nav-text">内存空间的分配与回收?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F"><span class="nav-number">4.4.1.</span> <span class="nav-text">连续分配管理方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%9E%E8%BF%9E%E7%BB%AD%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F"><span class="nav-number">4.4.2.</span> <span class="nav-text">非连续分配管理方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B5%E5%BC%8F%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86"><span class="nav-number">4.4.2.1.</span> <span class="nav-text">页式分配管理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%A1%B5%E5%BC%8F%E5%88%86%E9%85%8D%E5%A6%82%E4%BD%95%E5%BE%97%E5%88%B0%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%EF%BC%9F"><span class="nav-number">4.4.2.1.1.</span> <span class="nav-text">页式分配如何得到物理地址？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BF%AB%E8%A1%A8"><span class="nav-number">4.4.2.1.2.</span> <span class="nav-text">快表</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A4%9A%E7%BA%A7%E9%A1%B5%E8%A1%A8"><span class="nav-number">4.4.2.1.3.</span> <span class="nav-text">多级页表</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AE%B5%E5%BC%8F%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86"><span class="nav-number">4.4.2.2.</span> <span class="nav-text">段式分配管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86"><span class="nav-number">4.4.2.3.</span> <span class="nav-text">段页式分配管理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E7%9A%84%E6%89%A9%E5%85%85%EF%BC%9F"><span class="nav-number">4.5.</span> <span class="nav-text">内存空间的扩充？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A6%86%E7%9B%96%E6%8A%80%E6%9C%AF"><span class="nav-number">4.5.1.</span> <span class="nav-text">覆盖技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A4%E6%8D%A2%E6%8A%80%E6%9C%AF"><span class="nav-number">4.5.2.</span> <span class="nav-text">交换技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98"><span class="nav-number">4.5.3.</span> <span class="nav-text">虚拟内存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="nav-number">4.5.3.1.</span> <span class="nav-text">什么是虚拟内存？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B5%E7%BC%BA%E5%A4%B1%E6%98%AF%E4%BB%80%E4%B9%88%E6%84%8F%E6%80%9D%EF%BC%9F"><span class="nav-number">4.5.3.2.</span> <span class="nav-text">页缺失是什么意思？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">4.5.3.3.</span> <span class="nav-text">页面置换算法有哪些？</span></a></li></ol></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是操作系统？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">系统调用？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">进程?</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%9C%89%E5%93%AA%E5%87%A0%E7%A7%8D%E7%8A%B6%E6%80%81"><span class="nav-number">3.1.</span> <span class="nav-text">进程有哪几种状态?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6"><span class="nav-number">3.2.</span> <span class="nav-text">进程调度?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E9%80%9A%E4%BF%A1%EF%BC%9F"><span class="nav-number">3.3.</span> <span class="nav-text">进程通信？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5%EF%BC%9F"><span class="nav-number">3.4.</span> <span class="nav-text">进程同步？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%83%B5%E5%B0%B8%E8%BF%9B%E7%A8%8B%E5%92%8C%E5%AD%A4%E5%84%BF%E8%BF%9B%E7%A8%8B%EF%BC%9F"><span class="nav-number">3.5.</span> <span class="nav-text">僵尸进程和孤儿进程？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%BB%E9%94%81%EF%BC%9F"><span class="nav-number">3.6.</span> <span class="nav-text">死锁？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%9A%84%E5%9B%9B%E4%B8%AA%E5%BF%85%E8%A6%81%E6%9D%A1%E4%BB%B6"><span class="nav-number">3.6.1.</span> <span class="nav-text">死锁产生的四个必要条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%AD%BB%E9%94%81%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">3.6.2.</span> <span class="nav-text">解决死锁的方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java%E5%A6%82%E4%BD%95%E6%8E%92%E6%9F%A5%E6%AD%BB%E9%94%81"><span class="nav-number">3.7.</span> <span class="nav-text">Java如何排查死锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%BD%E5%86%99%E4%B8%80%E4%B8%AA%E6%A8%A1%E6%8B%9F%E4%BA%A7%E7%94%9F%E6%AD%BB%E9%94%81%E7%9A%84%E4%BB%A3%E7%A0%81%E5%90%97%EF%BC%9F"><span class="nav-number">3.7.1.</span> <span class="nav-text">能写一个模拟产生死锁的代码吗？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B"><span class="nav-number">3.8.</span> <span class="nav-text">线程?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%92%8C%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.8.1.</span> <span class="nav-text">线程和进程的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%A5%BD%E5%A4%84%EF%BC%9F"><span class="nav-number">3.8.2.</span> <span class="nav-text">多线程的好处？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">内存？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E4%BB%A3%E7%A0%81%E5%88%B0%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E6%B5%81%E7%A8%8B"><span class="nav-number">4.1.</span> <span class="nav-text">用户代码到内存中的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E6%80%A7%E5%8E%9F%E7%90%86%EF%BC%9F"><span class="nav-number">4.2.</span> <span class="nav-text">局部性原理？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">4.3.</span> <span class="nav-text">内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E8%A6%81%E5%81%9A%E4%BB%80%E4%B9%88"><span class="nav-number">4.3.1.</span> <span class="nav-text">内存管理要做什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E7%BB%AD%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F"><span class="nav-number">4.3.2.</span> <span class="nav-text">连续分配管理方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%9E%E8%BF%9E%E7%BB%AD%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F"><span class="nav-number">4.3.3.</span> <span class="nav-text">非连续分配管理方式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B5%E5%BC%8F%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86"><span class="nav-number">4.3.3.1.</span> <span class="nav-text">页式分配管理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%A1%B5%E5%BC%8F%E5%88%86%E9%85%8D%E5%A6%82%E4%BD%95%E5%BE%97%E5%88%B0%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%EF%BC%9F"><span class="nav-number">4.3.3.1.1.</span> <span class="nav-text">页式分配如何得到物理地址？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BF%AB%E8%A1%A8"><span class="nav-number">4.3.3.1.2.</span> <span class="nav-text">快表</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A4%9A%E7%BA%A7%E9%A1%B5%E8%A1%A8"><span class="nav-number">4.3.3.1.3.</span> <span class="nav-text">多级页表</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AE%B5%E5%BC%8F%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86"><span class="nav-number">4.3.3.2.</span> <span class="nav-text">段式分配管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%88%86%E9%85%8D%E7%AE%A1%E7%90%86"><span class="nav-number">4.3.3.3.</span> <span class="nav-text">段页式分配管理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E7%9A%84%E6%89%A9%E5%85%85"><span class="nav-number">4.4.</span> <span class="nav-text">内存空间的扩充</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A6%86%E7%9B%96%E6%8A%80%E6%9C%AF"><span class="nav-number">4.4.1.</span> <span class="nav-text">覆盖技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A4%E6%8D%A2%E6%8A%80%E6%9C%AF"><span class="nav-number">4.4.2.</span> <span class="nav-text">交换技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98"><span class="nav-number">4.4.3.</span> <span class="nav-text">虚拟内存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%EF%BC%9F"><span class="nav-number">4.4.3.1.</span> <span class="nav-text">什么是虚拟内存？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B5%E7%BC%BA%E5%A4%B1%E6%98%AF%E4%BB%80%E4%B9%88%E6%84%8F%E6%80%9D%EF%BC%9F"><span class="nav-number">4.4.3.2.</span> <span class="nav-text">页缺失是什么意思？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="nav-number">4.4.3.3.</span> <span class="nav-text">页面置换算法有哪些？</span></a></li></ol></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -650,13 +661,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">80k</span>
+    <span title="站点总字数">82k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">1:12</span>
+    <span title="站点阅读时长">1:15</span>
 </div>
 
         
