@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="为什么重写equals方法还要重写hashCode方法？ 首先，从判断两个对象相等的逻辑意义上来讲，从源码来看，在这两个方法都不重写时，equals用&#x3D;&#x3D;比较是内存地址，而hashCode也是通过对象的内存地址进行计算得到的。所以要判断两个对象逻辑上相等，既要保证equals相等，也要保证他们的hashCode相等">
+  <meta name="description" content="对面向对象编程的理解面向对象编程Object-Oriented Programming(OOP)是一种编程范式，思想是将数据和对数据的操作都封装在对象里，通过对对象的操作，来描述程序的行为。 JAVA接口和抽象类的区别 java中一个类只能有一个父类，而可以实现多个接口； 抽象类中方法分为抽象方法和普通方法，抽象方法必须有子类实现，普通方法可以直接继承，也可以覆盖； 接口中的方法默认都是publi">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java基础">
 <meta property="og:url" content="http://example.com/2023/05/16/0%E5%85%AB%E8%82%A1_Java%E5%9F%BA%E7%A1%80/index.html">
 <meta property="og:site_name" content="Wei&#39;s Blog">
-<meta property="og:description" content="为什么重写equals方法还要重写hashCode方法？ 首先，从判断两个对象相等的逻辑意义上来讲，从源码来看，在这两个方法都不重写时，equals用&#x3D;&#x3D;比较是内存地址，而hashCode也是通过对象的内存地址进行计算得到的。所以要判断两个对象逻辑上相等，既要保证equals相等，也要保证他们的hashCode相等">
+<meta property="og:description" content="对面向对象编程的理解面向对象编程Object-Oriented Programming(OOP)是一种编程范式，思想是将数据和对数据的操作都封装在对象里，通过对对象的操作，来描述程序的行为。 JAVA接口和抽象类的区别 java中一个类只能有一个父类，而可以实现多个接口； 抽象类中方法分为抽象方法和普通方法，抽象方法必须有子类实现，普通方法可以直接继承，也可以覆盖； 接口中的方法默认都是publi">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-05-16T02:12:00.000Z">
-<meta property="article:modified_time" content="2023-06-12T05:45:19.627Z">
+<meta property="article:modified_time" content="2023-06-14T14:10:52.078Z">
 <meta property="article:author" content="Wei">
 <meta property="article:tag" content="-java">
 <meta name="twitter:card" content="summary">
@@ -224,7 +224,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-12 13:45:19" itemprop="dateModified" datetime="2023-06-12T13:45:19+08:00">2023-06-12</time>
+                <time title="修改时间：2023-06-14 22:10:52" itemprop="dateModified" datetime="2023-06-14T22:10:52+08:00">2023-06-14</time>
               </span>
 
           <br>
@@ -233,7 +233,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>4.3k</span>
+              <span>4.5k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -252,7 +252,14 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="为什么重写equals方法还要重写hashCode方法？"><a href="#为什么重写equals方法还要重写hashCode方法？" class="headerlink" title="为什么重写equals方法还要重写hashCode方法？"></a>为什么重写equals方法还要重写hashCode方法？</h2><ul>
+        <h2 id="对面向对象编程的理解"><a href="#对面向对象编程的理解" class="headerlink" title="对面向对象编程的理解"></a>对面向对象编程的理解</h2><p>面向对象编程Object-Oriented Programming(OOP)是一种编程范式，思想是将数据和对数据的操作都封装在对象里，通过对对象的操作，来描述程序的行为。</p>
+<h2 id="JAVA接口和抽象类的区别"><a href="#JAVA接口和抽象类的区别" class="headerlink" title="JAVA接口和抽象类的区别"></a>JAVA接口和抽象类的区别</h2><ul>
+<li>java中一个类只能有一个父类，而可以实现多个接口；</li>
+<li>抽象类中方法分为抽象方法和普通方法，抽象方法必须有子类实现，普通方法可以直接继承，也可以覆盖；</li>
+<li>接口中的方法默认都是public</li>
+<li>从意义上来说：抽象类用于描述一组具有相似行为的类的基类，描述了一些基本的</li>
+</ul>
+<h2 id="为什么重写equals方法还要重写hashCode方法？"><a href="#为什么重写equals方法还要重写hashCode方法？" class="headerlink" title="为什么重写equals方法还要重写hashCode方法？"></a>为什么重写equals方法还要重写hashCode方法？</h2><ul>
 <li>首先，从判断两个对象相等的逻辑意义上来讲，从源码来看，在这两个方法都不重写时，equals用&#x3D;&#x3D;比较是内存地址，而hashCode也是通过对象的内存地址进行计算得到的。所以要判断两个对象逻辑上相等，既要保证equals相等，也要保证他们的hashCode相等</li>
 </ul>
 <span id="more"></span>
@@ -443,7 +450,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%87%8D%E5%86%99equals%E6%96%B9%E6%B3%95%E8%BF%98%E8%A6%81%E9%87%8D%E5%86%99hashCode%E6%96%B9%E6%B3%95%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么重写equals方法还要重写hashCode方法？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E5%86%99%E5%92%8C%E9%87%8D%E8%BD%BD%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.</span> <span class="nav-text">重写和重载的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO%E5%AF%86%E9%9B%86%E5%9E%8B%E5%92%8CCPU%E5%AF%86%E9%9B%86%E5%9E%8B%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">IO密集型和CPU密集型？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E5%A4%A7%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3"><span class="nav-number">4.</span> <span class="nav-text">四大函数式接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stream"><span class="nav-number">5.</span> <span class="nav-text">Stream</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#final%E5%85%B3%E9%94%AE%E5%AD%97"><span class="nav-number">6.</span> <span class="nav-text">final关键字</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception%E5%92%8CError"><span class="nav-number">7.</span> <span class="nav-text">Exception和Error</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%8D%E5%B0%84"><span class="nav-number"></span> <span class="nav-text">反射</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96Class%E5%AF%B9%E8%B1%A14%E7%A7%8D%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">获取Class对象4种的方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E5%8F%8D%E5%B0%84%E5%88%86%E6%9E%90%E7%B1%BB%E7%9A%84%E8%83%BD%E5%8A%9B"><span class="nav-number">2.</span> <span class="nav-text">利用反射分析类的能力</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#new%E7%94%9F%E6%88%90%E5%AF%B9%E8%B1%A1%E5%92%8C%E5%8F%8D%E5%B0%84%E7%94%9F%E6%88%90%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.</span> <span class="nav-text">new生成对象和反射生成对象的区别</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">1.</span> <span class="nav-text">对面向对象编程的理解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JAVA%E6%8E%A5%E5%8F%A3%E5%92%8C%E6%8A%BD%E8%B1%A1%E7%B1%BB%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.</span> <span class="nav-text">JAVA接口和抽象类的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%87%8D%E5%86%99equals%E6%96%B9%E6%B3%95%E8%BF%98%E8%A6%81%E9%87%8D%E5%86%99hashCode%E6%96%B9%E6%B3%95%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">为什么重写equals方法还要重写hashCode方法？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E5%86%99%E5%92%8C%E9%87%8D%E8%BD%BD%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">4.</span> <span class="nav-text">重写和重载的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO%E5%AF%86%E9%9B%86%E5%9E%8B%E5%92%8CCPU%E5%AF%86%E9%9B%86%E5%9E%8B%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">IO密集型和CPU密集型？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E5%A4%A7%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3"><span class="nav-number">6.</span> <span class="nav-text">四大函数式接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stream"><span class="nav-number">7.</span> <span class="nav-text">Stream</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#final%E5%85%B3%E9%94%AE%E5%AD%97"><span class="nav-number">8.</span> <span class="nav-text">final关键字</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exception%E5%92%8CError"><span class="nav-number">9.</span> <span class="nav-text">Exception和Error</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%8D%E5%B0%84"><span class="nav-number"></span> <span class="nav-text">反射</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96Class%E5%AF%B9%E8%B1%A14%E7%A7%8D%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">获取Class对象4种的方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E5%8F%8D%E5%B0%84%E5%88%86%E6%9E%90%E7%B1%BB%E7%9A%84%E8%83%BD%E5%8A%9B"><span class="nav-number">2.</span> <span class="nav-text">利用反射分析类的能力</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#new%E7%94%9F%E6%88%90%E5%AF%B9%E8%B1%A1%E5%92%8C%E5%8F%8D%E5%B0%84%E7%94%9F%E6%88%90%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.</span> <span class="nav-text">new生成对象和反射生成对象的区别</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -519,13 +526,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">82k</span>
+    <span title="站点总字数">84k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">1:15</span>
+    <span title="站点阅读时长">1:16</span>
 </div>
 
         
