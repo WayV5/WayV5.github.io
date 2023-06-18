@@ -29,7 +29,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://oss.javaguide.cn/github/javaguide/database/redis/cache-aside-write.png">
 <meta property="article:published_time" content="2023-02-08T01:01:05.000Z">
-<meta property="article:modified_time" content="2023-06-07T07:29:55.581Z">
+<meta property="article:modified_time" content="2023-06-18T03:38:10.249Z">
 <meta property="article:author" content="Wei">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
@@ -226,7 +226,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-06-07 15:29:55" itemprop="dateModified" datetime="2023-06-07T15:29:55+08:00">2023-06-07</time>
+                <time title="修改时间：2023-06-18 11:38:10" itemprop="dateModified" datetime="2023-06-18T11:38:10+08:00">2023-06-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -244,7 +244,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3.7k</span>
+              <span>3.8k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -277,6 +277,9 @@
 <h2 id="Zset-Sorted-set"><a href="#Zset-Sorted-set" class="headerlink" title="Zset(Sorted set)"></a>Zset(Sorted set)</h2><p>有序不可重复集合；每个元素有一个分数（score），默认按照分数从小到大排序</p>
 <h1 id="Redis持久化"><a href="#Redis持久化" class="headerlink" title="Redis持久化"></a>Redis持久化</h1><h2 id="RDB持久化（全量同步）（默认开启）"><a href="#RDB持久化（全量同步）（默认开启）" class="headerlink" title="RDB持久化（全量同步）（默认开启）"></a>RDB持久化（全量同步）（默认开启）</h2><p>周期性的将redis数据以snapshot形式存储到二进制文件，一般一个小时一次；</p>
 <p>redis通过fork一个子线程来定时生成rdb文件，避免影响redis服务进程的执行效率。</p>
+<blockquote>
+<p>RDB无法做到秒级持久化，因为每次都要fork一个子线程，消耗比较大。</p>
+</blockquote>
 <h2 id="AOF持久化（增量同步）"><a href="#AOF持久化（增量同步）" class="headerlink" title="AOF持久化（增量同步）"></a>AOF持久化（增量同步）</h2><p>AOF文件记录的是redis的增删改操作；</p>
 <p>AOF同步策略：1. 每秒同步 2.每个增删改操作同步 3.不同步</p>
 <blockquote>
@@ -288,13 +291,19 @@
 </blockquote>
 <h1 id="Redis缓存的好处"><a href="#Redis缓存的好处" class="headerlink" title="Redis缓存的好处"></a>Redis缓存的好处</h1><p>因此磁盘的访问速度远低于内存的访问速度，常用的数据缓存到内存中，能保证系统的高可用性和并发性。</p>
 <h1 id="Redis的三种缓存读写（更新）策略"><a href="#Redis的三种缓存读写（更新）策略" class="headerlink" title="Redis的三种缓存读写（更新）策略"></a>Redis的三种缓存读写（更新）策略</h1><h2 id="旁路缓存"><a href="#旁路缓存" class="headerlink" title="旁路缓存"></a>旁路缓存</h2><p><img src="https://oss.javaguide.cn/github/javaguide/database/redis/cache-aside-write.png" alt="img"></p>
-<p><strong>读</strong>的时候：1.先到redis中读取 2.如果没有数据，就去数据库中读 并返回3. 再把数据放到redis中；</p>
+<p><strong>读</strong>的时候：1.先到redis中读取 2.如果没有数据，就去数据库中读并返回 3. 再把数据放到redis中；</p>
 <p><strong>写</strong>的时候：1.先更新数据库 2.然后直接删除缓存中对应的数据</p>
 <blockquote>
-<p>必须先更新db，再删除cache; 否则如果先删除cache再更新db，会造成cache和db数据不一致</p>
+<p>如果先删除缓存，那么可能有大量的查询请求会达到数据库，并且修改缓存，可能将缓存的值修改回原来的旧值，造成mysql和redis数据不一致；</p>
+<p>旁路缓存适合<strong>读多写少</strong>的情况。</p>
+<p>这个逻辑要java自己写代码实现。</p>
 </blockquote>
 <h2 id="读写穿透"><a href="#读写穿透" class="headerlink" title="读写穿透"></a>读写穿透</h2><p>读的时候：1.先到redis中读取 2.如果没有数据，就去数据库加载数据到redis 3.redis返回数据</p>
 <p>写的时候：1.先查cache，cache不存在，直接更新db；2.如果查到cache,直接更新cache,然后由redis更新db；</p>
+<blockquote>
+<p>由redis去更新数据库，可能增加redis负担；</p>
+<p>并且分布式redis可能没有这个功能。</p>
+</blockquote>
 <h2 id="异步缓存写入"><a href="#异步缓存写入" class="headerlink" title="异步缓存写入"></a>异步缓存写入</h2><p>与读写穿透相似，都是由redis来更新db，但是这个更新是批量异步更新的。这点和mysql的批量同步机制类似。</p>
 <h1 id="除了缓存Redis还能干什么"><a href="#除了缓存Redis还能干什么" class="headerlink" title="除了缓存Redis还能干什么"></a>除了缓存Redis还能干什么</h1><ol>
 <li>消息队列</li>
@@ -539,13 +548,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">84k</span>
+    <span title="站点总字数">85k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">1:16</span>
+    <span title="站点阅读时长">1:18</span>
 </div>
 
         
